@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vento - Dashboard Dinámico</title>
+    <title>Vento - Control de Tickets Abiertos</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --vento-orange: #FF5A00; /* Naranja Vento */
-            --vento-black: #111111;  /* Negro Intenso */
-            --vento-gray: #F8F9FA;   /* Fondo Claro */
-            --vento-white: #FFFFFF;  /* Blanco */
+            --vento-orange: #FF5A00; 
+            --vento-black: #111111;  
+            --vento-gray: #F8F9FA;   
+            --vento-white: #FFFFFF;  
             --vento-dark-gray: #222222;
         }
 
@@ -41,7 +41,7 @@
         }
 
         .container {
-            width: 90%;
+            width: 93%;
             margin: 25px auto;
         }
 
@@ -76,7 +76,7 @@
             border: 1px solid #ccc;
             border-radius: 4px;
             background: white;
-            min-width: 180px;
+            min-width: 220px;
             font-size: 0.9rem;
             outline: none;
             transition: border 0.3s;
@@ -101,13 +101,7 @@
             border-top: 4px solid var(--vento-black);
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
             text-align: center;
-            transition: transform 0.2s;
             border: 1px solid #e1e1e1;
-        }
-
-        .kpi-card:hover {
-            transform: translateY(-3px);
-            border-top-color: var(--vento-orange);
         }
 
         .kpi-card h3 {
@@ -120,7 +114,7 @@
 
         .kpi-card p {
             margin: 12px 0 0;
-            font-size: 2rem;
+            font-size: 2.5rem;
             font-weight: 900;
             color: var(--vento-black);
         }
@@ -185,194 +179,215 @@
 
 <div id="loading">
     <div class="spinner"></div>
-    CONECTANDO CON DRIVE...
+    CONECTANDO CON BASE DE TICKETS VENTO...
 </div>
 
 <header>
-    <h1>VENTO <span style="color:var(--vento-orange)">DATA ANALYTICS</span></h1>
-    <span style="font-weight: 300; font-size: 0.9rem;">Actualización en Tiempo Real</span>
+    <h1>VENTO <span style="color:var(--vento-orange)">TICKETS BD</span></h1>
+    <span style="font-weight: 300; font-size: 0.9rem;">Productividad y Control de Abiertos</span>
 </header>
 
 <div class="container">
     <div class="filters-section">
         <div class="filter-group">
-            <label>FILTRAR CATEGORÍA</label>
-            <select id="filterCategory" onchange="updateDashboard()">
-                <option value="all">Todas las Categorías</option>
+            <label>FILTRAR POR ASESOR</label>
+            <select id="filterAsesor" onchange="updateDashboard()">
+                <option value="all">Todos los Asesores</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>FILTRAR POR MES (CREACIÓN)</label>
+            <select id="filterMes" onchange="updateDashboard()">
+                <option value="all">Todos los Meses</option>
             </select>
         </div>
     </div>
 
     <div class="kpi-container">
+        <div class="kpi-card" style="border-top-color: var(--vento-orange);">
+            <h3>Tickets Abiertos / Pendientes</h3>
+            <p id="kpiAbiertos" style="color: var(--vento-orange);">0</p>
+        </div>
         <div class="kpi-card">
-            <h3>Total Registros</h3>
+            <h3>Total General Tickets</h3>
             <p id="kpiTotal">0</p>
         </div>
         <div class="kpi-card">
-            <h3>Monto Total</h3>
-            <p id="kpiSuma" style="color: var(--vento-orange);">$0</p>
-        </div>
-        <div class="kpi-card">
-            <h3>Promedio General</h3>
-            <p id="kpiPromedio">$0</p>
+            <h3>Porcentaje Pendiente</h3>
+            <p id="kpiPorcentaje">0%</p>
         </div>
     </div>
 
     <div class="charts-grid">
         <div class="chart-box">
-            <h4>Distribución por Categoría</h4>
-            <div style="position: relative; height:320px;">
+            <h4>Distribución de Estados (Columna G)</h4>
+            <div style="position: relative; height:340px;">
                 <canvas id="chartPie"></canvas>
             </div>
         </div>
         <div class="chart-box">
-            <h4>Historial / Tendencia de Valores</h4>
-            <div style="position: relative; height:320px;">
-                <canvas id="chartLine"></canvas>
+            <h4>Volumen de Tickets por Asesor (Columna C)</h4>
+            <div style="position: relative; height:340px;">
+                <canvas id="chartAsesores"></canvas>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // Configuración del enlace público de tu Google Sheet
     const SHEET_ID = '1JBre4cLAbYiOJuYye_FGcsk5U_BIStDoAiCbV-B8WoA';
     const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
 
     let rawData = [];
-    let chartPie, chartLine;
+    let chartPie, chartAsesores;
 
-    // Colores corporativos aplicados a las gráficas
     const vOrange = '#FF5A00';
     const vBlack = '#111111';
     const vWhite = '#FFFFFF';
-    const chartPalette = ['#FF5A00', '#111111', '#444444', '#888888', '#CCCCCC', '#FF8440'];
+    const chartPalette = ['#FF5A00', '#111111', '#555555', '#888888', '#AAAAAA', '#CCCCCC'];
 
-    // 1. Extracción de datos desde Google Drive
+    const mesesNombres = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+
+    // 1. Obtener y estructurar datos desde Google Drive
     async function fetchData() {
         try {
             const response = await fetch(URL);
             const text = await response.text();
-            // Limpieza del formato JSONP que devuelve la API de Google
             const json = JSON.parse(text.substr(47).slice(0, -2));
             
             const rows = json.table.rows;
 
-            // Mapeo automático de los datos extraídos
-            rawData = rows.map(row => ({
-                fecha: row.c[0] ? row.c[0].f || row.c[0].v : 'S/F',
-                categoria: row.c[1] ? row.c[1].v : 'Sin Categoría',
-                valor: row.c[2] ? Number(row.c[2].v) : 0
-            }));
+            rawData = rows.map(row => {
+                let mesTexto = 'S/M';
+                
+                // Procesar Fecha de Creación (Columna D -> Índice 3) para extraer el Mes
+                if (row.c[3] && row.c[3].f) {
+                    const fechaTexto = row.c[3].f;
+                    // Intenta extraer el mes dividiendo por "/" (formato dd/mm/yyyy)
+                    const partes = fechaTexto.split('/');
+                    if(partes.length >= 2) {
+                        let m = parseInt(partes[1], 10) - 1;
+                        if(mesesNombres[m]) mesTexto = mesesNombres[m];
+                    }
+                }
+
+                return {
+                    asesor: row.c[2] ? row.c[2].v.toString().trim() : 'Sin Asesor', // Columna C -> Índice 2
+                    mesLabel: mesTexto,
+                    estado: row.c[6] ? row.c[6].v.toString().trim() : 'Sin Estado'   // Columna G -> Índice 6
+                };
+            });
 
             initDashboard();
             document.getElementById('loading').style.display = 'none';
         } catch (error) {
-            console.error("Error al conectar con Drive:", error);
-            document.getElementById('loading').innerHTML = "<span style='color:#FF5A00'>Error de conexión.</span><br><small style='font-size:0.8rem;margin-top:10px;'>Asegúrate de que el archivo de Drive esté compartido como 'Cualquier persona con el enlace puede leer'.</small>";
+            console.error("Error al procesar los datos:", error);
+            document.getElementById('loading').innerHTML = "<span style='color:#FF5A00'>Error de Estructura.</span><br><small style='font-size:0.8rem;color:#fff;'>Verifica los permisos de lectura de la hoja de cálculo.</small>";
         }
     }
 
-    // 2. Inicialización de Componentes y Filtros
+    // 2. Inicializar Selectores Dinámicos
     function initDashboard() {
-        // Extraer categorías únicas para poblar el selector de forma dinámica
-        const categories = [...new Set(rawData.map(item => item.categoria))];
-        const select = document.getElementById('filterCategory');
-        
-        categories.forEach(cat => {
-            if(cat) {
+        // Cargar menú desplegable de Asesores únicos
+        const asesores = [...new Set(rawData.map(item => item.asesor))].sort();
+        const selectAsesor = document.getElementById('filterAsesor');
+        asesores.forEach(as => {
+            if(as) {
                 const opt = document.createElement('option');
-                opt.value = cat;
-                opt.innerHTML = cat;
-                select.appendChild(opt);
+                opt.value = as; opt.innerHTML = as;
+                selectAsesor.appendChild(opt);
             }
+        });
+
+        // Cargar menú desplegable de Meses detectados
+        const meses = [...new Set(rawData.map(item => item.mesLabel))].filter(m => m !== 'S/M');
+        const selectMes = document.getElementById('filterMes');
+        meses.forEach(m => {
+            const opt = document.createElement('option');
+            opt.value = m; opt.innerHTML = m;
+            selectMes.appendChild(opt);
         });
 
         setupCharts();
         updateDashboard();
     }
 
-    // 3. Configuración Inicial de Chart.js con la identidad de Vento
+    // 3. Configuración de Gráficas de Conteo Puro
     function setupCharts() {
+        // Gráfica de Dona para distribución de Estados (Abierto, Cerrado, etc.)
         const ctxPie = document.getElementById('chartPie').getContext('2d');
         chartPie = new Chart(ctxPie, {
             type: 'doughnut',
-            data: {
-                labels: [],
-                datasets: [{
-                    backgroundColor: chartPalette,
-                    borderWidth: 2,
-                    borderColor: vWhite,
-                    data: []
-                }]
-            },
-            options: { 
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { position: 'bottom' }
-                }
-            }
+            data: { labels: [], datasets: [{ backgroundColor: chartPalette, borderWidth: 2, borderColor: vWhite, data: [] }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
         });
 
-        const ctxLine = document.getElementById('chartLine').getContext('2d');
-        chartLine = new Chart(ctxLine, {
+        // Gráfica de Barras para contar cuántos tickets lleva cada asesor
+        const ctxAsesores = document.getElementById('chartAsesores').getContext('2d');
+        chartAsesores = new Chart(ctxAsesores, {
             type: 'bar',
-            data: {
-                labels: [],
-                datasets: [{
-                    label: 'Registros',
-                    borderColor: vBlack,
-                    backgroundColor: vOrange,
-                    borderWidth: 1,
-                    data: []
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: { beginAtZero: true }
-                }
+            data: { labels: [], datasets: [{ label: 'Total Tickets', backgroundColor: vOrange, borderColor: vBlack, borderWidth: 1, data: [] }] },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false, 
+                indexAxis: 'y', // Convertir a barras horizontales para leer mejor los nombres
+                scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } } 
             }
         });
     }
 
-    // 4. Procesamiento de Filtros Dinámicos y Actualización Masiva
+    // 4. Lógica de Filtrado Dinámico y Renderizado de Totales
     function updateDashboard() {
-        const catFilter = document.getElementById('filterCategory').value;
+        const selAsesor = document.getElementById('filterAsesor').value;
+        const selMes = document.getElementById('filterMes').value;
         
-        // Aplicar filtro analítico
+        // Aplicar filtros de forma cruzada
         let filtered = rawData;
-        if(catFilter !== 'all') {
-            filtered = rawData.filter(d => d.categoria === catFilter);
-        }
+        if(selAsesor !== 'all') filtered = filtered.filter(d => d.asesor === selAsesor);
+        if(selMes !== 'all') filtered = filtered.filter(d => d.mesLabel === selMes);
 
-        // Procesamiento de KPIs
-        const total = filtered.length;
-        const suma = filtered.reduce((acc, curr) => acc + (curr.valor || 0), 0);
-        const promedio = total > 0 ? (suma / total) : 0;
+        // Contar Estados (Columna G) y aislar "Abierto"
+        const estadosContador = {};
+        let totalAbiertos = 0;
 
-        // Renderizado de KPIs en pantalla
-        document.getElementById('kpiTotal').innerText = total.toLocaleString();
-        document.getElementById('kpiSuma').innerText = '$' + suma.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-        document.getElementById('kpiPromedio').innerText = '$' + promedio.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        filtered.forEach(d => {
+            let est = d.estado;
+            estadosContador[est] = (estadosContador[est] || 0) + 1;
+            
+            // Romper variaciones de texto comunes
+            if(est.toLowerCase() === 'abierto' || est.toLowerCase() === 'open' || est.toLowerCase() === 'pendiente') {
+                totalAbiertos++;
+            }
+        });
 
-        // Agrupación dinámica para Gráfica de Dona
-        const counts = {};
-        filtered.forEach(d => counts[d.categoria] = (counts[d.categoria] || 0) + 1);
-        chartPie.data.labels = Object.keys(counts);
-        chartPie.data.datasets[0].data = Object.values(counts);
+        const totalTickets = filtered.length;
+        const porcentaje = totalTickets > 0 ? ((totalAbiertos / totalTickets) * 100).toFixed(1) : 0;
+
+        // Inyectar conteos en tarjetas KPI
+        document.getElementById('kpiAbiertos').innerText = totalAbiertos.toLocaleString();
+        document.getElementById('kpiTotal').innerText = totalTickets.toLocaleString();
+        document.getElementById('kpiPorcentaje').innerText = porcentaje + '%';
+
+        // Actualizar Gráfica de Dona (Estatus)
+        chartPie.data.labels = Object.keys(estadosContador);
+        chartPie.data.datasets[0].data = Object.values(estadosContador);
         chartPie.update();
 
-        // Mapeo dinámico para Gráfica de Barras (Muestra los últimos 12 registros de la lista)
-        const muestraTendencia = filtered.slice(-12);
-        chartLine.data.labels = muestraTendencia.map(d => d.fecha);
-        chartLine.data.datasets[0].data = muestraTendencia.map(d => d.valor);
-        chartLine.update();
+        // Contar cuántos tickets tiene cada Asesor (Columna C)
+        const asesoresContador = {};
+        filtered.forEach(d => {
+            asesoresContador[d.asesor] = (asesoresContador[d.asesor] || 0) + 1;
+        });
+
+        // Ordenar asesores por volumen de tickets de mayor a menor
+        const asesoresOrdenados = Object.keys(asesoresContador).sort((a,b) => asesoresContador[b] - asesoresContador[a]);
+
+        // Actualizar Gráfica de Barras de Asesores
+        chartAsesores.data.labels = asesoresOrdenados;
+        chartAsesores.data.datasets[0].data = asesoresOrdenados.map(as => asesoresContador[as]);
+        chartAsesores.update();
     }
 
-    // Ejecución inmediata al cargar la interfaz
     fetchData();
 </script>
 
