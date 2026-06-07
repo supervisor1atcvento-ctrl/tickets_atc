@@ -343,13 +343,11 @@
     const vWhite = '#FFFFFF';
     const chartPalette = ['#FF5A00', '#111111', '#D32F2F', '#555555', '#888888', '#AAAAAA', '#CCCCCC'];
 
-    // Auxiliar para limpiar y parsear fechas en formato YYYY-MM-DD
     function parsearFechaString(txt) {
         if (!txt) return null;
-        const limpia = txt.trim().split(' ')[0]; // Extrae "YYYY-MM-DD" de "YYYY-MM-DD HH:MM:SS AM"
+        const limpia = txt.trim().split(' ')[0]; 
         const partes = limpia.split('-');
         if (partes.length === 3) {
-            // El formato es YYYY-MM-DD
             return new Date(parseInt(partes[0], 10), parseInt(partes[1], 10) - 1, parseInt(partes[2], 10));
         }
         return null;
@@ -363,24 +361,35 @@
             const json = JSON.parse(text.substr(47).slice(0, -2));
             const rows = json.table.rows;
 
-            rawData = rows.map(row => {
-                // Leer texto formateado o valor crudo
-                const ticketID = row.c[1] ? (row.c[1].f || row.c[1].v.toString()).trim() : 'Sin ID';
-                const nombreAsesor = row.c[2] ? row.c[2].v.toString().trim() : 'Sin Asesor';
-                const fechaCreacionTxt = row.c[5] && row.c[5].f ? row.c[5].f : (row.c[5] ? row.c[5].v.toString() : '');
-                const fechaActualizacionTxt = row.c[6] && row.c[6].f ? row.c[6].f : (row.c[6] ? row.c[6].v.toString() : '');
-                const estatusTxt = row.c[8] ? row.c[8].v.toString().trim() : 'Sin Estatus';
+            // Procesar y limpiar filas válidas
+            rawData = rows
+                .map(row => {
+                    if (!row || !row.c) return null;
 
-                return {
-                    ticket: ticketID,               // Columna B -> Índice 1
-                    asesor: nombreAsesor,           // Columna C -> Índice 2
-                    fechaCreacionStr: fechaCreacionTxt, // Columna F -> Índice 5
-                    fechaCreacionObjeto: parsearFechaString(fechaCreacionTxt),
-                    fechaActualizacionStr: fechaActualizacionTxt, // Columna G -> Índice 6
-                    fechaActualizacionObjeto: parsearFechaString(fechaActualizacionTxt),
-                    estado: estatusTxt              // Columna I -> Índice 8
-                };
-            });
+                    // CORRECCIÓN SEGURA: Intentar extraer texto visible (.f) antes que valor numérico interno (.v)
+                    const ticketID = row.c[1] ? (row.c[1].f || row.c[1].v || '').toString().trim() : '';
+                    const nombreAsesor = row.c[2] ? (row.c[2].f || row.c[2].v || '').toString().trim() : '';
+                    
+                    const fechaCreacionTxt = row.c[5] && row.c[5].f ? row.c[5].f : (row.c[5] ? row.c[5].v.toString() : '');
+                    const fechaActualizacionTxt = row.c[6] && row.c[6].f ? row.c[6].f : (row.c[6] ? row.c[6].v.toString() : '');
+                    const estatusTxt = row.c[8] ? (row.c[8].f || row.c[8].v || 'Sin Estatus').toString().trim() : 'Sin Estatus';
+
+                    // Si no tiene ticket ni asesor válido, o si es la fila de encabezado, la descartamos
+                    if (!ticketID || !nombreAsesor || nombreAsesor.toLowerCase() === 'nombre del agente' || ticketID.toLowerCase() === 'ticket id') {
+                        return null;
+                    }
+
+                    return {
+                        ticket: ticketID,               // Columna B -> Índice 1
+                        asesor: nombreAsesor,           // Columna C -> Índice 2
+                        fechaCreacionStr: fechaCreacionTxt, // Columna F -> Índice 5
+                        fechaCreacionObjeto: parsearFechaString(fechaCreacionTxt),
+                        fechaActualizacionStr: fechaActualizacionTxt, // Columna G -> Índice 6
+                        fechaActualizacionObjeto: parsearFechaString(fechaActualizacionTxt),
+                        estado: estatusTxt              // Columna I -> Índice 8
+                    };
+                })
+                .filter(item => item !== null); // Eliminar filas vacías o de encabezados
 
             initDashboard();
             document.getElementById('loading').style.display = 'none';
@@ -394,6 +403,10 @@
     function initDashboard() {
         const asesores = [...new Set(rawData.map(item => item.asesor))].sort();
         const selectAsesor = document.getElementById('filterAsesor');
+        
+        // Limpiar opciones anteriores excepto la primera
+        selectAsesor.innerHTML = '<option value="all">Todos los Asesores</option>';
+        
         asesores.forEach(as => {
             if(as) {
                 const opt = document.createElement('option');
@@ -437,11 +450,9 @@
         const desdeFecha = fechaInicioVal ? new Date(fechaInicioVal + "T00:00:00") : null;
         const hastaFecha = fechaFinVal ? new Date(fechaFinVal + "T23:59:59") : null;
 
-        // Obtener fecha de hoy sin horas para comparación precisa
         const hoy = new Date();
         hoy.setHours(0,0,0,0);
 
-        // Filtrado cruzado
         let filtered = rawData;
         
         if (selAsesor !== 'all') {
@@ -459,7 +470,7 @@
         let totalSinTocar = 0;
         
         const tablaAlertas = document.getElementById('tablaAlertas');
-        tablaAlertas.innerHTML = ""; // Limpiar tabla de reportes críticos
+        tablaAlertas.innerHTML = ""; 
 
         filtered.forEach(d => {
             let est = d.estado;
@@ -471,11 +482,9 @@
             if (esPendiente) {
                 totalAbiertos++;
                 
-                // Validación de columna G (Última actualización) menor al día actual
                 if (d.fechaActualizacionObjeto && d.fechaActualizacionObjeto < hoy) {
                     totalSinTocar++;
                     
-                    // Insertar fila de alerta en la tabla de monitoreo inmediato
                     const fila = `
                         <tr>
                             <td><strong>${d.asesor}</strong></td>
@@ -497,17 +506,14 @@
 
         const totalTickets = filtered.length;
 
-        // Inyectar contadores en tarjetas KPI
         document.getElementById('kpiAbiertos').innerText = totalAbiertos.toLocaleString();
         document.getElementById('kpiSinTocar').innerText = totalSinTocar.toLocaleString();
         document.getElementById('kpiTotal').innerText = totalTickets.toLocaleString();
 
-        // Actualizar Gráfica de Estatus (Columna I)
         chartPie.data.labels = Object.keys(estadosContador);
         chartPie.data.datasets[0].data = Object.values(estadosContador);
         chartPie.update();
 
-        // Actualizar Gráfica de Barras por Asesor (Contando Columna B a través de C)
         const asesoresContador = {};
         filtered.forEach(d => {
             asesoresContador[d.asesor] = (asesoresContador[d.asesor] || 0) + 1;
@@ -528,5 +534,6 @@
 
     fetchData();
 </script>
+
 </body>
 </html>
