@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vento ATC - Control de Prioridades Interactiva</title>
+    <title>Vento ATC - Control de Prioridades Avanzado</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -14,6 +14,7 @@
             --vento-white: #FFFFFF;  
             --vento-dark-gray: #222222;
             --vento-red: #D32F2F;
+            --vento-green: #2E7D32;
             --vento-muted: #7f8c8d;
         }
 
@@ -47,7 +48,7 @@
             margin: 25px auto;
         }
 
-        /* Barra de Control Dinámica e Interactiva */
+        /* Barra de Control Dinámica */
         .control-bar {
             background: var(--vento-white);
             padding: 15px 20px;
@@ -82,15 +83,9 @@
             transition: background 0.3s, transform 0.1s;
             display: none; 
             text-transform: uppercase;
-            box-shadow: 0 2px 4px rgba(255, 90, 0, 0.3);
         }
 
-        .btn-action:hover {
-            background: #e04f00;
-        }
-        .btn-action:active {
-            transform: scale(0.97);
-        }
+        .btn-action:hover { background: #e04f00; }
 
         .btn-reset {
             background: var(--vento-black);
@@ -103,39 +98,52 @@
             font-size: 0.85rem;
         }
 
-        /* KPIs de Control */
+        /* KPIs con interacción de clic y lógica de color dinámica */
         .kpi-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
             margin-bottom: 25px;
         }
 
         .kpi-card {
             background: var(--vento-white);
-            padding: 22px 20px;
+            padding: 20px 15px;
             border-radius: 8px;
-            border-top: 4px solid var(--vento-black);
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
             text-align: center;
             border: 1px solid #e1e1e1;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            user-select: none;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+        }
+
+        .kpi-card.active-filter {
+            border: 2px solid var(--vento-orange) !important;
+            background-color: #fff9f5;
         }
 
         .kpi-card h3 {
             margin: 0;
-            font-size: 0.78rem;
+            font-size: 0.75rem;
             color: #666;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
         }
 
         .kpi-card p {
             margin: 10px 0 0;
             font-size: 2.3rem;
             font-weight: 900;
+            color: var(--vento-black);
         }
 
-        /* Contenedor Único para Gráfica de Radar Exclusiva */
+        /* Bloque de Gráfica */
         .dashboard-grid {
             display: grid;
             grid-template-columns: 1fr;
@@ -163,19 +171,19 @@
             text-align: center;
         }
 
-        /* Tabla de Alertas de Control Estricto */
+        /* Tabla de Alertas */
         .alert-section {
             background: var(--vento-white);
             padding: 25px;
             border-radius: 8px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
             border: 1px solid #e1e1e1;
-            border-top: 4px solid var(--vento-red);
+            border-top: 4px solid var(--vento-black);
         }
 
         .alert-section h4 {
             margin-top: 0;
-            color: var(--vento-red);
+            color: var(--vento-black);
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -205,11 +213,8 @@
             border-bottom: 1px solid #eee;
         }
 
-        tr:hover {
-            background-color: #fffaf7;
-        }
+        tr:hover { background-color: #fffaf7; }
 
-        /* Badges de Alerta */
         .badge {
             padding: 5px 9px;
             border-radius: 4px;
@@ -218,16 +223,8 @@
             text-transform: uppercase;
             display: inline-block;
         }
-        .badge-critical {
-            background-color: #fde8e8;
-            color: var(--vento-red);
-            border: 1px solid #f9acaa;
-        }
-        .badge-urgent {
-            background-color: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeeba;
-        }
+        .badge-critical { background-color: #fde8e8; color: var(--vento-red); border: 1px solid #f9acaa; }
+        .badge-urgent { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
 
         #loading {
             position: fixed;
@@ -261,60 +258,60 @@
 
 <div id="loading">
     <div class="spinner"></div>
-    ANALIZANDO PRIORIDADES VENTO ATC...
+    CONFIGURANDO VISOR DE BURBUJAS INTERACTIVO...
 </div>
 
 <header>
     <h1>VENTO <span style="color:var(--vento-orange)">CONTROL OPERATIVO</span></h1>
-    <span style="font-weight: 300; font-size: 0.9rem;">Métricas de Atención e Incumplimientos</span>
+    <span style="font-weight: 300; font-size: 0.9rem;">Visor de Distribución de Carga Freshdesk</span>
 </header>
 
 <div class="container">
 
     <div class="control-bar">
         <div class="info-txt" id="barInstruction">
-            💡 <strong>Mapeo de Carga ATC:</strong> Haz clic sobre cualquier punto/esquina de un asesor en la gráfica de radar para aislar sus tickets y generar su reporte. Pagina con autorrefresco cada 15 min.
+            💡 <strong>Interactividad Pro:</strong> Haz clic en cualquier recuadro numérico o en una burbuja para filtrar la lista. Refresco automático cada 15 min.
         </div>
         <div style="display: flex; gap: 10px; align-items: center;">
             <button class="btn-action" id="btnCopiarReporte" onclick="copiarReporteAsesor()">Copiar Alerta de Asesor</button>
-            <button class="btn-reset" id="btnResetFiltro" onclick="resetAsesorSeleccionado()" style="display:none;">Ver Todo</button>
+            <button class="btn-reset" id="btnResetFiltro" onclick="resetFiltros Globales()" style="display:none;">Ver Todo</button>
         </div>
     </div>
 
     <div class="kpi-container">
-        <div class="kpi-card" style="border-top-color: #bdc3c7;">
+        <div class="kpi-card" id="cardOpen" onclick="filtrarPorMetrica('open')">
             <h3>Total Abiertos (Open)</h3>
-            <p id="kpiTotalOpen" style="color: #7f8c8d;">0</p>
+            <p id="kpiTotalOpen">0</p>
         </div>
-        <div class="kpi-card" style="border-top-color: var(--vento-orange);">
-            <h3>Total Pendientes (Otros Estatus)</h3>
-            <p id="kpiTotalPendientes" style="color: var(--vento-orange);">0</p>
+        <div class="kpi-card" id="cardPendientes" onclick="filtrarPorMetrica('pendientes')">
+            <h3>Total Pendientes</h3>
+            <p id="kpiTotalPendientes">0</p>
         </div>
-        <div class="kpi-card" style="border-top-color: var(--vento-red);">
+        <div class="kpi-card" id="cardCriticos" onclick="filtrarPorMetrica('criticos')">
             <h3>Críticos (Open > 24h)</h3>
-            <p id="kpiOpenCriticos" style="color: var(--vento-red);">0</p>
+            <p id="kpiOpenCriticos">0</p>
         </div>
-        <div class="kpi-card" style="border-top-color: #856404;">
-            <h3>Urgentes (Sin Tocar Hoy)</h3>
-            <p id="kpiPendientesUrgentes" style="color: #856404;">0</p>
+        <div class="kpi-card" id="cardUrgentes" onclick="filtrarPorMetrica('urgentes')">
+            <h3>Urgentes (Sin Tocar)</h3>
+            <p id="kpiPendientesUrgentes">0</p>
         </div>
-        <div class="kpi-card">
+        <div class="kpi-card" id="cardTotal" onclick="filtrarPorMetrica('all')">
             <h3>Carga Total Activa</h3>
-            <p id="kpiTotalActivos" style="color: var(--vento-black);">0</p>
+            <p id="kpiTotalActivos">0</p>
         </div>
     </div>
 
     <div class="dashboard-grid">
         <div class="chart-box">
-            <h4>Distribución Radial de Carga Operativa por Asesor (Open vs Pendientes)</h4>
-            <div style="position: relative; height:400px; max-width: 700px; margin: 0 auto;">
-                <canvas id="chartRadarAsesores"></canvas>
+            <h4>Mapa de Carga Operativa por Asesor (Tamaño de Burbuja = Volumen de Tickets)</h4>
+            <div style="position: relative; height:360px; max-width: 900px; margin: 0 auto;">
+                <canvas id="chartBubbleAsesores"></canvas>
             </div>
         </div>
     </div>
 
     <div class="alert-section">
-        <h4 id="alertTitleTable">Listado de Incumplimientos Globales (Foco de Atención Requerido)</h4>
+        <h4 id="alertTitleTable">Listado General de Tickets Activos</h4>
         <div style="overflow-x: auto;">
             <table>
                 <thead>
@@ -325,7 +322,7 @@
                         <th>Fecha Creación</th>
                         <th>Última Actualización</th>
                         <th>Días de Retraso</th>
-                        <th>Nivel / Tipo Alerta</th>
+                        <th>Tipo Diagnóstico</th>
                     </tr>
                 </thead>
                 <tbody id="tablaAlertas">
@@ -342,7 +339,8 @@
 
     let rawData = [];
     let asesorSeleccionado = "all";
-    let chartRadarAsesores;
+    let metricaSeleccionada = "all"; // open, pendientes, criticos, urgentes, all
+    let chartBubbleAsesores;
 
     function parsearFechaString(txt) {
         if (!txt) return null;
@@ -366,12 +364,13 @@
                     if (!row || !row.c) return null;
 
                     const ticketID = row.c[1] ? (row.c[1].f || row.c[1].v || '').toString().trim() : '';
-                    const nombreAsesor = row.c[2] ? (row.c[2].f || row.c[2].v || '').toString().trim() : '';
+                    let nombreAsesor = row.c[2] ? (row.c[2].f || row.c[2].v || '').toString().trim() : 'Sin Asesor';
                     const fechaCreacionTxt = row.c[5] && row.c[5].f ? row.c[5].f : (row.c[5] ? row.c[5].v.toString() : '');
                     const fechaActualizacionTxt = row.c[6] && row.c[6].f ? row.c[6].f : (row.c[6] ? row.c[6].v.toString() : '');
                     const estatusTxt = row.c[8] ? (row.c[8].f || row.c[8].v || 'Open').toString().trim() : 'Open';
 
-                    if (!ticketID || ticketID.toLowerCase() === 'ticket id' || nombreAsesor.toLowerCase() === 'nombre del agente') {
+                    // Limpieza estricta: Si contiene números o la palabra 'ticket', se descarta o unifica para evitar fallos de gráficos
+                    if (!ticketID || ticketID.toLowerCase() === 'ticket id' || /^\d+$/.test(nombreAsesor)) {
                         return null;
                     }
 
@@ -387,81 +386,83 @@
                 })
                 .filter(item => item !== null); 
 
-            if (!chartRadarAsesores) {
-                setupCharts();
-            }
+            if (!chartBubbleAsesores) setupBubbleChart();
             updateDashboard();
             document.getElementById('loading').style.display = 'none';
         } catch (error) {
-            console.error("Error cargando dashboard:", error);
-            document.getElementById('loading').innerHTML = "<span style='color:#FF5A00'>Error de estructura o conexión en Sheets.</span>";
+            console.error("Error:", error);
+            document.getElementById('loading').innerHTML = "<span style='color:#FF5A00'>Error de sincronización con Google Sheets.</span>";
         }
     }
 
-    function setupCharts() {
-        // Opción A: Configuración de la Gráfica de Radar Estilizada e Interactiva
-        const ctxRadar = document.getElementById('chartRadarAsesores').getContext('2d');
-        chartRadarAsesores = new Chart(ctxRadar, {
-            type: 'radar',
-            data: {
-                labels: [],
-                datasets: [
-                    { 
-                        label: 'Abiertos (Open)', 
-                        backgroundColor: 'rgba(189, 195, 199, 0.2)', 
-                        borderColor: '#95a5a6', 
-                        pointBackgroundColor: '#7f8c8d',
-                        data: [] 
-                    },
-                    { 
-                        label: 'Pendientes (Otros)', 
-                        backgroundColor: 'rgba(255, 90, 0, 0.15)', 
-                        borderColor: '#FF5A00', 
-                        pointBackgroundColor: '#FF5A00',
-                        data: [] 
-                    }
-                ]
-            },
+    function setupBubbleChart() {
+        const ctxBubble = document.getElementById('chartBubbleAsesores').getContext('2d');
+        chartBubbleAsesores = new Chart(ctxBubble, {
+            type: 'bubble',
+            data: { datasets: [] },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { position: 'top' } },
-                scales: {
-                    r: {
-                        angleLines: { color: '#e2e2e2' },
-                        suggestedMin: 0,
-                        ticks: { stepSize: 1, backdropColor: 'transparent', color: '#666' }
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => {
+                                return `${context.dataset.label}: Abiertos: ${context.raw.x}, Pendientes: ${context.raw.y}, Total: ${context.raw.r / 2}`;
+                            }
+                        }
                     }
                 },
-                // Interacción por clic en las esquinas de radar
+                scales: {
+                    x: { title: { display: true, text: 'Tickets Abiertos (Open)' }, beginAtZero: true },
+                    y: { title: { display: true, text: 'Tickets Pendientes (Otros Estatus)' }, beginAtZero: true }
+                },
                 onClick: (e) => {
-                    const points = chartRadarAsesores.getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
-                    if (points.length > 0) {
-                        const index = points[0].index;
-                        const labelAsesor = chartRadarAsesores.data.labels[index];
-                        seleccionarAsesorDesdeRadar(labelAsesor);
+                    const elements = chartBubbleAsesores.getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
+                    if (elements.length > 0) {
+                        const datasetIndex = elements[0].datasetIndex;
+                        const labelAsesor = chartBubbleAsesores.data.datasets[datasetIndex].label;
+                        seleccionarAsesor(labelAsesor);
                     }
                 }
             }
         });
     }
 
-    function seleccionarAsesorDesdeRadar(nombre) {
+    function filtrarPorMetrica(metrica) {
+        metricaSeleccionada = metrica;
+        
+        // Quitar clase activa previa
+        document.querySelectorAll('.kpi-card').forEach(c => c.classList.remove('active-filter'));
+        
+        if (metrica !== 'all' || asesorSeleccionado !== 'all') {
+            document.getElementById('btnResetFiltro').style.display = 'inline-block';
+        }
+
+        // Marcar tarjeta activa visualmente
+        if(metrica === 'open') document.getElementById('cardOpen').classList.add('active-filter');
+        if(metrica === 'pendientes') document.getElementById('cardPendientes').classList.add('active-filter');
+        if(metrica === 'criticos') document.getElementById('cardCriticos').classList.add('active-filter');
+        if(metrica === 'urgentes') document.getElementById('cardUrgentes').classList.add('active-filter');
+        if(metrica === 'all') document.getElementById('cardTotal').classList.add('active-filter');
+
+        updateDashboard();
+    }
+
+    function seleccionarAsesor(nombre) {
         asesorSeleccionado = nombre;
         document.getElementById('btnResetFiltro').style.display = 'inline-block';
         document.getElementById('btnCopiarReporte').style.display = 'inline-block';
         document.getElementById('btnCopiarReporte').innerText = `Copiar Alerta de ${nombre.split(' ')[0]}`;
-        document.getElementById('barInstruction').innerHTML = `🎯 Filtrando activamente al asesor: <strong>${nombre}</strong>`;
-        document.getElementById('alertTitleTable').innerText = `Listado de Incumplimientos de ${nombre}`;
         updateDashboard();
     }
 
-    function resetAsesorSeleccionado() {
+    function resetFiltrosGlobales() {
         asesorSeleccionado = "all";
+        metricaSeleccionada = "all";
+        document.querySelectorAll('.kpi-card').forEach(c => c.classList.remove('active-filter'));
         document.getElementById('btnResetFiltro').style.display = 'none';
         document.getElementById('btnCopiarReporte').style.display = 'none';
-        document.getElementById('barInstruction').innerHTML = `💡 <strong>Mapeo de Carga ATC:</strong> Haz clic sobre cualquier punto/esquina de un asesor en la gráfica de radar para aislar sus tickets y generar su reporte. Pagina con autorrefresco cada 15 min.`;
-        document.getElementById('alertTitleTable').innerText = `Listado de Incumplimientos Globales (Foco de Atención Requerido)`;
         updateDashboard();
     }
 
@@ -469,177 +470,178 @@
         const hoy = new Date();
         hoy.setHours(0,0,0,0);
 
-        let globalOpenCount = 0;
-        let globalPendientesCount = 0;
-        let totalOpenCriticos = 0;
-        let totalPendientesUrgentes = 0;
-        
-        const conteoAsesoresOpen = {};
-        const conteoAsesoresPendiente = {};
+        let openTotal = 0; let pendTotal = 0;
+        let criticosTotal = 0; let urgentesTotal = 0;
 
-        // Recorrido de procesamiento
+        const mapeoAsesores = {};
+
+        // 1. Primer barrido para cálculos reales globales
         rawData.forEach(d => {
-            const estMinus = d.estado.toLowerCase();
-            const esOpen = estMinus === 'open';
+            const esOpen = d.estado.toLowerCase() === 'open';
+            
+            if (!mapeoAsesores[d.asesor]) {
+                mapeoAsesores[d.asesor] = { open: 0, pendientes: 0, criticos: 0, urgentes: 0 };
+            }
 
             if (esOpen) {
-                globalOpenCount++;
-                conteoAsesoresOpen[d.asesor] = (conteoAsesoresOpen[d.asesor] || 0) + 1;
-                
+                openTotal++;
+                mapeoAsesores[d.asesor].open++;
                 if (d.fechaCreacionObjeto) {
-                    const diff = hoy.getTime() - d.fechaCreacionObjeto.getTime();
-                    if (Math.floor(diff / (1000 * 60 * 60 * 24)) > 1) totalOpenCriticos++;
+                    if (Math.floor((hoy.getTime() - d.fechaCreacionObjeto.getTime()) / 86400000) > 1) {
+                        criticosTotal++;
+                        mapeoAsesores[d.asesor].criticos++;
+                    }
                 }
             } else {
-                globalPendientesCount++;
-                conteoAsesoresPendiente[d.asesor] = (conteoAsesoresPendiente[d.asesor] || 0) + 1;
-                
+                pendTotal++;
+                mapeoAsesores[d.asesor].pendientes++;
                 if (d.fechaActualizacionObjeto) {
-                    const diff = hoy.getTime() - d.fechaActualizacionObjeto.getTime();
-                    if (Math.floor(diff / (1000 * 60 * 60 * 24)) > 0) totalPendientesUrgentes++;
+                    if (Math.floor((hoy.getTime() - d.fechaActualizacionObjeto.getTime()) / 86400000) > 0) {
+                        urgentesTotal++;
+                        mapeoAsesores[d.asesor].urgentes++;
+                    }
                 }
             }
         });
 
-        // Escribir los nuevos contadores solicitados en las tarjetas
-        document.getElementById('kpiTotalOpen').innerText = globalOpenCount.toLocaleString();
-        document.getElementById('kpiTotalPendientes').innerText = globalPendientesCount.toLocaleString();
-        document.getElementById('kpiOpenCriticos').innerText = totalOpenCriticos.toLocaleString();
-        document.getElementById('kpiPendientesUrgentes').innerText = totalPendientesUrgentes.toLocaleString();
+        // Pintar contadores con regla de color solicitada
+        document.getElementById('kpiTotalOpen').innerText = openTotal.toLocaleString();
+        document.getElementById('kpiTotalOpen').style.color = 'var(--vento-black)';
+        
+        document.getElementById('kpiTotalPendientes').innerText = pendTotal.toLocaleString();
+        document.getElementById('kpiTotalPendientes').style.color = 'var(--vento-black)';
+
         document.getElementById('kpiTotalActivos').innerText = rawData.length.toLocaleString();
 
-        // Actualizar la Gráfica de Radar de Asesores
-        const listaTodosAsesores = [...new Set(rawData.map(x => x.asesor))].sort();
-        
-        chartRadarAsesores.data.labels = listaTodosAsesores;
-        chartRadarAsesores.data.datasets[0].data = listaTodosAsesores.map(as => conteoAsesoresOpen[as] || 0);
-        chartRadarAsesores.data.datasets[1].data = listaTodosAsesores.map(as => conteoAsesoresPendiente[as] || 0);
-        chartRadarAsesores.update();
+        // Lógica Semáforo: Si es > 0 Rojo, si es 0 cambia a Verde
+        const txtCriticos = document.getElementById('kpiOpenCriticos');
+        txtCriticos.innerText = criticosTotal.toLocaleString();
+        txtCriticos.style.color = criticosTotal > 0 ? 'var(--vento-red)' : 'var(--vento-green)';
 
-        // Inyección dinámica en la tabla de Alertas
-        const tablaAlertas = document.getElementById('tablaAlertas');
-        tablaAlertas.innerHTML = "";
+        const txtUrgentes = document.getElementById('kpiPendientesUrgentes');
+        txtUrgentes.innerText = urgentesTotal.toLocaleString();
+        txtUrgentes.style.color = urgentesTotal > 0 ? 'var(--vento-red)' : 'var(--vento-green)';
 
-        let datasetParaTabla = rawData;
-        if (asesorSeleccionado !== "all") {
-            datasetParaTabla = rawData.filter(x => x.asesor === asesorSeleccionado);
-        }
 
-        let filasAgregadas = 0;
+        // 2. Renderizar Gráfica de Burbujas Dinámica
+        const datasetsBubble = [];
+        let indexColor = 0;
 
-        datasetParaTabla.forEach(d => {
-            const estMinus = d.estado.toLowerCase();
-            const esOpen = estMinus === 'open';
-            
-            let esAlerta = false;
-            let tipoBadge = "";
-            let diasRetraso = 0;
+        Object.keys(mapeoAsesores).forEach(asesor => {
+            const datos = mapeoAsesores[asesor];
+            const volumenTotal = datos.open + datos.pendientes;
 
-            if (esOpen) {
-                if (d.fechaCreacionObjeto) {
-                    const diff = hoy.getTime() - d.fechaCreacionObjeto.getTime();
-                    diasRetraso = Math.floor(diff / (1000 * 60 * 60 * 24));
-                    if (diasRetraso > 1) {
-                        esAlerta = true;
-                        tipoBadge = `<span class="badge badge-critical">Crítico: Open > 24h</span>`;
-                    }
-                }
-            } else {
-                if (d.fechaActualizacionObjeto) {
-                    const diff = hoy.getTime() - d.fechaActualizacionObjeto.getTime();
-                    diasRetraso = Math.floor(diff / (1000 * 60 * 60 * 24));
-                    if (diasRetraso > 0) {
-                        esAlerta = true;
-                        tipoBadge = `<span class="badge badge-urgent">Urgente: Sin Actualizar</span>`;
-                    }
-                }
-            }
+            // Si hay un filtro por recuadro KPI activo, evaluamos si la burbuja cumple el requisito para mostrarse
+            if (metricaSeleccionada === 'criticos' && datos.criticos === 0) return;
+            if (metricaSeleccionada === 'urgentes' && datos.urgentes === 0) return;
+            if (metricaSeleccionada === 'open' && datos.open === 0) return;
+            if (metricaSeleccionada === 'pendientes' && datos.pendientes === 0) return;
 
-            if (esAlerta) {
-                filasAgregadas++;
-                const filaHtml = `
-                    <tr>
-                        <td><strong>${d.asesor}</strong></td>
-                        <td>${d.ticket}</td>
-                        <td>${d.estado}</td>
-                        <td><small>${d.fechaCreacionStr}</small></td>
-                        <td><small>${d.fechaActualizacionStr}</small></td>
-                        <td style="font-weight:bold; color: ${esOpen ? 'var(--vento-red)' : 'var(--vento-orange)'}">${diasRetraso} días</td>
-                        <td>${tipoBadge}</td>
-                    </tr>
-                `;
-                tablaAlertas.innerHTML += filaHtml;
-            }
+            datasetsBubble.push({
+                label: asesor,
+                data: [{
+                    x: datos.open,
+                    y: datos.pendientes,
+                    r: volumenTotal * 2 // El tamaño de la burbuja escala proporcionalmente a la carga total
+                }],
+                backgroundColor: asesor === asesorSeleccionado ? 'rgba(255, 90, 0, 0.7)' : 'rgba(34, 34, 34, 0.4)',
+                borderColor: asesor === asesorSeleccionado ? 'var(--vento-orange)' : '#111',
+                borderWidth: asesor === asesorSeleccionado ? 3 : 1
+            });
         });
 
-        if (filasAgregadas === 0) {
-            tablaAlertas.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#2e7d32; font-weight:bold; padding:20px;">🎉 Sin desviaciones a las reglas de atención para el visor seleccionado.</td></tr>`;
+        chartBubbleAsesores.data.datasets = datasetsBubble;
+        chartBubbleAsesores.update();
+
+
+        // 3. Filtrado y llenado de Tabla de Alertas
+        const tabla = document.getElementById('tablaAlertas');
+        tabla.innerHTML = "";
+        let lineasMostradas = 0;
+
+        rawData.forEach(d => {
+            const esOpen = d.estado.toLowerCase() === 'open';
+            let diasRetraso = 0;
+            let cumpleFiltroMetrica = false;
+            let badgeHtml = "";
+
+            if (esOpen && d.fechaCreacionObjeto) {
+                diasRetraso = Math.floor((hoy.getTime() - d.fechaCreacionObjeto.getTime()) / 86400000);
+            } else if (!esOpen && d.fechaActualizacionObjeto) {
+                diasRetraso = Math.floor((hoy.getTime() - d.fechaActualizacionObjeto.getTime()) / 86400000);
+            }
+
+            // Validar filtros cruzados (Asesor + Tarjeta KPI seleccionada)
+            if (asesorSeleccionado !== 'all' && d.asesor !== asesorSeleccionado) return;
+
+            if (metricaSeleccionada === 'all') cumpleFiltroMetrica = true;
+            if (metricaSeleccionada === 'open' && esOpen) cumpleFiltroMetrica = true;
+            if (metricaSeleccionada === 'pendientes' && !esOpen) cumpleFiltroMetrica = true;
+            if (metricaSeleccionada === 'criticos' && esOpen && diasRetraso > 1) cumpleFiltroMetrica = true;
+            if (metricaSeleccionada === 'urgentes' && !esOpen && diasRetraso > 0) cumpleFiltroMetrica = true;
+
+            if (!cumpleFiltroMetrica) return;
+
+            if (esOpen) {
+                badgeHtml = diasRetraso > 1 ? `<span class="badge badge-critical">Crítico: Open > 24h</span>` : `<span class="badge" style="background:#eee;">Abierto regular</span>`;
+            } else {
+                badgeHtml = diasRetraso > 0 ? `<span class="badge badge-urgent">Urgente: Sin Tocar</span>` : `<span class="badge" style="background:#e8f5e9; color:#1b5e20;">Al día</span>`;
+            }
+
+            lineasMostradas++;
+            tabla.innerHTML += `
+                <tr>
+                    <td><strong>${d.asesor}</strong></td>
+                    <td>${d.ticket}</td>
+                    <td>${d.estado}</td>
+                    <td><small>${d.fechaCreacionStr}</small></td>
+                    <td><small>${d.fechaActualizacionStr}</small></td>
+                    <td style="font-weight:bold; color:${diasRetraso > 0 ? 'var(--vento-red)' : 'var(--vento-black)'}">${diasRetraso} días</td>
+                    <td>${badgeHtml}</td>
+                </tr>
+            `;
+        });
+
+        // Título descriptivo de lo que se está viendo en pantalla
+        let txtTitulo = "Listado de Tickets Activos";
+        if (asesorSeleccionado !== 'all') txtTitulo += ` de ${asesorSeleccionado}`;
+        if (metricaSeleccionada !== 'all') txtTitulo += ` [Filtrado por: ${metricaSeleccionada.toUpperCase()}]`;
+        document.getElementById('alertTitleTable').innerText = txtTitulo;
+
+        if (lineasMostradas === 0) {
+            tabla.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:20px; font-weight:bold; color:var(--vento-green);">🎉 No se encontraron registros para este filtro seleccionado.</td></tr>`;
         }
     }
 
     function copiarReporteAsesor() {
         if (asesorSeleccionado === "all") return;
+        const hoy = new Date(); hoy.setHours(0,0,0,0);
+        let criticos = []; let urgentes = [];
 
-        const hoy = new Date();
-        hoy.setHours(0,0,0,0);
-
-        let openCriticos = [];
-        let pendientesRetrasados = [];
-
-        const ticketsAsesor = rawData.filter(x => x.asesor === asesorSeleccionado);
-
-        ticketsAsesor.forEach(d => {
-            const estMinus = d.estado.toLowerCase();
-            const esOpen = estMinus === 'open';
-
-            if (esOpen) {
-                if (d.fechaCreacionObjeto) {
-                    const diff = hoy.getTime() - d.fechaCreacionObjeto.getTime();
-                    const dias = Math.floor(diff / (1000 * 60 * 60 * 24));
-                    if (dias > 1) openCriticos.push(`${d.ticket} (${dias}d)`);
-                }
-            } else {
-                if (d.fechaActualizacionObjeto) {
-                    const diff = hoy.getTime() - d.fechaActualizacionObjeto.getTime();
-                    const dias = Math.floor(diff / (1000 * 60 * 60 * 24));
-                    if (dias > 0) pendientesRetrasados.push(`${d.ticket} (${dias}d)`);
-                }
+        rawData.filter(x => x.asesor === asesorSeleccionado).forEach(d => {
+            const esOpen = d.estado.toLowerCase() === 'open';
+            if (esOpen && d.fechaCreacionObjeto) {
+                let dias = Math.floor((hoy.getTime() - d.fechaCreacionObjeto.getTime()) / 86400000);
+                if (dias > 1) criticos.push(`${d.ticket} (${dias}d)`);
+            } else if (!esOpen && d.fechaActualizacionObjeto) {
+                let dias = Math.floor((hoy.getTime() - d.fechaActualizacionObjeto.getTime()) / 86400000);
+                if (dias > 0) urgentes.push(`${d.ticket} (${dias}d)`);
             }
         });
 
-        let mensaje = `*NOTIFICACIÓN DE TICKETS PRIORITARIOS - VENTO ATC*\n\n`;
-        mensaje += `Hola *${asesorSeleccionado}*, se detectaron desviaciones en tus tiempos de respuesta de Freshdesk:\n\n`;
-        
-        if (openCriticos.length > 0) {
-            mensaje += `🚨 *CRÍTICOS (Estatus Open sin asignar/atender por más de 24 horas):*\n`;
-            mensaje += `Tienes ${openCriticos.length} caso(s) en abandono inicial:\n`;
-            mensaje += `IDs: ${openCriticos.join(', ')}\n\n`;
-        }
-
-        if (pendientesRetrasados.length > 0) {
-            mensaje += `⚠️ *URGENTES (Estatus Pendientes sin movimientos ni actualizaciones hoy):*\n`;
-            mensaje += `Tienes ${pendientesRetrasados.length} caso(s) estancados:\n`;
-            mensaje += `IDs: ${pendientesRetrasados.join(', ')}\n\n`;
-        }
-
-        mensaje += `*Por favor dale prioridad de cierre o actualización inmediata a estos números de ticket hoy mismo.*`;
+        let mensaje = `*NOTIFICACIÓN DE ATENCIÓN PRIORITARIA - VENTO ATC*\n\n`;
+        mensaje += `Hola *${asesorSeleccionado}*, se detectó carga retenida en tu Freshdesk:\n\n`;
+        if (criticos.length > 0) mensaje += `🚨 *CRÍTICOS (Open > 24h):* ${criticos.length} caso(s)\nIDs: ${criticos.join(', ')}\n\n`;
+        if (urgentes.length > 0) mensaje += `⚠️ *URGENTES (Sin actualizar hoy):* ${urgentes.length} caso(s)\nIDs: ${urgentes.join(', ')}\n\n`;
+        mensaje += `*Favor de gestionar, actualizar o cerrar estos folios de inmediato.*`;
 
         navigator.clipboard.writeText(mensaje).then(() => {
-            alert(`¡Reporte para ${asesorSeleccionado.split(' ')[0]} copiado! Listo para pegarse en WhatsApp.`);
-        }).catch(err => {
-            console.error('Error al intentar copiar texto: ', err);
+            alert(`Reporte de ${asesorSeleccionado.split(' ')[0]} copiado correctamente.`);
         });
     }
 
-    // Inicializar el flujo de datos
     fetchData();
-
-    // IMPLEMENTACIÓN SOLICITADA: Sistema de recarga automatizada en segundo plano cada 15 minutos (15 * 60 * 1000 ms)
-    setInterval(() => {
-        console.log("Ejecutando refresco automático de 15 minutos...");
-        fetchData();
-    }, 900000);
+    setInterval(fetchData, 900000); // 15 Minutos de refresco autónomo
 </script>
-
 </body>
 </html>
