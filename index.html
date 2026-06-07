@@ -1,4 +1,3 @@
-HTML
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -48,7 +47,7 @@ HTML
             margin: 25px auto;
         }
 
-        /* Sección de Filtros Activos e Instrucciones */
+        /* Barra de Control Dinámica e Interactiva */
         .control-bar {
             background: var(--vento-white);
             padding: 15px 20px;
@@ -81,7 +80,7 @@ HTML
             font-weight: 700;
             font-size: 0.85rem;
             transition: background 0.3s, transform 0.1s;
-            display: none; /* Se muestra al seleccionar asesor */
+            display: none; 
             text-transform: uppercase;
             box-shadow: 0 2px 4px rgba(255, 90, 0, 0.3);
         }
@@ -104,10 +103,10 @@ HTML
             font-size: 0.85rem;
         }
 
-        /* KPIs */
+        /* KPIs de Control */
         .kpi-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 20px;
             margin-bottom: 25px;
         }
@@ -136,21 +135,17 @@ HTML
             font-weight: 900;
         }
 
-        /* Distribución de Paneles */
+        /* Contenedor Único para Gráfica de Radar Exclusiva */
         .dashboard-grid {
             display: grid;
-            grid-template-columns: 1fr 2.3fr;
+            grid-template-columns: 1fr;
             gap: 25px;
             margin-bottom: 25px;
         }
 
-        @media (max-width: 950px) {
-            .dashboard-grid { grid-template-columns: 1fr; }
-        }
-
         .chart-box {
             background: var(--vento-white);
-            padding: 22px;
+            padding: 25px;
             border-radius: 8px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
             border: 1px solid #e1e1e1;
@@ -165,6 +160,7 @@ HTML
             text-transform: uppercase;
             letter-spacing: 0.5px;
             font-size: 0.9rem;
+            text-align: center;
         }
 
         /* Tabla de Alertas de Control Estricto */
@@ -277,7 +273,7 @@ HTML
 
     <div class="control-bar">
         <div class="info-txt" id="barInstruction">
-            💡 <strong>Tip Operativo:</strong> Haz clic directo sobre la barra de cualquier asesor en la gráfica de volumen para aislar sus tickets retrasados y generar su reporte.
+            💡 <strong>Mapeo de Carga ATC:</strong> Haz clic sobre cualquier punto/esquina de un asesor en la gráfica de radar para aislar sus tickets y generar su reporte. Pagina con autorrefresco cada 15 min.
         </div>
         <div style="display: flex; gap: 10px; align-items: center;">
             <button class="btn-action" id="btnCopiarReporte" onclick="copiarReporteAsesor()">Copiar Alerta de Asesor</button>
@@ -286,31 +282,33 @@ HTML
     </div>
 
     <div class="kpi-container">
-        <div class="kpi-card" style="border-top-color: var(--vento-red);">
-            <h3>Críticos: Open > 24 Horas</h3>
-            <p id="kpiOpenCriticos" style="color: var(--vento-red);">0</p>
+        <div class="kpi-card" style="border-top-color: #bdc3c7;">
+            <h3>Total Abiertos (Open)</h3>
+            <p id="kpiTotalOpen" style="color: #7f8c8d;">0</p>
         </div>
         <div class="kpi-card" style="border-top-color: var(--vento-orange);">
-            <h3>Urgentes: Pendientes Sin Actualizar</h3>
-            <p id="kpiPendientesUrgentes" style="color: var(--vento-orange);">0</p>
+            <h3>Total Pendientes (Otros Estatus)</h3>
+            <p id="kpiTotalPendientes" style="color: var(--vento-orange);">0</p>
         </div>
-        <div class="kpi-card" style="border-top-color: var(--vento-muted);">
-            <h3>Total Carga Activa Analizada</h3>
+        <div class="kpi-card" style="border-top-color: var(--vento-red);">
+            <h3>Críticos (Open > 24h)</h3>
+            <p id="kpiOpenCriticos" style="color: var(--vento-red);">0</p>
+        </div>
+        <div class="kpi-card" style="border-top-color: #856404;">
+            <h3>Urgentes (Sin Tocar Hoy)</h3>
+            <p id="kpiPendientesUrgentes" style="color: #856404;">0</p>
+        </div>
+        <div class="kpi-card">
+            <h3>Carga Total Activa</h3>
             <p id="kpiTotalActivos" style="color: var(--vento-black);">0</p>
         </div>
     </div>
 
     <div class="dashboard-grid">
         <div class="chart-box">
-            <h4>Distribución de Estatus</h4>
-            <div style="position: relative; height:240px;">
-                <canvas id="chartPie"></canvas>
-            </div>
-        </div>
-        <div class="chart-box">
-            <h4>Volumen Operativo por Asesor (Tickets Abiertos vs Pendientes)</h4>
-            <div style="position: relative; height:240px;">
-                <canvas id="chartAsesoresApilado"></canvas>
+            <h4>Distribución Radial de Carga Operativa por Asesor (Open vs Pendientes)</h4>
+            <div style="position: relative; height:400px; max-width: 700px; margin: 0 auto;">
+                <canvas id="chartRadarAsesores"></canvas>
             </div>
         </div>
     </div>
@@ -339,15 +337,12 @@ HTML
 
 <script>
     const SHEET_ID = '1JBre4cLAbYiOJuYye_FGcsk5U_BIStDoAiCbV-B8WoA';
-    // Traemos todo filtrando únicamente los grupos correspondientes y quitando los Closed del servidor
     const querySQL = encodeURIComponent("SELECT * WHERE (A = 'AMERICAN PISTON (ATC)' OR A = 'ATC') AND LOWER(I) != 'closed'");
     const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Tickets_BD&tq=${querySQL}`;
 
     let rawData = [];
     let asesorSeleccionado = "all";
-    
-    let chartPie, chartAsesoresApilado;
-    const chartPalette = ['#FF5A00', '#222222', '#D32F2F', '#7f8c8d', '#bdc3c7'];
+    let chartRadarAsesores;
 
     function parsearFechaString(txt) {
         if (!txt) return null;
@@ -392,57 +387,66 @@ HTML
                 })
                 .filter(item => item !== null); 
 
-            setupCharts();
+            if (!chartRadarAsesores) {
+                setupCharts();
+            }
             updateDashboard();
             document.getElementById('loading').style.display = 'none';
         } catch (error) {
             console.error("Error cargando dashboard:", error);
-            document.getElementById('loading').innerHTML = "<span style='color:#FF5A00'>Error de estructura o conexión.</span>";
+            document.getElementById('loading').innerHTML = "<span style='color:#FF5A00'>Error de estructura o conexión en Sheets.</span>";
         }
     }
 
     function setupCharts() {
-        // 1. Gráfica Circular de Estatus (Compacta)
-        const ctxPie = document.getElementById('chartPie').getContext('2d');
-        chartPie = new Chart(ctxPie, {
-            type: 'doughnut',
-            data: { labels: [], datasets: [{ backgroundColor: chartPalette, data: [] }] },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } } }
-        });
-
-        // 2. Gráfica Apilada de Asesores (Muestra Open vs Pendientes uno sobre otro)
-        const ctxApilado = document.getElementById('chartAsesoresApilado').getContext('2d');
-        chartAsesoresApilado = new Chart(ctxApilado, {
-            type: 'bar',
+        // Opción A: Configuración de la Gráfica de Radar Estilizada e Interactiva
+        const ctxRadar = document.getElementById('chartRadarAsesores').getContext('2d');
+        chartRadarAsesores = new Chart(ctxRadar, {
+            type: 'radar',
             data: {
                 labels: [],
                 datasets: [
-                    { label: 'Abiertos (Open)', backgroundColor: '#bdc3c7', data: [] },
-                    { label: 'Pendientes (Otros)', backgroundColor: '#FF5A00', data: [] }
+                    { 
+                        label: 'Abiertos (Open)', 
+                        backgroundColor: 'rgba(189, 195, 199, 0.2)', 
+                        borderColor: '#95a5a6', 
+                        pointBackgroundColor: '#7f8c8d',
+                        data: [] 
+                    },
+                    { 
+                        label: 'Pendientes (Otros)', 
+                        backgroundColor: 'rgba(255, 90, 0, 0.15)', 
+                        borderColor: '#FF5A00', 
+                        pointBackgroundColor: '#FF5A00',
+                        data: [] 
+                    }
                 ]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                indexAxis: 'y',
+                plugins: { legend: { position: 'top' } },
                 scales: {
-                    x: { stacked: true, beginAtZero: true },
-                    y: { stacked: true }
+                    r: {
+                        angleLines: { color: '#e2e2e2' },
+                        suggestedMin: 0,
+                        ticks: { stepSize: 1, backdropColor: 'transparent', color: '#666' }
+                    }
                 },
-                plugins: { legend: { position: 'top', labels: { font: { size: 11 } } } },
-                // Captura el clic e identifica al asesor
-                onClick: (e, elements) => {
-                    if (elements.length > 0) {
-                        const index = elements[0].index;
-                        const labelAsesor = chartAsesoresApilado.data.labels[index];
-                        seleccionarAsesorDesdeGrafica(labelAsesor);
+                // Interacción por clic en las esquinas de radar
+                onClick: (e) => {
+                    const points = chartRadarAsesores.getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
+                    if (points.length > 0) {
+                        const index = points[0].index;
+                        const labelAsesor = chartRadarAsesores.data.labels[index];
+                        seleccionarAsesorDesdeRadar(labelAsesor);
                     }
                 }
             }
         });
     }
 
-    function seleccionarAsesorDesdeGrafica(nombre) {
+    function seleccionarAsesorDesdeRadar(nombre) {
         asesorSeleccionado = nombre;
         document.getElementById('btnResetFiltro').style.display = 'inline-block';
         document.getElementById('btnCopiarReporte').style.display = 'inline-block';
@@ -456,7 +460,7 @@ HTML
         asesorSeleccionado = "all";
         document.getElementById('btnResetFiltro').style.display = 'none';
         document.getElementById('btnCopiarReporte').style.display = 'none';
-        document.getElementById('barInstruction').innerHTML = `💡 <strong>Tip Operativo:</strong> Haz clic directo sobre la barra de cualquier asesor en la gráfica de volumen para aislar sus tickets retrasados y generar su reporte.`;
+        document.getElementById('barInstruction').innerHTML = `💡 <strong>Mapeo de Carga ATC:</strong> Haz clic sobre cualquier punto/esquina de un asesor en la gráfica de radar para aislar sus tickets y generar su reporte. Pagina con autorrefresco cada 15 min.`;
         document.getElementById('alertTitleTable').innerText = `Listado de Incumplimientos Globales (Foco de Atención Requerido)`;
         updateDashboard();
     }
@@ -465,64 +469,54 @@ HTML
         const hoy = new Date();
         hoy.setHours(0,0,0,0);
 
-        // Variables de Contadores Globales e Históricos (Se calculan siempre sobre el total antes de filtrar en pantalla)
-        let totalOpenCriticosGlobal = 0;
-        let totalPendientesUrgentesGlobal = 0;
+        let globalOpenCount = 0;
+        let globalPendientesCount = 0;
+        let totalOpenCriticos = 0;
+        let totalPendientesUrgentes = 0;
         
-        const conteoEstatusGlobal = {};
         const conteoAsesoresOpen = {};
         const conteoAsesoresPendiente = {};
 
-        // Primer recorrido para métricas de gráficas globales y contadores KPI
+        // Recorrido de procesamiento
         rawData.forEach(d => {
             const estMinus = d.estado.toLowerCase();
             const esOpen = estMinus === 'open';
 
-            // Clasificación global de estatus
-            conteoEstatusGlobal[d.estado] = (conteoEstatusGlobal[d.estado] || 0) + 1;
-
-            // Acumulado de volumen por tipo para la barra apilada
             if (esOpen) {
+                globalOpenCount++;
                 conteoAsesoresOpen[d.asesor] = (conteoAsesoresOpen[d.asesor] || 0) + 1;
-            } else {
-                conteoAsesoresPendiente[d.asesor] = (conteoAsesoresPendiente[d.asesor] || 0) + 1;
-            }
-
-            // Evaluar Criticidades operativas bajo tus reglas estrictas
-            if (esOpen) {
+                
                 if (d.fechaCreacionObjeto) {
                     const diff = hoy.getTime() - d.fechaCreacionObjeto.getTime();
-                    const dias = Math.floor(diff / (1000 * 60 * 60 * 24));
-                    if (dias > 1) totalOpenCriticosGlobal++; // Regla 2: Open con más de 1 día
+                    if (Math.floor(diff / (1000 * 60 * 60 * 24)) > 1) totalOpenCriticos++;
                 }
             } else {
+                globalPendientesCount++;
+                conteoAsesoresPendiente[d.asesor] = (conteoAsesoresPendiente[d.asesor] || 0) + 1;
+                
                 if (d.fechaActualizacionObjeto) {
                     const diff = hoy.getTime() - d.fechaActualizacionObjeto.getTime();
-                    const dias = Math.floor(diff / (1000 * 60 * 60 * 24));
-                    if (dias > 0) totalPendientesUrgentesGlobal++; // Regla 1: Pendientes sin tocar hoy
+                    if (Math.floor(diff / (1000 * 60 * 60 * 24)) > 0) totalPendientesUrgentes++;
                 }
             }
         });
 
-        // Imprimir KPIs en tarjeta
-        document.getElementById('kpiOpenCriticos').innerText = totalOpenCriticosGlobal.toLocaleString();
-        document.getElementById('kpiPendientesUrgentes').innerText = totalPendientesUrgentesGlobal.toLocaleString();
+        // Escribir los nuevos contadores solicitados en las tarjetas
+        document.getElementById('kpiTotalOpen').innerText = globalOpenCount.toLocaleString();
+        document.getElementById('kpiTotalPendientes').innerText = globalPendientesCount.toLocaleString();
+        document.getElementById('kpiOpenCriticos').innerText = totalOpenCriticos.toLocaleString();
+        document.getElementById('kpiPendientesUrgentes').innerText = totalPendientesUrgentes.toLocaleString();
         document.getElementById('kpiTotalActivos').innerText = rawData.length.toLocaleString();
 
-        // Renderizar gráfica circular
-        chartPie.data.labels = Object.keys(conteoEstatusGlobal);
-        chartPie.data.datasets[0].data = Object.values(conteoEstatusGlobal);
-        chartPie.update();
-
-        // Construir gráfica apilada de asesores ordenados por volumen total acumulado
+        // Actualizar la Gráfica de Radar de Asesores
         const listaTodosAsesores = [...new Set(rawData.map(x => x.asesor))].sort();
         
-        chartAsesoresApilado.data.labels = listaTodosAsesores;
-        chartAsesoresApilado.data.datasets[0].data = listaTodosAsesores.map(as => conteoAsesoresOpen[as] || 0);
-        chartAsesoresApilado.data.datasets[1].data = listaTodosAsesores.map(as => conteoAsesoresPendiente[as] || 0);
-        chartAsesoresApilado.update();
+        chartRadarAsesores.data.labels = listaTodosAsesores;
+        chartRadarAsesores.data.datasets[0].data = listaTodosAsesores.map(as => conteoAsesoresOpen[as] || 0);
+        chartRadarAsesores.data.datasets[1].data = listaTodosAsesores.map(as => conteoAsesoresPendiente[as] || 0);
+        chartRadarAsesores.update();
 
-        // SEGUNDO PASO: Filtrar la Tabla de Alertas según selección interactiva
+        // Inyección dinámica en la tabla de Alertas
         const tablaAlertas = document.getElementById('tablaAlertas');
         tablaAlertas.innerHTML = "";
 
@@ -542,7 +536,6 @@ HTML
             let diasRetraso = 0;
 
             if (esOpen) {
-                // Validación de regla Open
                 if (d.fechaCreacionObjeto) {
                     const diff = hoy.getTime() - d.fechaCreacionObjeto.getTime();
                     diasRetraso = Math.floor(diff / (1000 * 60 * 60 * 24));
@@ -552,7 +545,6 @@ HTML
                     }
                 }
             } else {
-                // Validación de regla Pendientes sin actualizar
                 if (d.fechaActualizacionObjeto) {
                     const diff = hoy.getTime() - d.fechaActualizacionObjeto.getTime();
                     diasRetraso = Math.floor(diff / (1000 * 60 * 60 * 24));
@@ -581,11 +573,10 @@ HTML
         });
 
         if (filasAgregadas === 0) {
-            tablaAlertas.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#2e7d32; font-weight:bold; padding:20px;">🎉 Excelente. Este visor no registra tickets con violaciones a las reglas operativas de atención.</td></tr>`;
+            tablaAlertas.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#2e7d32; font-weight:bold; padding:20px;">🎉 Sin desviaciones a las reglas de atención para el visor seleccionado.</td></tr>`;
         }
     }
 
-    // Función automatizada para generar el mensaje dinámico para el asesor seleccionado
     function copiarReporteAsesor() {
         if (asesorSeleccionado === "all") return;
 
@@ -595,7 +586,6 @@ HTML
         let openCriticos = [];
         let pendientesRetrasados = [];
 
-        // Filtrar datos específicos de este asesor
         const ticketsAsesor = rawData.filter(x => x.asesor === asesorSeleccionado);
 
         ticketsAsesor.forEach(d => {
@@ -617,7 +607,6 @@ HTML
             }
         });
 
-        // Construcción del texto
         let mensaje = `*NOTIFICACIÓN DE TICKETS PRIORITARIOS - VENTO ATC*\n\n`;
         mensaje += `Hola *${asesorSeleccionado}*, se detectaron desviaciones en tus tiempos de respuesta de Freshdesk:\n\n`;
         
@@ -635,15 +624,21 @@ HTML
 
         mensaje += `*Por favor dale prioridad de cierre o actualización inmediata a estos números de ticket hoy mismo.*`;
 
-        // Copiar al portapapeles del sistema
         navigator.clipboard.writeText(mensaje).then(() => {
-            alert(`¡Reporte de Alerta para ${asesorSeleccionado.split(' ')[0]} copiado al portapapeles! Listo para pegarse en WhatsApp.`);
+            alert(`¡Reporte para ${asesorSeleccionado.split(' ')[0]} copiado! Listo para pegarse en WhatsApp.`);
         }).catch(err => {
             console.error('Error al intentar copiar texto: ', err);
         });
     }
 
+    // Inicializar el flujo de datos
     fetchData();
+
+    // IMPLEMENTACIÓN SOLICITADA: Sistema de recarga automatizada en segundo plano cada 15 minutos (15 * 60 * 1000 ms)
+    setInterval(() => {
+        console.log("Ejecutando refresco automático de 15 minutos...");
+        fetchData();
+    }, 900000);
 </script>
 
 </body>
