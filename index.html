@@ -184,6 +184,7 @@ header h1{
 .btn{ border:none; padding:6px 10px; border-radius:8px; cursor:pointer; font-weight:800; font-size:0.78rem; }
 .btn-close{ background:#E8E8E8; color:var(--vento-dark-gray); }
 .btn-copy{ background:var(--vento-orange); color:#fff; box-shadow:0 6px 14px rgba(255,90,0,0.18); }
+.btn-wa{ background:#25D366; color:#fff; box-shadow:0 6px 14px rgba(37,211,102,0.12); }
 
 /* Tabla modal */
 .modal-body{ padding:0; overflow:auto; background:var(--vento-bg); }
@@ -264,6 +265,7 @@ td{ padding:10px 12px; border-bottom:1px solid #F5F5F5; color:#444; vertical-ali
       <h4 id="modalTitle">Desglose de Tickets</h4>
       <div class="modal-actions">
         <button class="btn btn-copy" id="btnModalCopy" onclick="copiarReporteDesdeModal()">Copiar Reporte</button>
+        <button class="btn btn-wa" id="btnModalWA" onclick="enviarWhatsAppDesdeModal()">Enviar WA</button>
         <button class="btn btn-close" onclick="cerrarModal()">Cerrar</button>
       </div>
     </div>
@@ -296,6 +298,7 @@ const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:
 
 let rawData = [];
 let asesorActivoModal = "all";
+const TICKET_BASE_URL = 'https://ayuda.vento.com/a/tickets/';
 
 /* Parseo de fecha en formato YYYY-MM-DD (o similar) */
 function parsearFechaString(txt){
@@ -383,8 +386,11 @@ function updateDashboard(){
   rawData.forEach(d => {
     const esOpen = d.estado.toLowerCase() === 'open';
     if(!mapeoAsesores[d.asesor]){
-      mapeoAsesores[d.asesor] = { nombre:d.asesor, open:0, pendientes:0, criticos:0, urgentes:0, slaRotados:0, maxScorePrioridad:0 };
+      mapeoAsesores[d.asesor] = { nombre:d.asesor, open:0, pendientes:0, criticos:0, urgentes:0, slaRotados:0, maxScorePrioridad:0, tickets:[] };
     }
+    // almacenar tickets por asesor para enlaces detallados
+    mapeoAsesores[d.asesor].tickets.push(d);
+
     let score = 0;
     if(esOpen){
       openTotal++; mapeoAsesores[d.asesor].open++;
@@ -432,12 +438,16 @@ function updateDashboard(){
     const nodo = document.createElement('div');
     nodo.className = `mosaico-asesor ${claseTermica}`;
     nodo.setAttribute('onclick', `abrirModalAsesor('${as.nombre.replace(/'/g,"\\'")}')`);
+
+    // construir lista corta de folios SLA vencidos (máx 3) para mostrar como ejemplo en mosaico
+    const slaList = as.tickets.filter(t => t.incumpleSLA).slice(0,3).map(t => `<a href="${TICKET_BASE_URL}${encodeURIComponent(t.ticket)}" target="_blank" rel="noopener noreferrer" style="color:inherit; text-decoration:none;">#${t.ticket}</a>`).join(', ');
+
     nodo.innerHTML = `
       <h4>${as.nombre}</h4>
       <div class="mosaico-metrics">
         <div class="metric-sub" style="grid-column: span 2; border-left:3px solid var(--vento-purple);">
           <span>SLA Vencido (>3d)</span>
-          <strong style="color:${as.slaRotados>0?'var(--vento-purple)':'#444'}">${as.slaRotados}</strong>
+          <strong style="color:${as.slaRotados>0?'var(--vento-purple)':'#444'}">${as.slaRotados}${slaList ? ' • ' + slaList : ''}</strong>
         </div>
         <div class="metric-sub">
           <span>Críticos (24h)</span>
@@ -458,6 +468,7 @@ function abrirModalAsesor(nombre){
   asesorActivoModal = nombre;
   document.getElementById('modalTitle').innerText = `Auditoría: ${nombre}`;
   document.getElementById('btnModalCopy').style.display = 'inline-block';
+  document.getElementById('btnModalWA').style.display = 'inline-block';
   const ticketsFiltrados = rawData.filter(x => x.asesor === nombre);
   ticketsFiltrados.sort((a,b) => b.diasCorridosEdad - a.diasCorridosEdad);
   construirTablaModal(ticketsFiltrados);
@@ -468,6 +479,7 @@ function abrirModalAsesor(nombre){
 function abrirModalPorMetrica(tipo){
   asesorActivoModal = "all";
   document.getElementById('btnModalCopy').style.display = 'none';
+  document.getElementById('btnModalWA').style.display = 'none';
   let titulo = "Listado Global";
   let ticketsFiltrados = [...rawData];
 
@@ -494,7 +506,7 @@ function abrirModalPorMetrica(tipo){
   mostrarModal();
 }
 
-/* Construir tabla modal */
+/* Construir tabla modal con enlaces en ID Ticket */
 function construirTablaModal(listaTickets){
   const tablaCuerpo = document.getElementById('modalTablaCuerpo');
   tablaCuerpo.innerHTML = '';
@@ -514,10 +526,15 @@ function construirTablaModal(listaTickets){
       else if(!t.incumpleSLA) badgeHtml += `<span class="badge badge-ok">Pend. al día</span>`;
     }
 
+    // Construir URL del ticket
+    const ticketUrl = `${TICKET_BASE_URL}${encodeURIComponent(t.ticket)}`;
+
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td><strong>${t.asesor}</strong></td>
-      <td style="font-family:monospace; font-size:1.02rem;">#${t.ticket}</td>
+      <td style="font-family:monospace; font-size:1.02rem;">
+        <a href="${ticketUrl}" target="_blank" rel="noopener noreferrer">#${t.ticket}</a>
+      </td>
       <td><span style="background:#eee; padding:4px 8px; border-radius:4px; font-weight:700;">${t.estado}</span></td>
       <td><small>${t.fechaCreacionStr || '-'}</small></td>
       <td><small>${t.fechaActualizacionStr || '-'}</small></td>
@@ -541,27 +558,49 @@ function cerrarModalExterno(event){
   if(event.target.id === 'modalDetalles') cerrarModal();
 }
 
-/* Copiar reporte (solo por asesor) */
+/* Copiar reporte (solo por asesor) con URLs incluidas */
 function copiarReporteDesdeModal(){
   if(asesorActivoModal === "all") return;
   let slaRotos = [], criticos = [], urgentes = [];
   rawData.filter(x => x.asesor === asesorActivoModal).forEach(d => {
     const esOpen = d.estado.toLowerCase() === 'open';
-    if(d.incumpleSLA) slaRotos.push(`${d.ticket} (${d.diasCorridosEdad}d)`);
-    if(esOpen && d.diasRetrasoAccion > 1) criticos.push(`${d.ticket}`);
-    else if(!esOpen && d.diasRetrasoAccion > 0) urgentes.push(`${d.ticket}`);
+    if(d.incumpleSLA) slaRotos.push(`${d.ticket} (${d.diasCorridosEdad}d) - ${TICKET_BASE_URL}${encodeURIComponent(d.ticket)}`);
+    if(esOpen && d.diasRetrasoAccion > 1) criticos.push(`${d.ticket} - ${TICKET_BASE_URL}${encodeURIComponent(d.ticket)}`);
+    else if(!esOpen && d.diasRetrasoAccion > 0) urgentes.push(`${d.ticket} - ${TICKET_BASE_URL}${encodeURIComponent(d.ticket)}`);
   });
 
   let mensaje = `*NOTIFICACIÓN DE AUDITORÍA ATC*\n\n`;
   mensaje += `Hola *${asesorActivoModal}*, este es tu reporte de folios que requieren atención prioritaria hoy:\n\n`;
-  if(slaRotos.length > 0) mensaje += `🟣 *Tickets con mas de 3 Días Corridos:* ${slaRotos.length} ticket(s)\nFolios: ${slaRotos.join(', ')}\n\n`;
-  if(criticos.length > 0) mensaje += `🚨 *Abiertos con mas de 1 día desde su creación:* ${criticos.length} ticket(s)\nFolios: ${criticos.join(', ')}\n\n`;
-  if(urgentes.length > 0) mensaje += `⚠️ *Pendientes sin actualizar:* ${urgentes.length} ticket(s)\nFolios: ${urgentes.join(', ')}\n\n`;
+  if(slaRotos.length > 0) mensaje += `🟣 *Tickets con mas de 3 Días Corridos:* ${slaRotos.length} ticket(s)\nFolios:\n${slaRotos.join('\n')}\n\n`;
+  if(criticos.length > 0) mensaje += `🚨 *Abiertos con mas de 1 día desde su creación:* ${criticos.length} ticket(s)\nFolios:\n${criticos.join('\n')}\n\n`;
+  if(urgentes.length > 0) mensaje += `⚠️ *Pendientes sin actualizar:* ${urgentes.length} ticket(s)\nFolios:\n${urgentes.join('\n')}\n\n`;
   mensaje += `*Por favor, apóyanos gestionando el cierre o seguimiento de estos casos.*`;
 
   navigator.clipboard.writeText(mensaje).then(() => {
     alert('Reporte copiado. Listo para enviar por WhatsApp.');
   }).catch(()=>{ alert('No se pudo copiar automáticamente. Selecciona y copia manualmente.'); });
+}
+
+/* Enviar WhatsApp con mensaje prellenado (abre wa.me) */
+function enviarWhatsAppDesdeModal(){
+  if(asesorActivoModal === "all") return;
+  let slaRotos = [], criticos = [], urgentes = [];
+  rawData.filter(x => x.asesor === asesorActivoModal).forEach(d => {
+    const esOpen = d.estado.toLowerCase() === 'open';
+    if(d.incumpleSLA) slaRotos.push(`${d.ticket} (${d.diasCorridosEdad}d) - ${TICKET_BASE_URL}${encodeURIComponent(d.ticket)}`);
+    if(esOpen && d.diasRetrasoAccion > 1) criticos.push(`${d.ticket} - ${TICKET_BASE_URL}${encodeURIComponent(d.ticket)}`);
+    else if(!esOpen && d.diasRetrasoAccion > 0) urgentes.push(`${d.ticket} - ${TICKET_BASE_URL}${encodeURIComponent(d.ticket)}`);
+  });
+
+  let mensaje = `NOTIFICACIÓN DE AUDITORÍA ATC\n\n`;
+  mensaje += `Hola ${asesorActivoModal}, este es tu reporte de folios que requieren atención prioritaria hoy:\n\n`;
+  if(slaRotos.length > 0) mensaje += `Tickets con mas de 3 Días Corridos (${slaRotos.length}):\n${slaRotos.join('\n')}\n\n`;
+  if(criticos.length > 0) mensaje += `Abiertos > 1 día (${criticos.length}):\n${criticos.join('\n')}\n\n`;
+  if(urgentes.length > 0) mensaje += `Pendientes sin actualizar (${urgentes.length}):\n${urgentes.join('\n')}\n\n`;
+  mensaje += `Por favor, apóyanos gestionando el cierre o seguimiento de estos casos.`;
+
+  const waUrl = `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
+  window.open(waUrl, '_blank');
 }
 
 /* Inicializar */
