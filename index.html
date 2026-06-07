@@ -80,6 +80,14 @@ header h1{
   color:var(--vento-dark-gray);
   margin-bottom:16px;
   font-size:0.88rem;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.db-timestamp {
+  font-size:0.75rem;
+  color:#777;
+  font-weight:400;
 }
 
 /* KPIs compactos */
@@ -215,7 +223,6 @@ td{ padding:10px 12px; border-bottom:1px solid #F5F5F5; color:#444; vertical-ali
 </head>
 <body>
 
-<!-- Loader -->
 <div id="loading">
   <div class="spinner"></div>
   SINCRONIZANDO MURO OPERATIVO...
@@ -228,16 +235,17 @@ td{ padding:10px 12px; border-bottom:1px solid #F5F5F5; color:#444; vertical-ali
 
 <div class="container">
   <div class="control-bar" id="barInstruction">
-    📊 Auditoría Freshdesk. Clic en métricas o asesores para desglose. Refresco automático: 15 min.
+    <span>📊 Auditoría Freshdesk. Clic en métricas o asesores para desglose. Refresco automático: 15 min.</span>
+    <span class="db-timestamp" id="dbTimestamp">Base: Cargando...</span>
   </div>
 
   <div class="kpi-container">
     <div class="kpi-card" onclick="abrirModalPorMetrica('open')">
-      <h3>Abiertos</h3>
+      <h3>Abiertos (&lt;4h)</h3>
       <p id="kpiTotalOpen">0</p>
     </div>
     <div class="kpi-card" onclick="abrirModalPorMetrica('pendientes')">
-      <h3>Pendientes sin tocar</h3>
+      <h3>Pendientes s/tocar</h3>
       <p id="kpiTotalPendientes">0</p>
     </div>
     <div class="kpi-card" onclick="abrirModalPorMetrica('sla')">
@@ -245,11 +253,11 @@ td{ padding:10px 12px; border-bottom:1px solid #F5F5F5; color:#444; vertical-ali
       <p id="kpiSLA">0</p>
     </div>
     <div class="kpi-card" onclick="abrirModalPorMetrica('abiertos1d')">
-      <h3>Abiertos &gt;1d</h3>
+      <h3>Abiertos Warnings</h3>
       <p id="kpiOpenCriticos">0</p>
     </div>
     <div class="kpi-card" onclick="abrirModalPorMetrica('urgentes')">
-      <h3>Resumen</h3>
+      <h3>Total Urgentes</h3>
       <p id="kpiPendientesUrgentes">0</p>
     </div>
   </div>
@@ -258,7 +266,6 @@ td{ padding:10px 12px; border-bottom:1px solid #F5F5F5; color:#444; vertical-ali
   <div class="heatmap-grid" id="gridMosaicos"></div>
 </div>
 
-<!-- Modal -->
 <div class="modal-overlay" id="modalDetalles" onclick="cerrarModalExterno(event)">
   <div class="modal-window" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <div class="modal-header">
@@ -279,7 +286,7 @@ td{ padding:10px 12px; border-bottom:1px solid #F5F5F5; color:#444; vertical-ali
               <th>Estatus</th>
               <th>Creación</th>
               <th>Última Act.</th>
-              <th>Edad (Días corr.)</th>
+              <th>Edad (Días)</th>
               <th>Alerta / Prioridad</th>
             </tr>
           </thead>
@@ -293,11 +300,12 @@ td{ padding:10px 12px; border-bottom:1px solid #F5F5F5; color:#444; vertical-ali
 <script>
 /* Configuración de fuente de datos */
 const SHEET_ID = '1JBre4cLAbYiOJuYye_FGcsk5U_BIStDoAiCbV-B8WoA';
-const querySQL = encodeURIComponent("SELECT * WHERE (A = 'AMERICAN PISTON (ATC)' OR A = 'ATC') AND LOWER(I) != 'closed'");
-const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Tickets_BD&tq=${querySQL}`;
+// Se solicita explícitamente incluir Z1 en el rango de Google Sheets
+const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Tickets_BD&range=A1:Z2000`;
 
 let rawData = [];
 let asesorActivoModal = "all";
+let ultimaActualizacionBase = "No disponible";
 const TICKET_BASE_URL = 'https://ayuda.vento.com/a/tickets/';
 
 /* Parseo de fecha en formato YYYY-MM-DD (o similar) */
@@ -309,6 +317,15 @@ function parsearFechaString(txt){
     return new Date(parseInt(partes[0],10), parseInt(partes[1],10)-1, parseInt(partes[2],10));
   }
   return null;
+}
+
+/* Parseo de fecha completa con hora para cálculo preciso */
+function parsearFechaCompleta(txt){
+  if(!txt) return null;
+  // Reemplazar guiones por barras si es necesario
+  const str = txt.trim().replace(/-/g, '/');
+  const d = new Date(str);
+  return isNaN(d.getTime()) ? null : d;
 }
 
 /* Cálculo de días corridos (naturales) entre dos fechas */
@@ -327,10 +344,25 @@ async function fetchData(){
     const text = await response.text();
     const json = JSON.parse(text.substr(47).slice(0,-2));
     const rows = json.table.rows || [];
-    const hoy = new Date(); hoy.setHours(0,0,0,0);
+    const hoy = new Date();
+    const hoySinHora = new Date(); hoySinHora.setHours(0,0,0,0);
 
+    // Intentar extraer la celda Z1 (Fila 0, Columna 25) si existe
+    if(rows[0] && rows[0].c && rows[0].c[25]){
+      ultimaActualizacionBase = rows[0].c[25].f || rows[0].c[25].v || "No disponible";
+    }
+
+    // Filtrar filas de forma manual para emular la query SQL original preservando Z1
     rawData = rows.map(row => {
       if(!row || !row.c) return null;
+      
+      const colA = row.c[0] ? (row.c[0].v || '').toString().trim() : '';
+      const colI = row.c[8] ? (row.c[8].v || '').toString().trim() : '';
+      
+      // Aplicar filtro: (A == 'AMERICAN PISTON (ATC)' OR A == 'ATC') AND I != 'closed'
+      if(colA !== 'AMERICAN PISTON (ATC)' && colA !== 'ATC') return null;
+      if(colI.toLowerCase() === 'closed') return null;
+
       const ticketID = row.c[1] ? (row.c[1].f || row.c[1].v || '').toString().trim() : '';
       const nombreAsesor = row.c[2] ? (row.c[2].f || row.c[2].v || '').toString().trim() : 'Sin Asesor';
       const fechaCreacionTxt = row.c[5] && row.c[5].f ? row.c[5].f : (row.c[5] ? row.c[5].v.toString() : '');
@@ -342,19 +374,40 @@ async function fetchData(){
       const esOpen = estatusTxt.toLowerCase() === 'open';
       const fechaCreacionObj = parsearFechaString(fechaCreacionTxt);
       const fechaActObj = parsearFechaString(fechaActualizacionTxt);
-
-      // Días desde la referencia de acción (días corridos naturales)
-      let diasRetrasoAccion = 0;
-      const fechaRefAccion = esOpen ? fechaCreacionObj : fechaActObj;
-      if(fechaRefAccion){
-        diasRetrasoAccion = Math.floor((hoy.getTime() - fechaRefAccion.getTime()) / 86400000);
-        if(diasRetrasoAccion < 0) diasRetrasoAccion = 0;
-      }
+      
+      const fechaCreacionCompleta = parsearFechaCompleta(fechaCreacionTxt) || fechaCreacionObj;
 
       // Edad del ticket en días corridos desde creación
       let diasCorridosEdad = 0;
       if(fechaCreacionObj){
-        diasCorridosEdad = calcularDiasCorridos(fechaCreacionObj, hoy);
+        diasCorridosEdad = calcularDiasCorridos(fechaCreacionObj, hoySinHora);
+      }
+
+      // Cálculo de horas desde la creación
+      let horasDesdeCreacion = 0;
+      if(fechaCreacionCompleta){
+        horasDesdeCreacion = (hoy.getTime() - fechaCreacionCompleta.getTime()) / (1000 * 60 * 60);
+      }
+
+      // Identificación de criticidad bajo las nuevas reglas de negocio
+      let nivelAlerta = 'verde'; // verde por defecto
+      
+      if (diasCorridosEdad > 3) {
+        nivelAlerta = 'rojo'; // No debe haber tickets con más de 3 días creados
+      } else if (esOpen) {
+        if (horasDesdeCreacion > 24) {
+          nivelAlerta = 'rojo'; // Abiertos > 24 horas es urgente
+        } else if (horasDesdeCreacion > 4) {
+          nivelAlerta = 'amarillo'; // Abiertos > 4 horas es warning
+        }
+      } else {
+        // Es pendiente. Si la última actualización NO fue hoy, se considera "sin tocar hoy"
+        if (fechaActObj) {
+          const diferenciaDiasAct = calcularDiasCorridos(fechaActObj, hoySinHora);
+          if (diferenciaDiasAct > 0) {
+            nivelAlerta = 'amarillo';
+          }
+        }
       }
 
       return {
@@ -363,9 +416,9 @@ async function fetchData(){
         fechaCreacionStr: fechaCreacionTxt,
         fechaActualizacionStr: fechaActualizacionTxt,
         estado: estatusTxt,
-        diasRetrasoAccion: diasRetrasoAccion,
         diasCorridosEdad: diasCorridosEdad,
-        incumpleSLA: diasCorridosEdad > 3
+        horasDesdeCreacion: horasDesdeCreacion,
+        nivelAlerta: nivelAlerta
       };
     }).filter(x => x !== null);
 
@@ -378,66 +431,81 @@ async function fetchData(){
   }
 }
 
-/* Actualizar KPIs y mosaicos (sin mostrar folios en mosaicos) */
+/* Actualizar KPIs y mosaicos */
 function updateDashboard(){
-  let openTotal = 0, pendTotal = 0, abiertos1dTotal = 0, slaIncumplidoTotal = 0;
+  let openVerdeTotal = 0, pendSinTocarTotal = 0, warningOpenTotal = 0, slaVencidoTotal = 0, urgentesTotal = 0;
   const mapeoAsesores = {};
+
+  // Imprimir fecha de última actualización de la base de datos
+  document.getElementById('dbTimestamp').innerText = `Base: ${ultimaActualizacionBase}`;
 
   rawData.forEach(d => {
     const esOpen = d.estado.toLowerCase() === 'open';
     if(!mapeoAsesores[d.asesor]){
-      mapeoAsesores[d.asesor] = { nombre:d.asesor, open:0, pendientes:0, abiertos1d:0, slaRotados:0, maxScorePrioridad:0, tickets:[] };
+      mapeoAsesores[d.asesor] = { 
+        nombre: d.asesor, 
+        rojos: 0, 
+        amarillos: 0, 
+        verdes: 0, 
+        tickets: [] 
+      };
     }
-    // almacenar tickets por asesor para el modal
     mapeoAsesores[d.asesor].tickets.push(d);
 
-    // conteos globales
-    if(esOpen){
-      openTotal++; mapeoAsesores[d.asesor].open++;
-      if(d.diasRetrasoAccion > 1){
-        abiertos1dTotal++; mapeoAsesores[d.asesor].abiertos1d++;
+    // Contabilizar según el nuevo semáforo e indicadores analizados
+    if (d.nivelAlerta === 'rojo') {
+      urgentesTotal++;
+      mapeoAsesores[d.asesor].rojos++;
+      if (d.diasCorridosEdad > 3) {
+        slaVencidoTotal++;
+      }
+    } else if (d.nivelAlerta === 'amarillo') {
+      mapeoAsesores[d.asesor].amarillos++;
+      if (!esOpen) {
+        pendSinTocarTotal++;
+      } else {
+        warningOpenTotal++;
       }
     } else {
-      pendTotal++; mapeoAsesores[d.asesor].pendientes++;
+      mapeoAsesores[d.asesor].verdes++;
+      if (esOpen) {
+        openVerdeTotal++;
+      }
     }
-    if(d.incumpleSLA){
-      slaIncumplidoTotal++; mapeoAsesores[d.asesor].slaRotados++;
-    }
-
-    // score para ordenar mosaicos (SLA > Pendientes sin tocar > Abiertos >1d)
-    let score = 0;
-    if(d.incumpleSLA) score += 100;
-    if(!esOpen && d.diasRetrasoAccion > 0) score += 10;
-    if(esOpen && d.diasRetrasoAccion > 1) score += 3;
-    if(score > mapeoAsesores[d.asesor].maxScorePrioridad) mapeoAsesores[d.asesor].maxScorePrioridad = score;
   });
 
-  // KPIs
-  document.getElementById('kpiTotalOpen').innerText = openTotal;
-  document.getElementById('kpiTotalPendientes').innerText = pendTotal;
+  // Renderizar contadores en los KPIs principales
+  document.getElementById('kpiTotalOpen').innerText = openVerdeTotal;
+  document.getElementById('kpiTotalPendientes').innerText = pendSinTocarTotal;
+  
   const txtSLA = document.getElementById('kpiSLA');
-  txtSLA.innerText = slaIncumplidoTotal;
-  txtSLA.style.color = slaIncumplidoTotal > 0 ? 'var(--vento-red)' : 'var(--vento-green)';
+  txtSLA.innerText = slaVencidoTotal;
+  txtSLA.style.color = slaVencidoTotal > 0 ? 'var(--vento-red)' : 'var(--vento-green)';
+  
   const txtAb1d = document.getElementById('kpiOpenCriticos');
-  txtAb1d.innerText = abiertos1dTotal;
-  txtAb1d.style.color = abiertos1dTotal > 0 ? 'var(--vento-yellow)' : 'var(--vento-green)';
+  txtAb1d.innerText = warningOpenTotal;
+  txtAb1d.style.color = warningOpenTotal > 0 ? 'var(--vento-yellow)' : 'var(--vento-green)';
+  
   const txtResumen = document.getElementById('kpiPendientesUrgentes');
-  txtResumen.innerText = `${pendTotal}`;
-  txtResumen.style.color = pendTotal > 0 ? 'var(--vento-yellow)' : 'var(--vento-green)';
+  txtResumen.innerText = urgentesTotal;
+  txtResumen.style.color = urgentesTotal > 0 ? 'var(--vento-red)' : 'var(--vento-green)';
 
-  // construir mosaicos (solo conteos, color por prioridad)
+  // Ordenar lista de asesores basándose en criticidad (Primero con más Rojos, luego Amarillos)
   const listaAsesores = Object.values(mapeoAsesores);
-  listaAsesores.sort((a,b) => b.maxScorePrioridad - a.maxScorePrioridad);
+  listaAsesores.sort((a, b) => {
+    if (b.rojos !== a.rojos) return b.rojos - a.rojos;
+    return b.amarillos - a.amarillos;
+  });
 
   const gridMosaicos = document.getElementById('gridMosaicos');
   gridMosaicos.innerHTML = '';
+  
   listaAsesores.forEach(as => {
-    // determinar color por prioridad: SLA > Pendientes sin tocar > Abiertos >1d > limpio
+    // Definir la clase visual de la tarjeta por su estatus prioritario dominante
     let claseTermica = "mosaico-clean";
-    if(as.slaRotados > 0) claseTermica = "mosaico-red";
-    else if(as.pendientes > 0 && as.tickets.some(t => t.diasRetrasoAccion > 0 && t.estado.toLowerCase() !== 'open')) claseTermica = "mosaico-yellow";
-    else if(as.abiertos1d > 0) claseTermica = "mosaico-green";
-    else claseTermica = "mosaico-clean";
+    if (as.rojos > 0) claseTermica = "mosaico-red";
+    else if (as.amarillos > 0) claseTermica = "mosaico-yellow";
+    else if (as.verdes > 0) claseTermica = "mosaico-green";
 
     const nodo = document.createElement('div');
     nodo.className = `mosaico-asesor ${claseTermica}`;
@@ -446,17 +514,17 @@ function updateDashboard(){
     nodo.innerHTML = `
       <h4>${as.nombre}</h4>
       <div class="mosaico-metrics">
-        <div class="metric-sub" style="grid-column: span 2; border-left:3px solid var(--vento-purple);">
-          <span>SLA Vencido (&gt;3d)</span>
-          <strong style="color:${as.slaRotados>0?'var(--vento-red)':'#444'}">${as.slaRotados}</strong>
+        <div class="metric-sub" style="grid-column: span 2; border-left:3px solid var(--vento-red);">
+          <span>Casos Urgentes (Rojo)</span>
+          <strong style="color:${as.rojos > 0 ? 'var(--vento-red)' : '#444'}">${as.rojos}</strong>
         </div>
         <div class="metric-sub">
-          <span>Pendientes sin tocar</span>
-          <strong style="color:${as.pendientes>0?'var(--vento-yellow)':'#444'}">${as.pendientes}</strong>
+          <span>Warnings (Amarillo)</span>
+          <strong style="color:${as.amarillos > 0 ? 'var(--vento-yellow)' : '#444'}">${as.amarillos}</strong>
         </div>
         <div class="metric-sub">
-          <span>Abiertos &gt;1d</span>
-          <strong style="color:${as.abiertos1d>0?'var(--vento-green)':'#444'}">${as.abiertos1d}</strong>
+          <span>Al día (Verde)</span>
+          <strong style="color:${as.verdes > 0 ? 'var(--vento-green)' : '#444'}">${as.verdes}</strong>
         </div>
       </div>
     `;
@@ -471,6 +539,7 @@ function abrirModalAsesor(nombre){
   document.getElementById('btnModalCopy').style.display = 'inline-block';
   document.getElementById('btnModalWA').style.display = 'inline-block';
   const ticketsFiltrados = rawData.filter(x => x.asesor === nombre);
+  // Ordenar por edad crítica de mayor a menor
   ticketsFiltrados.sort((a,b) => b.diasCorridosEdad - a.diasCorridosEdad);
   construirTablaModal(ticketsFiltrados);
   mostrarModal();
@@ -485,20 +554,20 @@ function abrirModalPorMetrica(tipo){
   let ticketsFiltrados = [...rawData];
 
   if(tipo === 'open'){
-    titulo = "Total Abiertos";
-    ticketsFiltrados = rawData.filter(x => x.estado.toLowerCase() === 'open');
+    titulo = "Abiertos Bajo Control (<4h)";
+    ticketsFiltrados = rawData.filter(x => x.estado.toLowerCase() === 'open' && x.nivelAlerta === 'verde');
   } else if(tipo === 'pendientes'){
-    titulo = "Pendientes sin tocar";
-    ticketsFiltrados = rawData.filter(x => x.estado.toLowerCase() !== 'open' && x.diasRetrasoAccion > 0);
+    titulo = "Pendientes sin tocar hoy";
+    ticketsFiltrados = rawData.filter(x => x.estado.toLowerCase() !== 'open' && x.nivelAlerta === 'amarillo');
   } else if(tipo === 'sla'){
-    titulo = "SLA Vencido: Mayor a 3 Días Corridos desde Creación";
-    ticketsFiltrados = rawData.filter(x => x.incumpleSLA);
+    titulo = "SLA Vencido: Mayor a 3 Días desde Creación";
+    ticketsFiltrados = rawData.filter(x => x.diasCorridosEdad > 3);
   } else if(tipo === 'abiertos1d'){
-    titulo = "Abiertos > 1 día";
-    ticketsFiltrados = rawData.filter(x => x.estado.toLowerCase() === 'open' && x.diasRetrasoAccion > 1);
+    titulo = "Abiertos en Estado de Warning (4h a 24h)";
+    ticketsFiltrados = rawData.filter(x => x.estado.toLowerCase() === 'open' && x.nivelAlerta === 'amarillo');
   } else if(tipo === 'urgentes'){
-    titulo = "Resumen";
-    ticketsFiltrados = rawData;
+    titulo = "Resumen de Casos Urgentes (Rojo)";
+    ticketsFiltrados = rawData.filter(x => x.nivelAlerta === 'rojo');
   }
 
   document.getElementById('modalTitle').innerText = titulo;
@@ -516,18 +585,16 @@ function construirTablaModal(listaTickets){
     return;
   }
   listaTickets.forEach(t => {
-    const esOpen = t.estado.toLowerCase() === 'open';
     let badgeHtml = '';
-    if(t.incumpleSLA) badgeHtml += `<span class="badge badge-sla" style="margin-bottom:4px; display:block;">SLA Vencido</span>`;
-    if(esOpen){
-      if(t.diasRetrasoAccion > 1) badgeHtml += `<span class="badge badge-open">Abierto >1d</span>`;
-      else if(!t.incumpleSLA) badgeHtml += `<span class="badge badge-open">Abierto al día</span>`;
+    
+    if (t.nivelAlerta === 'rojo') {
+      badgeHtml = `<span class="badge" style="background:var(--vento-red); color:#fff;">URGENTE</span>`;
+    } else if (t.nivelAlerta === 'amarillo') {
+      badgeHtml = `<span class="badge badge-pend">WARNING</span>`;
     } else {
-      if(t.diasRetrasoAccion > 0) badgeHtml += `<span class="badge badge-pend">Pend. sin tocar</span>`;
-      else if(!t.incumpleSLA) badgeHtml += `<span class="badge badge-pend">Pend. al día</span>`;
+      badgeHtml = `<span class="badge badge-open">AL DÍA</span>`;
     }
 
-    // Construir URL del ticket
     const ticketUrl = `${TICKET_BASE_URL}${encodeURIComponent(t.ticket)}`;
 
     const tr = document.createElement('tr');
@@ -539,7 +606,7 @@ function construirTablaModal(listaTickets){
       <td><span style="background:#eee; padding:4px 8px; border-radius:4px; font-weight:700;">${t.estado}</span></td>
       <td><small>${t.fechaCreacionStr || '-'}</small></td>
       <td><small>${t.fechaActualizacionStr || '-'}</small></td>
-      <td style="font-weight:900; font-size:1rem; color:${t.incumpleSLA ? 'var(--vento-red)' : 'var(--vento-black)'}">${t.diasCorridosEdad} d.</td>
+      <td style="font-weight:900; font-size:1rem; color:${t.diasCorridosEdad > 3 ? 'var(--vento-red)' : 'var(--vento-black)'}">${t.diasCorridosEdad} d.</td>
       <td>${badgeHtml}</td>
     `;
     tablaCuerpo.appendChild(tr);
@@ -562,20 +629,21 @@ function cerrarModalExterno(event){
 /* Copiar reporte (solo por asesor) con URLs incluidas */
 function copiarReporteDesdeModal(){
   if(asesorActivoModal === "all") return;
-  let slaRotos = [], pendientes = [], abiertos1d = [];
+  let urgentes = [], warnings = [], aldia = [];
+  
   rawData.filter(x => x.asesor === asesorActivoModal).forEach(d => {
-    const esOpen = d.estado.toLowerCase() === 'open';
-    if(d.incumpleSLA) slaRotos.push(`${d.ticket} (${d.diasCorridosEdad}d) - ${TICKET_BASE_URL}${encodeURIComponent(d.ticket)}`);
-    if(!esOpen && d.diasRetrasoAccion > 0) pendientes.push(`${d.ticket} - ${TICKET_BASE_URL}${encodeURIComponent(d.ticket)}`);
-    if(esOpen && d.diasRetrasoAccion > 1) abiertos1d.push(`${d.ticket} - ${TICKET_BASE_URL}${encodeURIComponent(d.ticket)}`);
+    const itemStr = `${d.ticket} (${d.diasCorridosEdad}d) - ${TICKET_BASE_URL}${encodeURIComponent(d.ticket)}`;
+    if(d.nivelAlerta === 'rojo') urgentes.push(itemStr);
+    else if(d.nivelAlerta === 'amarillo') warnings.push(itemStr);
+    else aldia.push(itemStr);
   });
 
   let mensaje = `*NOTIFICACIÓN DE AUDITORÍA ATC*\n\n`;
-  mensaje += `Hola *${asesorActivoModal}*, este es tu reporte de folios que requieren atención prioritaria hoy:\n\n`;
-  if(slaRotos.length > 0) mensaje += `🔴 *SLA vencido (>3 días):* ${slaRotos.length} ticket(s)\n${slaRotos.join('\n')}\n\n`;
-  if(pendientes.length > 0) mensaje += `🟡 *Pendientes sin tocar:* ${pendientes.length} ticket(s)\n${pendientes.join('\n')}\n\n`;
-  if(abiertos1d.length > 0) mensaje += `🟢 *Abiertos >1 día:* ${abiertos1d.length} ticket(s)\n${abiertos1d.join('\n')}\n\n`;
-  mensaje += `*Por favor, apóyanos gestionando el cierre o seguimiento de estos casos.*`;
+  mensaje += `Hola *${asesorActivoModal}*, este es tu reporte operativo de folios analizados:\n\n`;
+  if(urgentes.length > 0) mensaje += `🔴 *URGENTES (>3d o Abiertos >24h):* ${urgentes.length} ticket(s)\n${urgentes.join('\n')}\n\n`;
+  if(warnings.length > 0) mensaje += `🟡 *WARNINGS (Pendientes s/tocar o >4h):* ${warnings.length} ticket(s)\n${warnings.join('\n')}\n\n`;
+  if(aldia.length > 0) mensaje += `🟢 *AL DÍA:* ${aldia.length} ticket(s)\n${aldia.join('\n')}\n\n`;
+  mensaje += `*Por favor, apóyanos gestionando el cierre o seguimiento de estos casos prioritarios.*`;
 
   navigator.clipboard.writeText(mensaje).then(() => {
     alert('Reporte copiado. Listo para enviar por WhatsApp.');
@@ -585,19 +653,19 @@ function copiarReporteDesdeModal(){
 /* Enviar WhatsApp con mensaje prellenado (abre wa.me) */
 function enviarWhatsAppDesdeModal(){
   if(asesorActivoModal === "all") return;
-  let slaRotos = [], pendientes = [], abiertos1d = [];
+  let urgentes = [], warnings = [], aldia = [];
+  
   rawData.filter(x => x.asesor === asesorActivoModal).forEach(d => {
-    const esOpen = d.estado.toLowerCase() === 'open';
-    if(d.incumpleSLA) slaRotos.push(`${d.ticket} (${d.diasCorridosEdad}d) - ${TICKET_BASE_URL}${encodeURIComponent(d.ticket)}`);
-    if(!esOpen && d.diasRetrasoAccion > 0) pendientes.push(`${d.ticket} - ${TICKET_BASE_URL}${encodeURIComponent(d.ticket)}`);
-    if(esOpen && d.diasRetrasoAccion > 1) abiertos1d.push(`${d.ticket} - ${TICKET_BASE_URL}${encodeURIComponent(d.ticket)}`);
+    const itemStr = `${d.ticket} (${d.diasCorridosEdad}d) - ${TICKET_BASE_URL}${encodeURIComponent(d.ticket)}`;
+    if(d.nivelAlerta === 'rojo') urgentes.push(itemStr);
+    else if(d.nivelAlerta === 'amarillo') warnings.push(itemStr);
+    else aldia.push(itemStr);
   });
 
   let mensaje = `NOTIFICACIÓN DE AUDITORÍA ATC\n\n`;
-  mensaje += `Hola ${asesorActivoModal}, este es tu reporte de folios que requieren atención prioritaria hoy:\n\n`;
-  if(slaRotos.length > 0) mensaje += `SLA vencido (>3 días) (${slaRotos.length}):\n${slaRotos.join('\n')}\n\n`;
-  if(pendientes.length > 0) mensaje += `Pendientes sin tocar (${pendientes.length}):\n${pendientes.join('\n')}\n\n`;
-  if(abiertos1d.length > 0) mensaje += `Abiertos >1 día (${abiertos1d.length}):\n${abiertos1d.join('\n')}\n\n`;
+  mensaje += `Hola ${asesorActivoModal}, este es tu reporte operativo de folios analizados:\n\n`;
+  if(urgentes.length > 0) mensaje += `URGENTES (${urgentes.length}):\n${urgentes.join('\n')}\n\n`;
+  if(warnings.length > 0) mensaje += `WARNINGS (${warnings.length}):\n${warnings.join('\n')}\n\n`;
   mensaje += `Por favor, apóyanos gestionando el cierre o seguimiento de estos casos.`;
 
   const waUrl = `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
