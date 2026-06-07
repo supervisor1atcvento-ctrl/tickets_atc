@@ -56,7 +56,6 @@
             display: flex;
             gap: 20px;
             margin-bottom: 30px;
-            flex-wrap: wrap;
             align-items: flex-end;
         }
 
@@ -73,36 +72,20 @@
             letter-spacing: 1px;
         }
 
-        select, input[type="date"] {
+        select {
             padding: 10px 14px;
             border: 1px solid #ccc;
             border-radius: 4px;
             background: white;
-            min-width: 220px;
+            min-width: 260px;
             font-size: 0.9rem;
             outline: none;
             transition: border 0.3s;
             font-family: 'Roboto', sans-serif;
         }
 
-        select:focus, input[type="date"]:focus {
+        select:focus {
             border-color: var(--vento-orange);
-        }
-
-        .btn-clear {
-            background: var(--vento-black);
-            color: white;
-            border: none;
-            padding: 11px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 700;
-            font-size: 0.85rem;
-            transition: background 0.3s;
-        }
-
-        .btn-clear:hover {
-            background: var(--vento-orange);
         }
 
         /* KPIs */
@@ -138,10 +121,23 @@
             color: var(--vento-black);
         }
 
-        /* Gráficas */
-        .charts-grid {
+        /* Distribución Asimétrica de Gráficas */
+        .main-dashboard-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            grid-template-columns: 1fr 2.5fr; /* La de asesores es 2.5 veces más grande */
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 900px) {
+            .main-dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .priority-grid {
+            display: grid;
+            grid-template-columns: 1fr;
             gap: 25px;
             margin-bottom: 30px;
         }
@@ -269,15 +265,6 @@
                 <option value="all">Todos los Asesores</option>
             </select>
         </div>
-        <div class="filter-group">
-            <label>FECHA DE CREACIÓN (DESDE)</label>
-            <input type="date" id="filterFechaInicio" onchange="updateDashboard()">
-        </div>
-        <div class="filter-group">
-            <label>FECHA DE CREACIÓN (HASTA)</label>
-            <input type="date" id="filterFechaFin" onchange="updateDashboard()">
-        </div>
-        <button class="btn-clear" onclick="clearDateFilters()">Limpiar Fechas</button>
     </div>
 
     <div class="kpi-container">
@@ -290,22 +277,31 @@
             <p id="kpiSinTocar" style="color: var(--vento-red);">0</p>
         </div>
         <div class="kpi-card">
-            <h3>Total Activos Filtrados</h3>
+            <h3>Total Histórico Activos</h3>
             <p id="kpiTotal">0</p>
         </div>
     </div>
 
-    <div class="charts-grid">
+    <div class="main-dashboard-grid">
         <div class="chart-box">
-            <h4>Distribución por Estatus (Columna I)</h4>
-            <div style="position: relative; height:340px;">
+            <h4>Estatus</h4>
+            <div style="position: relative; height:250px;">
                 <canvas id="chartPie"></canvas>
             </div>
         </div>
         <div class="chart-box">
-            <h4>Volumen de Tickets por Asesor (Columna C)</h4>
-            <div style="position: relative; height:340px;">
+            <h4>Volumen Total de Tickets por Asesor</h4>
+            <div style="position: relative; height:250px;">
                 <canvas id="chartAsesores"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="priority-grid">
+        <div class="chart-box" style="border-top: 4px solid var(--vento-orange);">
+            <h4>Análisis de Prioridad: Días Promedio de Retraso por Asesor (Tickets Abiertos)</h4>
+            <div style="position: relative; height:300px;">
+                <canvas id="chartPrioridadDias"></canvas>
             </div>
         </div>
     </div>
@@ -320,7 +316,7 @@
                         <th>ID Ticket / Detalle (Columna B)</th>
                         <th>Estatus (Columna I)</th>
                         <th>Fecha Creación (Columna F)</th>
-                        <th>Última Actualización (Columna G)</th>
+                        <th>Días Acumulados</th>
                         <th>Estado de Atención</th>
                     </tr>
                 </thead>
@@ -334,13 +330,12 @@
 <script>
     const SHEET_ID = '1JBre4cLAbYiOJuYye_FGcsk5U_BIStDoAiCbV-B8WoA';
     
-    // OPTIMIZACIÓN DE VELOCIDAD: Filtramos directamente desde el servidor de Google Hojas de Cálculo
-    // Selecciona registros donde Grupo (A) sea 'AMERICAN PISTON (ATC)' o 'ATC' y el Estatus (I) no sea 'Closed'
+    // Consulta SQL optimizada desde el origen
     const querySQL = encodeURIComponent("SELECT * WHERE (A = 'AMERICAN PISTON (ATC)' OR A = 'ATC') AND LOWER(I) != 'closed'");
     const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Tickets_BD&tq=${querySQL}`;
 
     let rawData = [];
-    let chartPie, chartAsesores;
+    let chartPie, chartAsesores, chartPrioridadDias;
 
     const vOrange = '#FF5A00';
     const vBlack = '#111111';
@@ -357,7 +352,6 @@
         return null;
     }
 
-    // 1. Obtener y procesar la información optimizada
     async function fetchData() {
         try {
             const response = await fetch(URL);
@@ -376,7 +370,6 @@
                     const fechaActualizacionTxt = row.c[6] && row.c[6].f ? row.c[6].f : (row.c[6] ? row.c[6].v.toString() : '');
                     const estatusTxt = row.c[8] ? (row.c[8].f || row.c[8].v || 'Sin Estatus').toString().trim() : 'Sin Estatus';
 
-                    // Evitar filas vacías accidentales o renglones duplicados de títulos
                     if (!ticketID || ticketID.toLowerCase() === 'ticket id' || nombreAsesor.toLowerCase() === 'nombre del agente') {
                         return null;
                     }
@@ -397,17 +390,15 @@
             document.getElementById('loading').style.display = 'none';
         } catch (error) {
             console.error("Error al procesar los datos:", error);
-            document.getElementById('loading').innerHTML = "<span style='color:#FF5A00'>Error de Estructura o Permisos.</span><br><small style='font-size:0.8rem;color:#fff;'>Verifica las columnas de la hoja.</small>";
+            document.getElementById('loading').innerHTML = "<span style='color:#FF5A00'>Error de Conexión.</span>";
         }
     }
 
-    // 2. Inicializar Selectores Dinámicos
     function initDashboard() {
         const asesores = [...new Set(rawData.map(item => item.asesor))].sort();
         const selectAsesor = document.getElementById('filterAsesor');
         
         selectAsesor.innerHTML = '<option value="all">Todos los Asesores</option>';
-        
         asesores.forEach(as => {
             if(as) {
                 const opt = document.createElement('option');
@@ -420,50 +411,55 @@
         updateDashboard();
     }
 
-    // 3. Configuración de Gráficas
     function setupCharts() {
+        // 1. Gráfica de Estatus Pequeña (Dona)
         const ctxPie = document.getElementById('chartPie').getContext('2d');
         chartPie = new Chart(ctxPie, {
             type: 'doughnut',
-            data: { labels: [], datasets: [{ backgroundColor: chartPalette, borderWidth: 2, borderColor: vWhite, data: [] }] },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
-        });
-
-        const ctxAsesores = document.getElementById('chartAsesores').getContext('2d');
-        chartAsesores = new Chart(ctxAsesores, {
-            type: 'bar',
-            data: { labels: [], datasets: [{ label: 'Cantidad de Tickets', backgroundColor: vOrange, borderColor: vBlack, borderWidth: 1, data: [] }] },
+            data: { labels: [], datasets: [{ backgroundColor: chartPalette, data: [] }] },
             options: { 
                 responsive: true, 
                 maintainAspectRatio: false, 
-                indexAxis: 'y', 
-                scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } } 
+                plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } } 
+            }
+        });
+
+        // 2. Gráfica de Asesores (Barras Horizontales con máximo espacio)
+        const ctxAsesores = document.getElementById('chartAsesores').getContext('2d');
+        chartAsesores = new Chart(ctxAsesores, {
+            type: 'bar',
+            data: { labels: [], datasets: [{ label: 'Tickets Activos', backgroundColor: vBlack, borderWidth: 1 }] },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false, 
+                indexAxis: 'y',
+                scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } },
+                plugins: { legend: { display: false } }
+            }
+        });
+
+        // 3. NUEVA GRÁFICA: Prioridad por días de retraso promedio (Barras Verticales de Alerta)
+        const ctxPrioridad = document.getElementById('chartPrioridadDias').getContext('2d');
+        chartPrioridadDias = new Chart(ctxPrioridad, {
+            type: 'bar',
+            data: { labels: [], datasets: [{ label: 'Días Promedio Abierto', backgroundColor: vOrange, borderColor: '#D32F2F', borderWidth: 1 }] },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: { y: { beginAtZero: true, title: { display: true, text: 'Días transcurridos' } } },
+                plugins: { legend: { display: false } }
             }
         });
     }
 
-    // 4. Lógica de Filtrado Dinámico en Pantalla y Renderizado de Totales
     function updateDashboard() {
         const selAsesor = document.getElementById('filterAsesor').value;
-        const fechaInicioVal = document.getElementById('filterFechaInicio').value;
-        const fechaFinVal = document.getElementById('filterFechaFin').value;
-        
-        const desdeFecha = fechaInicioVal ? new Date(fechaInicioVal + "T00:00:00") : null;
-        const hastaFecha = fechaFinVal ? new Date(fechaFinVal + "T23:59:59") : null;
-
         const hoy = new Date();
         hoy.setHours(0,0,0,0);
 
         let filtered = rawData;
-        
         if (selAsesor !== 'all') {
             filtered = filtered.filter(d => d.asesor === selAsesor);
-        }
-        if (desdeFecha) {
-            filtered = filtered.filter(d => d.fechaCreacionObjeto && d.fechaCreacionObjeto >= desdeFecha);
-        }
-        if (hastaFecha) {
-            filtered = filtered.filter(d => d.fechaCreacionObjeto && d.fechaCreacionObjeto <= hastaFecha);
         }
 
         const estadosContador = {};
@@ -472,6 +468,10 @@
         
         const tablaAlertas = document.getElementById('tablaAlertas');
         tablaAlertas.innerHTML = ""; 
+
+        // Objetos para calcular días de retraso por asesor
+        const diasPorAsesor = {};
+        const conteoTicketsAbiertosAsesor = {};
 
         filtered.forEach(d => {
             let est = d.estado;
@@ -483,6 +483,17 @@
             if (esPendiente) {
                 totalAbiertos++;
                 
+                // Calcular días transcurridos desde la creación hasta hoy
+                let diasTranscurridos = 0;
+                if (d.fechaCreacionObjeto) {
+                    const diferenciaTiempo = hoy.getTime() - d.fechaCreacionObjeto.getTime();
+                    diasTranscurridos = Math.max(0, Math.floor(diferenciaTiempo / (1000 * 60 * 60 * 24)));
+                }
+
+                // Acumular datos de días para la gráfica de prioridad
+                diasPorAsesor[d.asesor] = (diasPorAsesor[d.asesor] || 0) + diasTranscurridos;
+                conteoTicketsAbiertosAsesor[d.asesor] = (conteoTicketsAbiertosAsesor[d.asesor] || 0) + 1;
+
                 if (d.fechaActualizacionObjeto && d.fechaActualizacionObjeto < hoy) {
                     totalSinTocar++;
                     
@@ -492,8 +503,8 @@
                             <td>${d.ticket}</td>
                             <td>${est}</td>
                             <td><small>${d.fechaCreacionStr}</small></td>
-                            <td><small style="color:var(--vento-red)">${d.fechaActualizacionStr}</small></td>
-                            <td><span class="badge-red">SIN TOCAR (Retrasado)</span></td>
+                            <td><span style="color:var(--vento-red); font-weight:bold;">${diasTranscurridos} días</span></td>
+                            <td><span class="badge-red">URGENTE</span></td>
                         </tr>
                     `;
                     tablaAlertas.innerHTML += fila;
@@ -502,35 +513,45 @@
         });
 
         if (tablaAlertas.innerHTML === "") {
-            tablaAlertas.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#2e7d32; font-weight:bold;">¡Excelente! Todos los pendientes han sido actualizados o tocados hoy.</td></tr>`;
+            tablaAlertas.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#2e7d32; font-weight:bold;">Sin alertas críticas pendientes hoy.</td></tr>`;
         }
 
-        const totalTickets = filtered.length;
-
+        // Render KPIs
         document.getElementById('kpiAbiertos').innerText = totalAbiertos.toLocaleString();
         document.getElementById('kpiSinTocar').innerText = totalSinTocar.toLocaleString();
-        document.getElementById('kpiTotal').innerText = totalTickets.toLocaleString();
+        document.getElementById('kpiTotal').innerText = filtered.length.toLocaleString();
 
+        // Actualizar Dona Estatus
         chartPie.data.labels = Object.keys(estadosContador);
         chartPie.data.datasets[0].data = Object.values(estadosContador);
         chartPie.update();
 
+        // Actualizar Volumen por Asesores (Ordenado de mayor a menor volumen)
         const asesoresContador = {};
-        filtered.forEach(d => {
-            asesoresContador[d.asesor] = (asesoresContador[d.asesor] || 0) + 1;
+        filtered.forEach(d => { asesoresContador[d.asesor] = (asesoresContador[d.asesor] || 0) + 1; });
+        const asesoresOrdenadosVolumen = Object.keys(asesoresContador).sort((a,b) => asesoresContador[b] - asesoresContador[a]);
+
+        chartAsesores.data.labels = asesoresOrdenadosVolumen;
+        chartAsesores.data.datasets[0].data = asesoresOrdenadosVolumen.map(as => asesoresContador[as]);
+        chartAsesores.update();
+
+        // Actualizar NUEVA Gráfica de Prioridad (Días promedio de antigüedad por asesor)
+        const listaAsesoresPrioridad = Object.keys(conteoTicketsAbiertosAsesor);
+        const promediosDias = listaAsesoresPrioridad.map(as => {
+            const totalDias = diasPorAsesor[as] || 0;
+            const totalTickets = conteoTicketsAbiertosAsesor[as] || 1;
+            return {
+                asesor: as,
+                promedio: Math.round(totalDias / totalTickets)
+            };
         });
 
-        const asesoresOrdenados = Object.keys(asesoresContador).sort((a,b) => asesoresContador[b] - asesoresContador[a]);
+        // Ordenar de mayor a menor días de retraso para resaltar la urgencia a la izquierda
+        promediosDias.sort((a, b) => b.promedio - a.promedio);
 
-        chartAsesores.data.labels = asesoresOrdenados;
-        chartAsesores.data.datasets[0].data = asesoresOrdenados.map(as => asesoresContador[as]);
-        chartAsesores.update();
-    }
-
-    function clearDateFilters() {
-        document.getElementById('filterFechaInicio').value = "";
-        document.getElementById('filterFechaFin').value = "";
-        updateDashboard();
+        chartPrioridadDias.data.labels = promediosDias.map(p => p.asesor);
+        chartPrioridadDias.data.datasets[0].data = promediosDias.map(p => p.promedio);
+        chartPrioridadDias.update();
     }
 
     fetchData();
