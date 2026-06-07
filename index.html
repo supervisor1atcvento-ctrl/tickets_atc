@@ -129,17 +129,17 @@ header h1{
   margin:12px 0;
 }
 
-/* Grid mosaicos compacto */
+/* Grid mosaicos compacto ajustado para más métricas */
 .heatmap-grid{
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+  grid-template-columns:repeat(auto-fill,minmax(230px,1fr));
   gap:12px;
   margin-bottom:28px;
 }
 .mosaico-asesor{
   background:var(--vento-white);
   border-radius:10px;
-  padding:10px;
+  padding:12px;
   box-shadow:var(--shadow-sm);
   cursor:pointer;
   transition:transform .15s ease, box-shadow .15s ease;
@@ -147,14 +147,16 @@ header h1{
 }
 .mosaico-asesor:hover{ transform:translateY(-3px); box-shadow:var(--shadow-md); }
 .mosaico-asesor h4{
-  margin:0 0 8px 0;
-  font-size:0.82rem;
+  margin:0 0 10px 0;
+  font-size:0.88rem;
   font-weight:800;
   color:var(--vento-dark-gray);
   text-transform:uppercase;
   white-space:nowrap;
   overflow:hidden;
   text-overflow:ellipsis;
+  border-bottom: 1px solid #f0f0f0;
+  padding-bottom: 4px;
 }
 .mosaico-metrics{
   display:grid;
@@ -163,12 +165,12 @@ header h1{
 }
 .metric-sub{
   background:rgba(255,255,255,0.9);
-  padding:6px;
+  padding:5px 6px;
   border-radius:6px;
   border:1px solid rgba(0,0,0,0.04);
 }
-.metric-sub span{ display:block; font-size:0.56rem; text-transform:uppercase; color:#666; font-weight:800; }
-.metric-sub strong{ display:block; font-size:0.98rem; font-weight:900; margin-top:4px; }
+.metric-sub span{ display:block; font-size:0.56rem; text-transform:uppercase; color:#666; font-weight:800; line-height: 1.1; }
+.metric-sub strong{ display:block; font-size:0.95rem; font-weight:900; margin-top:2px; }
 
 /* Semáforo: clases por color */
 .mosaico-red{ border-top:4px solid var(--vento-red); background:linear-gradient(to bottom,var(--vento-white),#fff0f0); }
@@ -305,8 +307,8 @@ const SHEET_ID = '1JBre4cLAbYiOJuYye_FGcsk5U_BIStDoAiCbV-B8WoA';
 const querySQLTickets = encodeURIComponent("SELECT A, B, C, F, G, I WHERE (A = 'AMERICAN PISTON (ATC)' OR A = 'ATC') AND LOWER(I) != 'closed'");
 const URL_TICKETS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Tickets_BD&tq=${querySQLTickets}`;
 
-// Consulta SQL 2: Trae exclusivamente la celda Z1 de manera rápida y aislada
-const querySQLTimestamp = encodeURIComponent("SELECT Z LIMIT 1");
+// Consulta SQL 2: Corregida para traer el valor real sin omitir las primeras filas vacías de la columna Z
+const querySQLTimestamp = encodeURIComponent("SELECT Z WHERE Z IS NOT NULL LIMIT 5");
 const URL_TIMESTAMP = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Tickets_BD&tq=${querySQLTimestamp}`;
 
 let rawData = [];
@@ -314,13 +316,18 @@ let asesorActivoModal = "all";
 let ultimaActualizacionBase = "No disponible";
 const TICKET_BASE_URL = 'https://ayuda.vento.com/a/tickets/';
 
-/* Parseo de fecha en formato YYYY-MM-DD (o similar) */
+/* Parseo de fecha en formato YYYY-MM-DD o DD-MM-YYYY */
 function parsearFechaString(txt){
   if(!txt) return null;
   const limpia = txt.trim().split(' ')[0];
   const partes = limpia.split('-');
   if(partes.length === 3){
-    return new Date(parseInt(partes[0],10), parseInt(partes[1],10)-1, parseInt(partes[2],10));
+    // Si viene en formato extendido de Google Sheets o estándar
+    if(partes[0].length === 4) {
+      return new Date(parseInt(partes[0],10), parseInt(partes[1],10)-1, parseInt(partes[2],10));
+    } else {
+      return new Date(parseInt(partes[2],10), parseInt(partes[1],10)-1, parseInt(partes[0],10));
+    }
   }
   return null;
 }
@@ -345,7 +352,6 @@ function calcularDiasCorridos(fechaInicio, fechaFin){
 /* Obtener datos desde Google Sheets usando queries SQL en paralelo */
 async function fetchData(){
   try{
-    // Ejecutar ambas consultas simultáneamente para optimizar velocidad
     const [resTickets, resTimestamp] = await Promise.all([
       fetch(URL_TICKETS),
       fetch(URL_TIMESTAMP)
@@ -354,14 +360,21 @@ async function fetchData(){
     const textTickets = await resTickets.text();
     const textTimestamp = await resTimestamp.text();
 
-    // Parsear fecha de actualización (Celda Z1)
+    // Parsear fecha de actualización (Celda filtrada de Columna Z)
     try {
       const jsonTS = JSON.parse(textTimestamp.substr(47).slice(0,-2));
-      if(jsonTS.table.rows && jsonTS.table.rows[0] && jsonTS.table.rows[0].c && jsonTS.table.rows[0].c[0]){
-        ultimaActualizacionBase = jsonTS.table.rows[0].c[0].f || jsonTS.table.rows[0].c[0].v || "No disponible";
+      const rowsTS = jsonTS.table.rows || [];
+      for(let r of rowsTS){
+        if(r.c && r.c[0] && (r.c[0].f || r.c[0].v)){
+          let val = r.c[0].f || r.c[0].v;
+          if(val.toString().toLowerCase().includes("actualizado")){
+            ultimaActualizacionBase = val;
+            break;
+          }
+        }
       }
     } catch(e) {
-      console.error("Error al leer celda Z1:", e);
+      console.error("Error al leer celda de actualización Z:", e);
     }
 
     // Parsear filas de tickets
@@ -373,7 +386,6 @@ async function fetchData(){
     rawData = rows.map(row => {
       if(!row || !row.c) return null;
       
-      // Mapear los índices devueltos por la consulta SQL filtrada
       const ticketID = row.c[1] ? (row.c[1].f || row.c[1].v || '').toString().trim() : '';
       const nombreAsesor = row.c[2] ? (row.c[2].f || row.c[2].v || '').toString().trim() : 'Sin Asesor';
       const fechaCreacionTxt = row.c[3] && row.c[3].f ? row.c[3].f : (row.c[3] ? row.c[3].v.toString() : '');
@@ -393,17 +405,24 @@ async function fetchData(){
         diasCorridosEdad = calcularDiasCorridos(fechaCreacionObj, hoySinHora);
       }
 
+      // Días transcurridos desde la última actualización del ticket
+      let diasDesdeUltimaAct = 0;
+      if(fechaActObj){
+        diasDesdeUltimaAct = calcularDiasCorridos(fechaActObj, hoySinHora);
+      }
+
       // Horas desde creación
       let horasDesdeCreacion = 0;
       if(fechaCreacionCompleta){
-        horasDesdeCreacion = (hoy.getTime() - fechaCreacionCompleta.getTime()) / (1000 * 60 * 60);
+        bytesHoras = (hoy.getTime() - fechaCreacionCompleta.getTime()) / (1000 * 60 * 60);
+        horasDesdeCreacion = bytesHoras;
       }
 
-      // Reglas de negocio del Semáforo Inteligente
+      // Reglas de negocio del Semáforo Inteligente e Inyección de alertas
       let nivelAlerta = 'verde';
       
       if (diasCorridosEdad > 3) {
-        nivelAlerta = 'rojo'; // SLA Vencido
+        nivelAlerta = 'rojo'; // SLA Vencido histórico
       } else if (esOpen) {
         if (horasDesdeCreacion > 24) {
           nivelAlerta = 'rojo'; // Abierto > 24h es urgente
@@ -411,12 +430,11 @@ async function fetchData(){
           nivelAlerta = 'amarillo'; // Abierto > 4h es warning
         }
       } else {
-        // Tickets pendientes sin tocar hoy
-        if (fechaActObj) {
-          const diferenciaDiasAct = calcularDiasCorridos(fechaActObj, hoySinHora);
-          if (diferenciaDiasAct > 0) {
-            nivelAlerta = 'amarillo';
-          }
+        // REGLA SOLICITADA: Si es pendiente y tiene 2 o más días sin actualizar, es URGENTE (Rojo)
+        if (diasDesdeUltimaAct >= 2) {
+          nivelAlerta = 'rojo';
+        } else if (diasDesdeUltimaAct > 0) {
+          nivelAlerta = 'amarillo';
         }
       }
 
@@ -427,6 +445,7 @@ async function fetchData(){
         fechaActualizacionStr: fechaActualizacionTxt,
         estado: estatusTxt,
         diasCorridosEdad: diasCorridosEdad,
+        diasDesdeUltimaAct: diasDesdeUltimaAct,
         horasDesdeCreacion: horasDesdeCreacion,
         nivelAlerta: nivelAlerta
       };
@@ -446,15 +465,16 @@ function updateDashboard(){
   let openVerdeTotal = 0, pendSinTocarTotal = 0, warningOpenTotal = 0, slaVencidoTotal = 0, urgentesTotal = 0;
   const mapeoAsesores = {};
 
-  // Colocar fecha de última actualización
-  document.getElementById('dbTimestamp').innerText = `Base: ${ultimaActualizacionBase}`;
+  // Colocar fecha de última actualización en la barra superior
+  document.getElementById('dbTimestamp').innerText = `${ultimaActualizacionBase}`;
 
   rawData.forEach(d => {
     const esOpen = d.estado.toLowerCase() === 'open';
     if(!mapeoAsesores[d.asesor]){
-      mapeoAsesores[d.asesor] = { nombre: d.asesor, rojos: 0, amarillos: 0, verdes: 0, tickets: [] };
+      mapeoAsesores[d.asesor] = { nombre: d.asesor, rojos: 0, amarillos: 0, verdes: 0, totales: 0, tickets: [] };
     }
     mapeoAsesores[d.asesor].tickets.push(d);
+    mapeoAsesores[d.asesor].totales++;
 
     if (d.nivelAlerta === 'rojo') {
       urgentesTotal++;
@@ -470,7 +490,7 @@ function updateDashboard(){
     }
   });
 
-  // Renderizar contadores en los KPIs
+  // Renderizar contadores en los KPIs principales
   document.getElementById('kpiTotalOpen').innerText = openVerdeTotal;
   document.getElementById('kpiTotalPendientes').innerText = pendSinTocarTotal;
   
@@ -506,19 +526,24 @@ function updateDashboard(){
     nodo.className = `mosaico-asesor ${claseTermica}`;
     nodo.setAttribute('onclick', `abrirModalAsesor('${as.nombre.replace(/'/g,"\\'")}')`);
 
+    // Inyección de la nueva estructura de métricas detalladas en la ficha
     nodo.innerHTML = `
       <h4>${as.nombre}</h4>
       <div class="mosaico-metrics">
-        <div class="metric-sub" style="grid-column: span 2; border-left:3px solid var(--vento-red);">
-          <span>Casos Urgentes (Rojo)</span>
+        <div class="metric-sub" style="grid-column: span 2; background:#fdfdfd; border-bottom:1px dashed #ddd;">
+          <span>Tickets Totales</span>
+          <strong style="color:var(--vento-black); font-size:1.1rem;">${as.totales}</strong>
+        </div>
+        <div class="metric-sub" style="border-left:3px solid var(--vento-red);">
+          <span>Urgentes</span>
           <strong style="color:${as.rojos > 0 ? 'var(--vento-red)' : '#444'}">${as.rojos}</strong>
         </div>
-        <div class="metric-sub">
-          <span>Warnings (Amarillo)</span>
+        <div class="metric-sub" style="border-left:3px solid var(--vento-yellow);">
+          <span>Preventivos</span>
           <strong style="color:${as.amarillos > 0 ? 'var(--vento-yellow)' : '#444'}">${as.amarillos}</strong>
         </div>
-        <div class="metric-sub">
-          <span>Al día (Verde)</span>
+        <div class="metric-sub" style="border-left:3px solid var(--vento-green); grid-column: span 2;">
+          <span>Al día</span>
           <strong style="color:${as.verdes > 0 ? 'var(--vento-green)' : '#444'}">${as.verdes}</strong>
         </div>
       </div>
@@ -582,7 +607,8 @@ function construirTablaModal(listaTickets){
     let badgeHtml = '';
     
     if (t.nivelAlerta === 'rojo') {
-      badgeHtml = `<span class="badge" style="background:var(--vento-red); color:#fff;">URGENTE</span>`;
+      let extra = t.diasDesdeUltimaAct >= 2 ? ' (+2d s/act)' : '';
+      badgeHtml = `<span class="badge" style="background:var(--vento-red); color:#fff;">URGENTE${extra}</span>`;
     } else if (t.nivelAlerta === 'amarillo') {
       badgeHtml = `<span class="badge badge-pend">WARNING</span>`;
     } else {
@@ -634,8 +660,8 @@ function copiarReporteDesdeModal(){
 
   let mensaje = `*NOTIFICACIÓN DE AUDITORÍA ATC*\n\n`;
   mensaje += `Hola *${asesorActivoModal}*, este es tu reporte operativo de folios analizados:\n\n`;
-  if(urgentes.length > 0) mensaje += `🔴 *URGENTES (>3d o Abiertos >24h):* ${urgentes.length} ticket(s)\n${urgentes.join('\n')}\n\n`;
-  if(warnings.length > 0) mensaje += `🟡 *WARNINGS (Pendientes s/tocar o >4h):* ${warnings.length} ticket(s)\n${warnings.join('\n')}\n\n`;
+  if(urgentes.length > 0) mensaje += `🔴 *URGENTES (>3d o sin actualización):* ${urgentes.length} ticket(s)\n${urgentes.join('\n')}\n\n`;
+  if(warnings.length > 0) mensaje += `🟡 *WARNINGS (Pendientes o >4h):* ${warnings.length} ticket(s)\n${warnings.join('\n')}\n\n`;
   if(aldia.length > 0) mensaje += `🟢 *AL DÍA:* ${aldia.length} ticket(s)\n${aldia.join('\n')}\n\n`;
   mensaje += `*Por favor, apóyanos gestionando el cierre o seguimiento de estos casos prioritarios.*`;
 
@@ -644,7 +670,7 @@ function copiarReporteDesdeModal(){
   }).catch(()=>{ alert('No se pudo copiar automáticamente. Selecciona y copia manualmente.'); });
 }
 
-/* Enviar WhatsApp con mensaje prellenado (abre wa.me) */
+/* Enviar WhatsApp con mensaje prellenado */
 function enviarWhatsAppDesdeModal(){
   if(asesorActivoModal === "all") return;
   let urgentes = [], warnings = [], aldia = [];
@@ -668,7 +694,7 @@ function enviarWhatsAppDesdeModal(){
 
 /* Inicializar */
 fetchData();
-setInterval(fetchData, 900000); // 15 minutos
+setInterval(fetchData, 900000); // Refresco automático cada 15 minutos
 </script>
 
 </body>
