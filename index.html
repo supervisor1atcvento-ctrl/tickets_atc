@@ -486,44 +486,7 @@
         }
         return null;
     }
-
-    function calcularDiasHabiles(fechaInicio, fechaFin, asesor) {
-        if (!fechaInicio || !fechaFin) return 0;
-        let dias = 0;
-        
-        let actual = new Date(fechaInicio);
-        actual.setHours(0,0,0,0);
-        let fin = new Date(fechaFin);
-        fin.setHours(0,0,0,0);
-
-        // Limpiar el nombre del asesor para la validación (evitar errores por espacios)
-        const asesorLimpio = asesor.trim().toUpperCase();
-        const esEspecial = (asesorLimpio === "ATC ANDREA FUENTES" || asesorLimpio === "SANDY PONCE");
-
-        while (actual < fin) {
-            actual.setDate(actual.getDate() + 1);
-            let diaSemana = actual.getDay(); // 0 = Dom, 1 = Lun ... 6 = Sab
-            
-            // Ajustar formato para comparar con el array de festivos (YYYY-MM-DD)
-            let mes = String(actual.getMonth() + 1).padStart(2, '0');
-            let dia = String(actual.getDate()).padStart(2, '0');
-            let strFecha = `${actual.getFullYear()}-${mes}-${dia}`;
-
-            if (esEspecial) {
-                // Descansan Jueves (4) y Viernes (5). NO se cuentan los días festivos de ley.
-                if (diaSemana !== 4 && diaSemana !== 5) {
-                    dias++;
-                }
-            } else {
-                // Horario normal: Descansan Sábado (6) y Domingo (0). SÍ aplican festivos.
-                if (diaSemana !== 0 && diaSemana !== 6 && !festivosMexicanos.includes(strFecha)) {
-                    dias++;
-                }
-            }
-        }
-        return dias;
-    }
-
+    
     async function fetchData() {
         try {
             const response = await fetch(URL);
@@ -558,10 +521,10 @@
                     }
 
                     // 2. Edad del ticket en Días Hábiles (Para el SLA de 3 días)
-                    let diasHabilesDesdeCreacion = 0;
-                    if (fechaCreacionObj) {
-                        diasHabilesDesdeCreacion = calcularDiasHabiles(fechaCreacionObj, hoy, nombreAsesor);
-                    }
+                   let diasCorridosDesdeCreacion = 0;
+                        if (fechaCreacionObj) {
+                              diasCorridosDesdeCreacion = Math.floor((hoy.getTime() - fechaCreacionObj.getTime()) / 86400000);
+                        }
 
                     return {
                         ticket: ticketID, 
