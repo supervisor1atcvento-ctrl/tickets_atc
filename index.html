@@ -3,19 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vento ATC - Control de Prioridades Avanzado</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>Vento ATC - Muro de Control Operativo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
             --vento-orange: #FF5A00; 
             --vento-black: #111111;  
-            --vento-gray: #F8F9FA;   
+            --vento-gray: #F2F4F7;   
             --vento-white: #FFFFFF;  
-            --vento-dark-gray: #222222;
+            --vento-dark-gray: #1A1A1A;
             --vento-red: #D32F2F;
+            --vento-red-light: #FFEBEE;
             --vento-green: #2E7D32;
-            --vento-muted: #7f8c8d;
+            --vento-green-light: #E8F5E9;
+            --vento-urgent: #E65100;
+            --vento-urgent-light: #FFF3E0;
         }
 
         body {
@@ -23,82 +25,72 @@
             background-color: var(--vento-gray);
             margin: 0;
             color: var(--vento-black);
+            overflow-x: hidden;
         }
 
         header {
             background-color: var(--vento-black);
             color: var(--vento-white);
-            padding: 1.2rem 5%;
+            padding: 1rem 4%;
             display: flex;
             justify-content: space-between;
             align-items: center;
             border-bottom: 4px solid var(--vento-orange);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
 
         header h1 {
             margin: 0;
             font-weight: 900;
             letter-spacing: 2px;
-            text-transform: uppercase;
+            font-size: 1.5rem;
         }
 
         .container {
-            width: 93%;
-            margin: 25px auto;
+            width: 95%;
+            margin: 20px auto;
         }
 
-        /* Barra de Control Dinámica */
+        /* Barra de Control */
         .control-bar {
             background: var(--vento-white);
-            padding: 15px 20px;
+            padding: 12px 20px;
             border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            border: 1px solid #e1e1e1;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 25px;
-            flex-wrap: wrap;
-            gap: 15px;
+            margin-bottom: 20px;
         }
 
         .info-txt {
-            font-size: 0.9rem;
-            color: #555;
-        }
-        .info-txt strong {
-            color: var(--vento-orange);
+            font-size: 0.95rem;
+            font-weight: bold;
         }
 
         .btn-action {
             background: var(--vento-orange);
             color: white;
             border: none;
-            padding: 10px 18px;
+            padding: 8px 16px;
             border-radius: 4px;
             cursor: pointer;
             font-weight: 700;
-            font-size: 0.85rem;
-            transition: background 0.3s, transform 0.1s;
-            display: none; 
             text-transform: uppercase;
+            display: none;
         }
-
-        .btn-action:hover { background: #e04f00; }
 
         .btn-reset {
             background: var(--vento-black);
             color: white;
             border: none;
-            padding: 10px 15px;
+            padding: 8px 14px;
             border-radius: 4px;
             cursor: pointer;
             font-weight: 700;
-            font-size: 0.85rem;
         }
 
-        /* KPIs con interacción de clic y lógica de color dinámica */
+        /* KPIs Superiores */
         .kpi-container {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -108,123 +100,178 @@
 
         .kpi-card {
             background: var(--vento-white);
-            padding: 20px 15px;
+            padding: 15px;
             border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.05);
             text-align: center;
-            border: 1px solid #e1e1e1;
+            border: 1px solid #ddd;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            user-select: none;
+            transition: transform 0.15s;
         }
 
-        .kpi-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
-        }
+        .kpi-card:hover { transform: translateY(-2px); }
 
         .kpi-card.active-filter {
-            border: 2px solid var(--vento-orange) !important;
-            background-color: #fff9f5;
+            border: 3px solid var(--vento-orange) !important;
+            background-color: #FFF9F5;
         }
 
         .kpi-card h3 {
             margin: 0;
             font-size: 0.75rem;
-            color: #666;
+            color: #555;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
         .kpi-card p {
-            margin: 10px 0 0;
-            font-size: 2.3rem;
+            margin: 8px 0 0;
+            font-size: 2.2rem;
             font-weight: 900;
-            color: var(--vento-black);
         }
 
-        /* Bloque de Gráfica */
-        .dashboard-grid {
+        /* SECCIÓN RECOMENDADA: Matriz de Mosaicos Térmicos */
+        .matrix-title {
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 1.1rem;
+            margin: 10px 0 15px 0;
+            color: var(--vento-dark-gray);
+            border-left: 5px solid var(--vento-orange);
+            padding-left: 10px;
+        }
+
+        .heatmap-grid {
             display: grid;
-            grid-template-columns: 1fr;
-            gap: 25px;
-            margin-bottom: 25px;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
         }
 
-        .chart-box {
+        .mosaico-asesor {
             background: var(--vento-white);
-            padding: 25px;
             border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.06);
+            padding: 16px;
             border: 1px solid #e1e1e1;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
         }
 
-        .chart-box h4 {
-            margin-top: 0;
-            border-bottom: 2px solid #f0f0f0;
-            padding-bottom: 10px;
-            color: var(--vento-black);
+        .mosaico-asesor:hover {
+            transform: scale(1.03);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.12);
+        }
+
+        .mosaico-asesor.selected {
+            border: 3px solid var(--vento-orange) !important;
+        }
+
+        /* Estados Térmicos del Mosaico */
+        .mosaico-clean {
+            background-color: var(--vento-green-light);
+            border-top: 5px solid var(--vento-green);
+        }
+        .mosaico-urgent {
+            background-color: var(--vento-urgent-light);
+            border-top: 5px solid var(--vento-urgent);
+        }
+        .mosaico-critical {
+            background-color: var(--vento-red-light);
+            border-top: 5px solid var(--vento-red);
+            animation: pulse-border 2s infinite;
+        }
+
+        @keyframes pulse-border {
+            0% { box-shadow: 0 0 0 0 rgba(211, 47, 47, 0.4); }
+            70% { box-shadow: 0 0 0 6px rgba(211, 47, 47, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(211, 47, 47, 0); }
+        }
+
+        .mosaico-asesor h4 {
+            margin: 0 0 10px 0;
+            font-size: 1rem;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-size: 0.9rem;
-            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        /* Tabla de Alertas */
+        .mosaico-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+            margin-top: 5px;
+        }
+
+        .metric-sub {
+            background: rgba(255,255,255,0.6);
+            padding: 6px;
+            border-radius: 4px;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        .metric-sub span {
+            display: block;
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            color: #444;
+            font-weight: bold;
+        }
+        .metric-sub strong {
+            font-size: 1.1rem;
+            font-weight: 900;
+        }
+
+        /* Tabla de Incumplimientos */
         .alert-section {
             background: var(--vento-white);
-            padding: 25px;
+            padding: 20px;
             border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            border: 1px solid #e1e1e1;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.05);
             border-top: 4px solid var(--vento-black);
         }
 
         .alert-section h4 {
             margin-top: 0;
-            color: var(--vento-black);
-            font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            border-bottom: 2px solid #f0f0f0;
-            padding-bottom: 12px;
-            font-size: 1rem;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+            font-size: 0.95rem;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 15px;
             font-size: 0.9rem;
         }
 
         th {
             background-color: #f8f9fa;
-            color: #333;
-            font-weight: 700;
+            padding: 10px;
             text-align: left;
-            padding: 12px;
             border-bottom: 2px solid #ddd;
+            font-weight: 700;
         }
 
         td {
-            padding: 12px;
+            padding: 10px;
             border-bottom: 1px solid #eee;
         }
 
-        tr:hover { background-color: #fffaf7; }
-
         .badge {
-            padding: 5px 9px;
+            padding: 4px 8px;
             border-radius: 4px;
             font-weight: bold;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             text-transform: uppercase;
-            display: inline-block;
         }
-        .badge-critical { background-color: #fde8e8; color: var(--vento-red); border: 1px solid #f9acaa; }
-        .badge-urgent { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+        .badge-critical { background: #fde8e8; color: var(--vento-red); }
+        .badge-urgent { background: #fff3cd; color: #856404; }
 
         #loading {
             position: fixed;
@@ -235,22 +282,19 @@
             justify-content: center;
             align-items: center;
             z-index: 1000;
-            font-weight: 700;
             color: var(--vento-white);
-            font-size: 1.2rem;
+            font-weight: 700;
             letter-spacing: 2px;
         }
 
         .spinner {
-            width: 50px;
-            height: 50px;
-            border: 5px solid var(--vento-dark-gray);
-            border-top: 5px solid var(--vento-orange);
+            width: 40px; height: 40px;
+            border: 4px solid #333;
+            border-top: 4px solid var(--vento-orange);
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
-
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
@@ -258,71 +302,66 @@
 
 <div id="loading">
     <div class="spinner"></div>
-    CONFIGURANDO VISOR DE BURBUJAS INTERACTIVO...
+    CARGANDO MURO DE CONTROL ATC VENTO...
 </div>
 
 <header>
-    <h1>VENTO <span style="color:var(--vento-orange)">CONTROL OPERATIVO</span></h1>
-    <span style="font-weight: 300; font-size: 0.9rem;">Visor de Distribución de Carga Freshdesk</span>
+    <h1>VENTO <span style="color:var(--vento-orange)">MURO OPERATIVO</span></h1>
+    <span style="font-weight: bold; font-size: 0.85rem; background: var(--vento-orange); padding: 4px 10px; border-radius: 3px;">PANTALLA DE SEGUIMIENTO</span>
 </header>
 
 <div class="container">
 
     <div class="control-bar">
         <div class="info-txt" id="barInstruction">
-            💡 <strong>Interactividad Pro:</strong> Haz clic en cualquier recuadro numérico o en una burbuja para filtrar la lista. Refresco automático cada 15 min.
+            📺 Monitoreo General del Equipo Freshdesk. Auto-refresco configurado cada 15 min.
         </div>
-        <div style="display: flex; gap: 10px; align-items: center;">
-            <button class="btn-action" id="btnCopiarReporte" onclick="copiarReporteAsesor()">Copiar Alerta de Asesor</button>
-            <button class="btn-reset" id="btnResetFiltro" onclick="resetFiltros Globales()" style="display:none;">Ver Todo</button>
+        <div>
+            <button class="btn-action" id="btnCopiarReporte" onclick="copiarReporteAsesor()">Copiar Mensaje</button>
+            <button class="btn-reset" id="btnResetFiltro" onclick="resetFiltros()" style="display:none;">Ver Todo el Muro</button>
         </div>
     </div>
 
     <div class="kpi-container">
         <div class="kpi-card" id="cardOpen" onclick="filtrarPorMetrica('open')">
             <h3>Total Abiertos (Open)</h3>
-            <p id="kpiTotalOpen">0</p>
+            <p id="kpiTotalOpen" style="color: var(--vento-black);">0</p>
         </div>
         <div class="kpi-card" id="cardPendientes" onclick="filtrarPorMetrica('pendientes')">
             <h3>Total Pendientes</h3>
-            <p id="kpiTotalPendientes">0</p>
+            <p id="kpiTotalPendientes" style="color: var(--vento-black);">0</p>
         </div>
         <div class="kpi-card" id="cardCriticos" onclick="filtrarPorMetrica('criticos')">
             <h3>Críticos (Open > 24h)</h3>
             <p id="kpiOpenCriticos">0</p>
         </div>
         <div class="kpi-card" id="cardUrgentes" onclick="filtrarPorMetrica('urgentes')">
-            <h3>Urgentes (Sin Tocar)</h3>
+            <h3>Urgentes (Sin Tocar Hoy)</h3>
             <p id="kpiPendientesUrgentes">0</p>
         </div>
         <div class="kpi-card" id="cardTotal" onclick="filtrarPorMetrica('all')">
-            <h3>Carga Total Activa</h3>
-            <p id="kpiTotalActivos">0</p>
+            <h3>Carga Global Activa</h3>
+            <p id="kpiTotalActivos" style="color: var(--vento-black);">0</p>
         </div>
     </div>
 
-    <div class="dashboard-grid">
-        <div class="chart-box">
-            <h4>Mapa de Carga Operativa por Asesor (Tamaño de Burbuja = Volumen de Tickets)</h4>
-            <div style="position: relative; height:360px; max-width: 900px; margin: 0 auto;">
-                <canvas id="chartBubbleAsesores"></canvas>
-            </div>
+    <div class="matrix-title">Estado Térmico por Integrante del Equipo</div>
+    <div class="heatmap-grid" id="gridMosaicos">
         </div>
-    </div>
 
     <div class="alert-section">
-        <h4 id="alertTitleTable">Listado General de Tickets Activos</h4>
+        <h4 id="alertTitleTable">Desglose Detallado de Tickets Vinculados</h4>
         <div style="overflow-x: auto;">
             <table>
                 <thead>
                     <tr>
                         <th>Asesor</th>
                         <th>ID Ticket</th>
-                        <th>Estatus Actual</th>
-                        <th>Fecha Creación</th>
-                        <th>Última Actualización</th>
-                        <th>Días de Retraso</th>
-                        <th>Tipo Diagnóstico</th>
+                        <th>Estatus</th>
+                        <th>Creación</th>
+                        <th>Última Act.</th>
+                        <th>Retraso</th>
+                        <th>Alerta</th>
                     </tr>
                 </thead>
                 <tbody id="tablaAlertas">
@@ -339,8 +378,7 @@
 
     let rawData = [];
     let asesorSeleccionado = "all";
-    let metricaSeleccionada = "all"; // open, pendientes, criticos, urgentes, all
-    let chartBubbleAsesores;
+    let metricaSeleccionada = "all";
 
     function parsearFechaString(txt) {
         if (!txt) return null;
@@ -362,84 +400,36 @@
             rawData = rows
                 .map(row => {
                     if (!row || !row.c) return null;
-
                     const ticketID = row.c[1] ? (row.c[1].f || row.c[1].v || '').toString().trim() : '';
-                    let nombreAsesor = row.c[2] ? (row.c[2].f || row.c[2].v || '').toString().trim() : 'Sin Asesor';
+                    const nombreAsesor = row.c[2] ? (row.c[2].f || row.c[2].v || '').toString().trim() : 'Sin Asesor';
                     const fechaCreacionTxt = row.c[5] && row.c[5].f ? row.c[5].f : (row.c[5] ? row.c[5].v.toString() : '');
                     const fechaActualizacionTxt = row.c[6] && row.c[6].f ? row.c[6].f : (row.c[6] ? row.c[6].v.toString() : '');
                     const estatusTxt = row.c[8] ? (row.c[8].f || row.c[8].v || 'Open').toString().trim() : 'Open';
 
-                    // Limpieza estricta: Si contiene números o la palabra 'ticket', se descarta o unifica para evitar fallos de gráficos
-                    if (!ticketID || ticketID.toLowerCase() === 'ticket id' || /^\d+$/.test(nombreAsesor)) {
-                        return null;
-                    }
+                    if (!ticketID || ticketID.toLowerCase() === 'ticket id' || /^\d+$/.test(nombreAsesor)) return null;
 
                     return {
-                        ticket: ticketID,               
-                        asesor: nombreAsesor,           
-                        fechaCreacionStr: fechaCreacionTxt, 
-                        fechaCreacionObjeto: parsearFechaString(fechaCreacionTxt),
-                        fechaActualizacionStr: fechaActualizacionTxt, 
-                        fechaActualizacionObjeto: parsearFechaString(fechaActualizacionTxt),
+                        ticket: ticketID, asesor: nombreAsesor,           
+                        fechaCreacionStr: fechaCreacionTxt, fechaCreacionObjeto: parsearFechaString(fechaCreacionTxt),
+                        fechaActualizacionStr: fechaActualizacionTxt, fechaActualizacionObjeto: parsearFechaString(fechaActualizacionTxt),
                         estado: estatusTxt              
                     };
                 })
-                .filter(item => item !== null); 
+                .filter(item => item !== null);
 
-            if (!chartBubbleAsesores) setupBubbleChart();
             updateDashboard();
             document.getElementById('loading').style.display = 'none';
-        } catch (error) {
-            console.error("Error:", error);
-            document.getElementById('loading').innerHTML = "<span style='color:#FF5A00'>Error de sincronización con Google Sheets.</span>";
+        } catch (e) {
+            console.error(e);
+            document.getElementById('loading').innerHTML = "<span>Error de lectura en Base de Datos.</span>";
         }
-    }
-
-    function setupBubbleChart() {
-        const ctxBubble = document.getElementById('chartBubbleAsesores').getContext('2d');
-        chartBubbleAsesores = new Chart(ctxBubble, {
-            type: 'bubble',
-            data: { datasets: [] },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        callbacks: {
-                            label: (context) => {
-                                return `${context.dataset.label}: Abiertos: ${context.raw.x}, Pendientes: ${context.raw.y}, Total: ${context.raw.r / 2}`;
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    x: { title: { display: true, text: 'Tickets Abiertos (Open)' }, beginAtZero: true },
-                    y: { title: { display: true, text: 'Tickets Pendientes (Otros Estatus)' }, beginAtZero: true }
-                },
-                onClick: (e) => {
-                    const elements = chartBubbleAsesores.getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
-                    if (elements.length > 0) {
-                        const datasetIndex = elements[0].datasetIndex;
-                        const labelAsesor = chartBubbleAsesores.data.datasets[datasetIndex].label;
-                        seleccionarAsesor(labelAsesor);
-                    }
-                }
-            }
-        });
     }
 
     function filtrarPorMetrica(metrica) {
         metricaSeleccionada = metrica;
-        
-        // Quitar clase activa previa
         document.querySelectorAll('.kpi-card').forEach(c => c.classList.remove('active-filter'));
+        if (metrica !== 'all' || asesorSeleccionado !== 'all') document.getElementById('btnResetFiltro').style.display = 'inline-block';
         
-        if (metrica !== 'all' || asesorSeleccionado !== 'all') {
-            document.getElementById('btnResetFiltro').style.display = 'inline-block';
-        }
-
-        // Marcar tarjeta activa visualmente
         if(metrica === 'open') document.getElementById('cardOpen').classList.add('active-filter');
         if(metrica === 'pendientes') document.getElementById('cardPendientes').classList.add('active-filter');
         if(metrica === 'criticos') document.getElementById('cardCriticos').classList.add('active-filter');
@@ -453,11 +443,11 @@
         asesorSeleccionado = nombre;
         document.getElementById('btnResetFiltro').style.display = 'inline-block';
         document.getElementById('btnCopiarReporte').style.display = 'inline-block';
-        document.getElementById('btnCopiarReporte').innerText = `Copiar Alerta de ${nombre.split(' ')[0]}`;
+        document.getElementById('btnCopiarReporte').innerText = `Alerta de ${nombre.split(' ')[0]}`;
         updateDashboard();
     }
 
-    function resetFiltrosGlobales() {
+    function resetFiltros() {
         asesorSeleccionado = "all";
         metricaSeleccionada = "all";
         document.querySelectorAll('.kpi-card').forEach(c => c.classList.remove('active-filter'));
@@ -467,128 +457,128 @@
     }
 
     function updateDashboard() {
-        const hoy = new Date();
-        hoy.setHours(0,0,0,0);
-
+        const hoy = new Date(); hoy.setHours(0,0,0,0);
         let openTotal = 0; let pendTotal = 0;
         let criticosTotal = 0; let urgentesTotal = 0;
 
         const mapeoAsesores = {};
 
-        // 1. Primer barrido para cálculos reales globales
+        // 1. Procesar métricas globales
         rawData.forEach(d => {
             const esOpen = d.estado.toLowerCase() === 'open';
-            
             if (!mapeoAsesores[d.asesor]) {
                 mapeoAsesores[d.asesor] = { open: 0, pendientes: 0, criticos: 0, urgentes: 0 };
             }
 
             if (esOpen) {
-                openTotal++;
-                mapeoAsesores[d.asesor].open++;
-                if (d.fechaCreacionObjeto) {
-                    if (Math.floor((hoy.getTime() - d.fechaCreacionObjeto.getTime()) / 86400000) > 1) {
-                        criticosTotal++;
-                        mapeoAsesores[d.asesor].criticos++;
-                    }
+                openTotal++; mapeoAsesores[d.asesor].open++;
+                if (d.fechaCreacionObjeto && Math.floor((hoy.getTime() - d.fechaCreacionObjeto.getTime()) / 86400000) > 1) {
+                    criticosTotal++; mapeoAsesores[d.asesor].criticos++;
                 }
             } else {
-                pendTotal++;
-                mapeoAsesores[d.asesor].pendientes++;
-                if (d.fechaActualizacionObjeto) {
-                    if (Math.floor((hoy.getTime() - d.fechaActualizacionObjeto.getTime()) / 86400000) > 0) {
-                        urgentesTotal++;
-                        mapeoAsesores[d.asesor].urgentes++;
-                    }
+                pendTotal++; mapeoAsesores[d.asesor].pendientes++;
+                if (d.fechaActualizacionObjeto && Math.floor((hoy.getTime() - d.fechaActualizacionObjeto.getTime()) / 86400000) > 0) {
+                    urgentesTotal++; mapeoAsesores[d.asesor].urgentes++;
                 }
             }
         });
 
-        // Pintar contadores con regla de color solicitada
-        document.getElementById('kpiTotalOpen').innerText = openTotal.toLocaleString();
-        document.getElementById('kpiTotalOpen').style.color = 'var(--vento-black)';
-        
-        document.getElementById('kpiTotalPendientes').innerText = pendTotal.toLocaleString();
-        document.getElementById('kpiTotalPendientes').style.color = 'var(--vento-black)';
+        // Configurar contadores superiores con semáforo inteligente solicitado
+        document.getElementById('kpiTotalOpen').innerText = openTotal;
+        document.getElementById('kpiTotalPendientes').innerText = pendTotal;
+        document.getElementById('kpiTotalActivos').innerText = rawData.length;
 
-        document.getElementById('kpiTotalActivos').innerText = rawData.length.toLocaleString();
+        const txtCrit = document.getElementById('kpiOpenCriticos');
+        txtCrit.innerText = criticosTotal;
+        txtCrit.style.color = criticosTotal > 0 ? 'var(--vento-red)' : 'var(--vento-green)';
 
-        // Lógica Semáforo: Si es > 0 Rojo, si es 0 cambia a Verde
-        const txtCriticos = document.getElementById('kpiOpenCriticos');
-        txtCriticos.innerText = criticosTotal.toLocaleString();
-        txtCriticos.style.color = criticosTotal > 0 ? 'var(--vento-red)' : 'var(--vento-green)';
-
-        const txtUrgentes = document.getElementById('kpiPendientesUrgentes');
-        txtUrgentes.innerText = urgentesTotal.toLocaleString();
-        txtUrgentes.style.color = urgentesTotal > 0 ? 'var(--vento-red)' : 'var(--vento-green)';
+        const txtUrg = document.getElementById('kpiPendientesUrgentes');
+        txtUrg.innerText = urgentesTotal;
+        txtUrg.style.color = urgentesTotal > 0 ? 'var(--vento-red)' : 'var(--vento-green)';
 
 
-        // 2. Renderizar Gráfica de Burbujas Dinámica
-        const datasetsBubble = [];
-        let indexColor = 0;
+        // 2. Inyectar Mosaicos de Calor
+        const gridMosaicos = document.getElementById('gridMosaicos');
+        gridMosaicos.innerHTML = "";
 
-        Object.keys(mapeoAsesores).forEach(asesor => {
+        // Ordenar asesores alfabéticamente para mantener el orden en pantalla
+        const listaAsesoresOrdenada = Object.keys(mapeoAsesores).sort();
+
+        listaAsesoresOrdenada.forEach(asesor => {
             const datos = mapeoAsesores[asesor];
-            const volumenTotal = datos.open + datos.pendientes;
+            let claseTermica = "mosaico-clean";
 
-            // Si hay un filtro por recuadro KPI activo, evaluamos si la burbuja cumple el requisito para mostrarse
+            // Regla de color de retrasos: Críticos mandan (Rojo), luego Urgentes (Naranja), si no Limpios (Verde)
+            if (datos.criticos > 0) {
+                claseTermica = "mosaico-critical";
+            } else if (datos.urgentes > 0) {
+                claseTermica = "mosaico-urgent";
+            }
+
+            // Ocultar del mosaico si hay un filtro KPI que este asesor no tiene
             if (metricaSeleccionada === 'criticos' && datos.criticos === 0) return;
             if (metricaSeleccionada === 'urgentes' && datos.urgentes === 0) return;
             if (metricaSeleccionada === 'open' && datos.open === 0) return;
             if (metricaSeleccionada === 'pendientes' && datos.pendientes === 0) return;
 
-            datasetsBubble.push({
-                label: asesor,
-                data: [{
-                    x: datos.open,
-                    y: datos.pendientes,
-                    r: volumenTotal * 2 // El tamaño de la burbuja escala proporcionalmente a la carga total
-                }],
-                backgroundColor: asesor === asesorSeleccionado ? 'rgba(255, 90, 0, 0.7)' : 'rgba(34, 34, 34, 0.4)',
-                borderColor: asesor === asesorSeleccionado ? 'var(--vento-orange)' : '#111',
-                borderWidth: asesor === asesorSeleccionado ? 3 : 1
-            });
+            const esSeleccionado = asesor === asesorSeleccionado ? 'selected' : '';
+
+            gridMosaicos.innerHTML += `
+                <div class="mosaico-asesor ${claseTermica} ${esSeleccionado}" onclick="seleccionarAsesor('${asesor}')">
+                    <h4>${asesor}</h4>
+                    <div class="mosaico-metrics">
+                        <div class="metric-sub">
+                            <span>Críticos</span>
+                            <strong style="color:${datos.criticos > 0 ? 'var(--vento-red)' : '#444'}">${datos.criticos}</strong>
+                        </div>
+                        <div class="metric-sub">
+                            <span>Urgentes</span>
+                            <strong style="color:${datos.urgentes > 0 ? 'var(--vento-urgent)' : '#444'}">${datos.urgentes}</strong>
+                        </div>
+                        <div class="metric-sub" style="grid-column: span 2; margin-top:3px;">
+                            <span>Carga Activa (Open/Pend)</span>
+                            <strong>${datos.open} / ${datos.pendientes}</strong>
+                        </div>
+                    </div>
+                </div>
+            `;
         });
 
-        chartBubbleAsesores.data.datasets = datasetsBubble;
-        chartBubbleAsesores.update();
 
-
-        // 3. Filtrado y llenado de Tabla de Alertas
+        // 3. Renderizar Tabla
         const tabla = document.getElementById('tablaAlertas');
         tabla.innerHTML = "";
-        let lineasMostradas = 0;
+        let filas = 0;
 
         rawData.forEach(d => {
             const esOpen = d.estado.toLowerCase() === 'open';
-            let diasRetraso = 0;
-            let cumpleFiltroMetrica = false;
-            let badgeHtml = "";
+            let dias = 0;
+            let cumpleMetrica = false;
 
             if (esOpen && d.fechaCreacionObjeto) {
-                diasRetraso = Math.floor((hoy.getTime() - d.fechaCreacionObjeto.getTime()) / 86400000);
+                dias = Math.floor((hoy.getTime() - d.fechaCreacionObjeto.getTime()) / 86400000);
             } else if (!esOpen && d.fechaActualizacionObjeto) {
-                diasRetraso = Math.floor((hoy.getTime() - d.fechaActualizacionObjeto.getTime()) / 86400000);
+                dias = Math.floor((hoy.getTime() - d.fechaActualizacionObjeto.getTime()) / 86400000);
             }
 
-            // Validar filtros cruzados (Asesor + Tarjeta KPI seleccionada)
             if (asesorSeleccionado !== 'all' && d.asesor !== asesorSeleccionado) return;
 
-            if (metricaSeleccionada === 'all') cumpleFiltroMetrica = true;
-            if (metricaSeleccionada === 'open' && esOpen) cumpleFiltroMetrica = true;
-            if (metricaSeleccionada === 'pendientes' && !esOpen) cumpleFiltroMetrica = true;
-            if (metricaSeleccionada === 'criticos' && esOpen && diasRetraso > 1) cumpleFiltroMetrica = true;
-            if (metricaSeleccionada === 'urgentes' && !esOpen && diasRetraso > 0) cumpleFiltroMetrica = true;
+            if (metricaSeleccionada === 'all') cumpleMetrica = true;
+            if (metricaSeleccionada === 'open' && esOpen) cumpleMetrica = true;
+            if (metricaSeleccionada === 'pendientes' && !esOpen) cumpleMetrica = true;
+            if (metricaSeleccionada === 'criticos' && esOpen && dias > 1) cumpleMetrica = true;
+            if (metricaSeleccionada === 'urgentes' && !esOpen && dias > 0) cumpleMetrica = true;
 
-            if (!cumpleFiltroMetrica) return;
+            if (!cumpleMetrica) return;
 
+            filas++;
+            let badge = "";
             if (esOpen) {
-                badgeHtml = diasRetraso > 1 ? `<span class="badge badge-critical">Crítico: Open > 24h</span>` : `<span class="badge" style="background:#eee;">Abierto regular</span>`;
+                badge = dias > 1 ? `<span class="badge badge-critical">Crítico &gt; 24h</span>` : `<span class="badge" style="background:#eee;">Abierto</span>`;
             } else {
-                badgeHtml = diasRetraso > 0 ? `<span class="badge badge-urgent">Urgente: Sin Tocar</span>` : `<span class="badge" style="background:#e8f5e9; color:#1b5e20;">Al día</span>`;
+                badge = dias > 0 ? `<span class="badge badge-urgent">Urgente</span>` : `<span class="badge" style="background:#e8f5e9; color:green;">Al día</span>`;
             }
 
-            lineasMostradas++;
             tabla.innerHTML += `
                 <tr>
                     <td><strong>${d.asesor}</strong></td>
@@ -596,20 +586,19 @@
                     <td>${d.estado}</td>
                     <td><small>${d.fechaCreacionStr}</small></td>
                     <td><small>${d.fechaActualizacionStr}</small></td>
-                    <td style="font-weight:bold; color:${diasRetraso > 0 ? 'var(--vento-red)' : 'var(--vento-black)'}">${diasRetraso} días</td>
-                    <td>${badgeHtml}</td>
+                    <td style="font-weight:bold; color:${dias > 0 ? 'var(--vento-red)' : '#111'}">${dias} d</td>
+                    <td>${badge}</td>
                 </tr>
             `;
         });
 
-        // Título descriptivo de lo que se está viendo en pantalla
-        let txtTitulo = "Listado de Tickets Activos";
-        if (asesorSeleccionado !== 'all') txtTitulo += ` de ${asesorSeleccionado}`;
-        if (metricaSeleccionada !== 'all') txtTitulo += ` [Filtrado por: ${metricaSeleccionada.toUpperCase()}]`;
+        let txtTitulo = "Desglose Detallado de Tickets Vinculados";
+        if (asesorSeleccionado !== 'all') txtTitulo += ` para ${asesorSeleccionado}`;
+        if (metricaSeleccionada !== 'all') txtTitulo += ` [Filtro: ${metricaSeleccionada.toUpperCase()}]`;
         document.getElementById('alertTitleTable').innerText = txtTitulo;
 
-        if (lineasMostradas === 0) {
-            tabla.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:20px; font-weight:bold; color:var(--vento-green);">🎉 No se encontraron registros para este filtro seleccionado.</td></tr>`;
+        if(filas === 0) {
+            tabla.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:15px; font-weight:bold; color:var(--vento-green);">🎉 No hay tickets para mostrar bajo los filtros seleccionados.</td></tr>`;
         }
     }
 
@@ -630,18 +619,19 @@
         });
 
         let mensaje = `*NOTIFICACIÓN DE ATENCIÓN PRIORITARIA - VENTO ATC*\n\n`;
-        mensaje += `Hola *${asesorSeleccionado}*, se detectó carga retenida en tu Freshdesk:\n\n`;
-        if (criticos.length > 0) mensaje += `🚨 *CRÍTICOS (Open > 24h):* ${criticos.length} caso(s)\nIDs: ${criticos.join(', ')}\n\n`;
-        if (urgentes.length > 0) mensaje += `⚠️ *URGENTES (Sin actualizar hoy):* ${urgentes.length} caso(s)\nIDs: ${urgentes.join(', ')}\n\n`;
-        mensaje += `*Favor de gestionar, actualizar o cerrar estos folios de inmediato.*`;
+        mensaje += `Hola *${asesorSeleccionado}*, se detectaron retrasos de atención en tus folios asignados:\n\n`;
+        if (criticos.length > 0) mensaje += `🚨 *CRÍTICOS (Open > 24h):* ${criticos.length} ticket(s)\nIDs: ${criticos.join(', ')}\n\n`;
+        if (urgentes.length > 0) mensaje += `⚠️ *URGENTES (Sin actualizar hoy):* ${urgentes.length} ticket(s)\nIDs: ${urgentes.join(', ')}\n\n`;
+        mensaje += `*Por favor, apóyanos gestionando o cerrando estos casos hoy mismo.*`;
 
         navigator.clipboard.writeText(mensaje).then(() => {
-            alert(`Reporte de ${asesorSeleccionado.split(' ')[0]} copiado correctamente.`);
+            alert(`Mensaje de alerta listo para pegarse en WhatsApp.`);
         });
     }
 
     fetchData();
-    setInterval(fetchData, 900000); // 15 Minutos de refresco autónomo
+    // Refresco automático cada 15 minutos en segundo plano
+    setInterval(fetchData, 900000);
 </script>
 </body>
 </html>
