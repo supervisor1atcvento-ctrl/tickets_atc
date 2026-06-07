@@ -237,7 +237,7 @@ td{ padding:10px 12px; border-bottom:1px solid #F5F5F5; color:#444; vertical-ali
 <div class="container">
   <div class="control-bar" id="barInstruction">
     <span>📊 Auditoría Freshdesk. Clic en métricas o asesores para desglose. Refresco automático: 15 min.</span>
-    <span class="db-timestamp" id="dbTimestamp">Base: Cargando...</span>
+    <span class="db-timestamp" id="dbTimestamp">Base: Buscando fecha...</span>
   </div>
 
   <div class="kpi-container">
@@ -301,12 +301,9 @@ td{ padding:10px 12px; border-bottom:1px solid #F5F5F5; color:#444; vertical-ali
 <script>
 const SHEET_ID = '1JBre4cLAbYiOJuYye_FGcsk5U_BIStDoAiCbV-B8WoA';
 
-// Consulta para extraer el listado estructurado de tickets activos
-const querySQLTickets = encodeURIComponent("SELECT A, B, C, F, G, I WHERE (A = 'AMERICAN PISTON (ATC)' OR A = 'ATC') AND LOWER(I) != 'closed'");
+// Modificamos la consulta SQL para que incluya la columna Z, así nos traemos la celda de actualización en el mismo paquete de datos.
+const querySQLTickets = encodeURIComponent("SELECT A, B, C, F, G, I, Z");
 const URL_TICKETS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Tickets_BD&tq=${querySQLTickets}`;
-
-// Solución definitiva para Z2: Forzamos la descarga directa del rango exacto en formato CSV (Inmune a errores de gviz)
-const URL_TIMESTAMP_CSV = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&range=Tickets_BD!Z2`;
 
 let rawData = [];
 let asesorActivoModal = "all";
@@ -344,37 +341,39 @@ function calcularDiasCorridos(fechaInicio, fechaFin){
 
 async function fetchData(){
   try{
-    // Ejecución en paralelo
     const resTickets = await fetch(URL_TICKETS);
     const textTickets = await resTickets.text();
-
-    try {
-      // Consumo directo del CSV para extraer la celda exacta Z2 de actualización
-      const resTimestamp = await fetch(URL_TIMESTAMP_CSV);
-      const csvText = await resTimestamp.text();
-      if(csvText && csvText.trim().length > 0) {
-        // Limpiamos comillas dobles residuales del formato de exportación CSV
-        ultimaActualizacionBase = csvText.replace(/"/g, '').trim();
-      }
-    } catch(e) {
-      console.error("Error al obtener Timestamp por rango directo CSV:", e);
-    }
-
     const jsonTK = JSON.parse(textTickets.substr(47).slice(0,-2));
     const rows = jsonTK.table.rows || [];
     const hoy = new Date();
     const hoySinHora = new Date(); hoySinHora.setHours(0,0,0,0);
 
+    // Método infalible: Escaneamos toda la columna Z del JSON buscando el texto que empiece con "Actualizado:"
+    for (let i = 0; i < rows.length; i++) {
+      if (rows[i] && rows[i].c && rows[i].c[6]) {
+        let valorZ = (rows[i].c[6].f || rows[i].c[6].v || '').toString().trim();
+        if (valorZ.toLowerCase().includes('actualizado')) {
+          ultimaActualizacionBase = valorZ;
+          break; 
+        }
+      }
+    }
+
+    // Procesar los renglones ordinarios para armar los KPIs y mosaicos
     rawData = rows.map(row => {
       if(!row || !row.c) return null;
       
+      const tipoATC = row.c[0] ? (row.c[0].f || row.c[0].v || '').toString().trim() : '';
       const ticketID = row.c[1] ? (row.c[1].f || row.c[1].v || '').toString().trim() : '';
       const nombreAsesor = row.c[2] ? (row.c[2].f || row.c[2].v || '').toString().trim() : 'Sin Asesor';
       const fechaCreacionTxt = row.c[3] && row.c[3].f ? row.c[3].f : (row.c[3] ? row.c[3].v.toString() : '');
       const fechaActualizacionTxt = row.c[4] && row.c[4].f ? row.c[4].f : (row.c[4] ? row.c[4].v.toString() : '');
       const estatusTxt = row.c[5] ? (row.c[5].f || row.c[5].v || 'Open').toString().trim() : 'Open';
 
+      // Filtros duros idénticos a los que usabas antes
       if(!ticketID || ticketID.toLowerCase() === 'ticket id') return null;
+      if(estatusTxt.toLowerCase() === 'closed') return null;
+      if(tipoATC !== 'AMERICAN PISTON (ATC)' && tipoATC !== 'ATC') return null;
 
       const esOpen = estatusTxt.toLowerCase() === 'open';
       const fechaCreacionObj = parsearFechaString(fechaCreacionTxt);
@@ -399,15 +398,14 @@ async function fetchData(){
       let nivelAlerta = 'verde';
       
       if (diasCorridosEdad > 3) {
-        nivelAlerta = 'rojo'; // SLA Vencido
+        nivelAlerta = 'rojo';
       } else if (esOpen) {
         if (horasDesdeCreacion > 24) {
-          nivelAlerta = 'rojo'; // Abierto > 24h
+          nivelAlerta = 'rojo';
         } else if (horasDesdeCreacion > 4) {
-          nivelAlerta = 'amarillo'; // Warning
+          nivelAlerta = 'amarillo';
         }
       } else {
-        // Regla: Si no está abierto (Pendiente) y lleva >= 2 días sin actualizar -> URGENTE (Rojo)
         if (diasDesdeUltimaAct >= 2) {
           nivelAlerta = 'rojo';
         } else if (diasDesdeUltimaAct > 0) {
@@ -441,12 +439,12 @@ function updateDashboard(){
   let pendSinTocarTotal = 0, warningOpenTotal = 0, slaVencidoTotal = 0, urgentesTotal = 0, globalTotal = 0;
   const mapeoAsesores = {};
 
-  // Inyectar el valor real limpio de la celda Z2
+  // Inyectamos la fecha recuperada del barrido de la columna Z
   document.getElementById('dbTimestamp').innerText = `${ultimaActualizacionBase}`;
 
   rawData.forEach(d => {
     const esOpen = d.estado.toLowerCase() === 'open';
-    globalTotal++; // Sumador para KPI global
+    globalTotal++;
 
     if(!mapeoAsesores[d.asesor]){
       mapeoAsesores[d.asesor] = { nombre: d.asesor, rojos: 0, amarillos: 0, verdes: 0, totales: 0, tickets: [] };
@@ -467,7 +465,6 @@ function updateDashboard(){
     }
   });
 
-  // Asignación de valores en la interfaz
   document.getElementById('kpiTotalGlobal').innerText = globalTotal;
   document.getElementById('kpiTotalPendientes').innerText = pendSinTocarTotal;
   
@@ -662,7 +659,7 @@ function enviarWhatsAppDesdeModal(){
 }
 
 fetchData();
-setInterval(fetchData, 900000); // 15 minutos
+setInterval(fetchData, 900000); // Refresco automático cada 15 minutos
 </script>
 
 </body>
