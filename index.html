@@ -262,10 +262,16 @@
                 
                 // Procesar Fecha de Creación (Columna D -> Índice 3) para extraer el Mes
                 if (row.c[3] && row.c[3].f) {
-                    const fechaTexto = row.c[3].f;
-                    // Intenta extraer el mes dividiendo por "/" (formato dd/mm/yyyy)
-                    const partes = fechaTexto.split('/');
-                    if(partes.length >= 2) {
+                    const fechaTexto = row.c[3].f.trim(); // "2026-03-01 09:37:45 AM"
+                    
+                    // Extraemos la parte de la fecha antes del espacio ("2026-03-01")
+                    const soloFecha = fechaTexto.split(' ')[0]; 
+                    
+                    // Dividimos por el guion largo o corto "-"
+                    const partes = soloFecha.split('-');
+                    
+                    if(partes.length >= 3) {
+                        // El formato YYYY-MM-DD guarda el mes en el índice 1 (partes[1])
                         let m = parseInt(partes[1], 10) - 1;
                         if(mesesNombres[m]) mesTexto = mesesNombres[m];
                     }
@@ -314,7 +320,6 @@
 
     // 3. Configuración de Gráficas de Conteo Puro
     function setupCharts() {
-        // Gráfica de Dona para distribución de Estados (Abierto, Cerrado, etc.)
         const ctxPie = document.getElementById('chartPie').getContext('2d');
         chartPie = new Chart(ctxPie, {
             type: 'doughnut',
@@ -322,7 +327,6 @@
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
         });
 
-        // Gráfica de Barras para contar cuántos tickets lleva cada asesor
         const ctxAsesores = document.getElementById('chartAsesores').getContext('2d');
         chartAsesores = new Chart(ctxAsesores, {
             type: 'bar',
@@ -330,7 +334,7 @@
             options: { 
                 responsive: true, 
                 maintainAspectRatio: false, 
-                indexAxis: 'y', // Convertir a barras horizontales para leer mejor los nombres
+                indexAxis: 'y', 
                 scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } } 
             }
         });
@@ -341,12 +345,10 @@
         const selAsesor = document.getElementById('filterAsesor').value;
         const selMes = document.getElementById('filterMes').value;
         
-        // Aplicar filtros de forma cruzada
         let filtered = rawData;
         if(selAsesor !== 'all') filtered = filtered.filter(d => d.asesor === selAsesor);
         if(selMes !== 'all') filtered = filtered.filter(d => d.mesLabel === selMes);
 
-        // Contar Estados (Columna G) y aislar "Abierto"
         const estadosContador = {};
         let totalAbiertos = 0;
 
@@ -354,7 +356,6 @@
             let est = d.estado;
             estadosContador[est] = (estadosContador[est] || 0) + 1;
             
-            // Romper variaciones de texto comunes
             if(est.toLowerCase() === 'abierto' || est.toLowerCase() === 'open' || est.toLowerCase() === 'pendiente') {
                 totalAbiertos++;
             }
@@ -363,26 +364,21 @@
         const totalTickets = filtered.length;
         const porcentaje = totalTickets > 0 ? ((totalAbiertos / totalTickets) * 100).toFixed(1) : 0;
 
-        // Inyectar conteos en tarjetas KPI
         document.getElementById('kpiAbiertos').innerText = totalAbiertos.toLocaleString();
         document.getElementById('kpiTotal').innerText = totalTickets.toLocaleString();
         document.getElementById('kpiPorcentaje').innerText = porcentaje + '%';
 
-        // Actualizar Gráfica de Dona (Estatus)
         chartPie.data.labels = Object.keys(estadosContador);
         chartPie.data.datasets[0].data = Object.values(estadosContador);
         chartPie.update();
 
-        // Contar cuántos tickets tiene cada Asesor (Columna C)
         const asesoresContador = {};
         filtered.forEach(d => {
             asesoresContador[d.asesor] = (asesoresContador[d.asesor] || 0) + 1;
         });
 
-        // Ordenar asesores por volumen de tickets de mayor a menor
         const asesoresOrdenados = Object.keys(asesoresContador).sort((a,b) => asesoresContador[b] - asesoresContador[a]);
 
-        // Actualizar Gráfica de Barras de Asesores
         chartAsesores.data.labels = asesoresOrdenados;
         chartAsesores.data.datasets[0].data = asesoresOrdenados.map(as => asesoresContador[as]);
         chartAsesores.update();
