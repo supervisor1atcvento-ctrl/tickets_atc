@@ -15,6 +15,7 @@
   --vento-red:#E53935;
   --vento-green:#43A047;
   --vento-urgent:#FB8C00;
+  --vento-yellow:#FBC02D;
   --vento-purple:#8E24AA;
   --shadow-sm:0 2px 8px rgba(0,0,0,0.04);
   --shadow-md:0 8px 16px rgba(0,0,0,0.08);
@@ -161,11 +162,11 @@ header h1{
 .metric-sub span{ display:block; font-size:0.56rem; text-transform:uppercase; color:#666; font-weight:800; }
 .metric-sub strong{ display:block; font-size:0.98rem; font-weight:900; margin-top:4px; }
 
-/* Estados térmicos */
+/* Semáforo: clases por color */
+.mosaico-red{ border-top:4px solid var(--vento-red); background:linear-gradient(to bottom,var(--vento-white),#fff0f0); }
+.mosaico-yellow{ border-top:4px solid var(--vento-yellow); background:linear-gradient(to bottom,var(--vento-white),#fffaf0); }
+.mosaico-green{ border-top:4px solid var(--vento-green); background:linear-gradient(to bottom,var(--vento-white),#f0fff4); }
 .mosaico-clean{ border-top:4px solid transparent; }
-.mosaico-urgent{ border-top:4px solid var(--vento-urgent); background:linear-gradient(to bottom,var(--vento-white),#fff7ef); }
-.mosaico-critical{ border-top:4px solid var(--vento-red); background:linear-gradient(to bottom,var(--vento-white),#fff0f0); }
-.mosaico-sla-breach{ border-top:4px solid var(--vento-purple); background:linear-gradient(to bottom,var(--vento-white),#faf0fb); }
 
 /* Modal compacto */
 .modal-overlay{
@@ -193,9 +194,8 @@ th{ background:#F8F9FA; padding:10px 12px; text-align:left; border-bottom:1px so
 td{ padding:10px 12px; border-bottom:1px solid #F5F5F5; color:#444; vertical-align:middle; }
 .badge{ padding:5px 8px; border-radius:6px; font-weight:800; font-size:0.68rem; text-transform:uppercase; display:inline-block; }
 .badge-sla{ background:#F3E5F5; color:var(--vento-purple); }
-.badge-critical{ background:#FFEBEE; color:var(--vento-red); }
-.badge-urgent{ background:#FFF3E0; color:var(--vento-urgent); }
-.badge-ok{ background:#E8F5E9; color:var(--vento-green); }
+.badge-pend{ background:#FFF3E0; color:var(--vento-yellow); }
+.badge-open{ background:#E8F5E9; color:var(--vento-green); }
 
 /* Loader */
 #loading{
@@ -237,19 +237,19 @@ td{ padding:10px 12px; border-bottom:1px solid #F5F5F5; color:#444; vertical-ali
       <p id="kpiTotalOpen">0</p>
     </div>
     <div class="kpi-card" onclick="abrirModalPorMetrica('pendientes')">
-      <h3>Pendientes</h3>
+      <h3>Pendientes sin tocar</h3>
       <p id="kpiTotalPendientes">0</p>
     </div>
     <div class="kpi-card" onclick="abrirModalPorMetrica('sla')">
-      <h3>SLA Vencido</h3>
+      <h3>SLA Vencido (&gt;3d)</h3>
       <p id="kpiSLA">0</p>
     </div>
-    <div class="kpi-card" onclick="abrirModalPorMetrica('criticos')">
-      <h3>Críticos</h3>
+    <div class="kpi-card" onclick="abrirModalPorMetrica('abiertos1d')">
+      <h3>Abiertos &gt;1d</h3>
       <p id="kpiOpenCriticos">0</p>
     </div>
     <div class="kpi-card" onclick="abrirModalPorMetrica('urgentes')">
-      <h3>Urgentes</h3>
+      <h3>Resumen</h3>
       <p id="kpiPendientesUrgentes">0</p>
     </div>
   </div>
@@ -378,84 +378,85 @@ async function fetchData(){
   }
 }
 
-/* Actualizar KPIs y mosaicos */
+/* Actualizar KPIs y mosaicos (sin mostrar folios en mosaicos) */
 function updateDashboard(){
-  let openTotal = 0, pendTotal = 0, criticosTotal = 0, urgentesTotal = 0, slaIncumplidoTotal = 0;
+  let openTotal = 0, pendTotal = 0, abiertos1dTotal = 0, slaIncumplidoTotal = 0;
   const mapeoAsesores = {};
 
   rawData.forEach(d => {
     const esOpen = d.estado.toLowerCase() === 'open';
     if(!mapeoAsesores[d.asesor]){
-      mapeoAsesores[d.asesor] = { nombre:d.asesor, open:0, pendientes:0, criticos:0, urgentes:0, slaRotados:0, maxScorePrioridad:0, tickets:[] };
+      mapeoAsesores[d.asesor] = { nombre:d.asesor, open:0, pendientes:0, abiertos1d:0, slaRotados:0, maxScorePrioridad:0, tickets:[] };
     }
-    // almacenar tickets por asesor para enlaces detallados
+    // almacenar tickets por asesor para el modal
     mapeoAsesores[d.asesor].tickets.push(d);
 
-    let score = 0;
+    // conteos globales
     if(esOpen){
       openTotal++; mapeoAsesores[d.asesor].open++;
       if(d.diasRetrasoAccion > 1){
-        criticosTotal++; mapeoAsesores[d.asesor].criticos++;
-        score += 5;
+        abiertos1dTotal++; mapeoAsesores[d.asesor].abiertos1d++;
       }
     } else {
       pendTotal++; mapeoAsesores[d.asesor].pendientes++;
-      if(d.diasRetrasoAccion > 0){
-        urgentesTotal++; mapeoAsesores[d.asesor].urgentes++;
-        score += 3;
-      }
     }
     if(d.incumpleSLA){
       slaIncumplidoTotal++; mapeoAsesores[d.asesor].slaRotados++;
-      score += 10;
     }
+
+    // score para ordenar mosaicos (SLA > Pendientes sin tocar > Abiertos >1d)
+    let score = 0;
+    if(d.incumpleSLA) score += 100;
+    if(!esOpen && d.diasRetrasoAccion > 0) score += 10;
+    if(esOpen && d.diasRetrasoAccion > 1) score += 3;
     if(score > mapeoAsesores[d.asesor].maxScorePrioridad) mapeoAsesores[d.asesor].maxScorePrioridad = score;
   });
 
+  // KPIs
   document.getElementById('kpiTotalOpen').innerText = openTotal;
   document.getElementById('kpiTotalPendientes').innerText = pendTotal;
   const txtSLA = document.getElementById('kpiSLA');
   txtSLA.innerText = slaIncumplidoTotal;
   txtSLA.style.color = slaIncumplidoTotal > 0 ? 'var(--vento-red)' : 'var(--vento-green)';
-  const txtCrit = document.getElementById('kpiOpenCriticos');
-  txtCrit.innerText = criticosTotal;
-  txtCrit.style.color = criticosTotal > 0 ? 'var(--vento-red)' : 'var(--vento-green)';
-  const txtUrg = document.getElementById('kpiPendientesUrgentes');
-  txtUrg.innerText = urgentesTotal;
-  txtUrg.style.color = urgentesTotal > 0 ? 'var(--vento-red)' : 'var(--vento-green)';
+  const txtAb1d = document.getElementById('kpiOpenCriticos');
+  txtAb1d.innerText = abiertos1dTotal;
+  txtAb1d.style.color = abiertos1dTotal > 0 ? 'var(--vento-yellow)' : 'var(--vento-green)';
+  const txtResumen = document.getElementById('kpiPendientesUrgentes');
+  txtResumen.innerText = `${pendTotal}`;
+  txtResumen.style.color = pendTotal > 0 ? 'var(--vento-yellow)' : 'var(--vento-green)';
 
+  // construir mosaicos (solo conteos, color por prioridad)
   const listaAsesores = Object.values(mapeoAsesores);
   listaAsesores.sort((a,b) => b.maxScorePrioridad - a.maxScorePrioridad);
 
   const gridMosaicos = document.getElementById('gridMosaicos');
   gridMosaicos.innerHTML = '';
   listaAsesores.forEach(as => {
+    // determinar color por prioridad: SLA > Pendientes sin tocar > Abiertos >1d > limpio
     let claseTermica = "mosaico-clean";
-    if(as.slaRotados > 0) claseTermica = "mosaico-sla-breach";
-    else if(as.criticos > 0) claseTermica = "mosaico-critical";
-    else if(as.urgentes > 0) claseTermica = "mosaico-urgent";
+    if(as.slaRotados > 0) claseTermica = "mosaico-red";
+    else if(as.pendientes > 0 && as.tickets.some(t => t.diasRetrasoAccion > 0 && t.estado.toLowerCase() !== 'open')) claseTermica = "mosaico-yellow";
+    else if(as.abiertos1d > 0) claseTermica = "mosaico-green";
+    else claseTermica = "mosaico-clean";
 
     const nodo = document.createElement('div');
     nodo.className = `mosaico-asesor ${claseTermica}`;
     nodo.setAttribute('onclick', `abrirModalAsesor('${as.nombre.replace(/'/g,"\\'")}')`);
 
-    // construir lista corta de folios SLA vencidos (máx 3) para mostrar como ejemplo en mosaico
-    const slaList = as.tickets.filter(t => t.incumpleSLA).slice(0,3).map(t => `<a href="${TICKET_BASE_URL}${encodeURIComponent(t.ticket)}" target="_blank" rel="noopener noreferrer" style="color:inherit; text-decoration:none;">#${t.ticket}</a>`).join(', ');
-
     nodo.innerHTML = `
       <h4>${as.nombre}</h4>
       <div class="mosaico-metrics">
         <div class="metric-sub" style="grid-column: span 2; border-left:3px solid var(--vento-purple);">
-          <span>SLA Vencido (>3d)</span>
-          <strong style="color:${as.slaRotados>0?'var(--vento-purple)':'#444'}">${as.slaRotados}${slaList ? ' • ' + slaList : ''}</strong>
+          <span>SLA Vencido (&gt;3d)</span>
+          <strong style="color:${as.slaRotados>0?'var(--vento-red)':'#444'}">${as.slaRotados}</strong>
         </div>
         <div class="metric-sub">
-          <span>Críticos (24h)</span>
-          <strong style="color:${as.criticos>0?'var(--vento-red)':'#444'}">${as.criticos}</strong>
+          <span>Pendientes sin tocar</span>
+          <strong style="color:${as.pendientes>0?'var(--vento-yellow)':'#444'}">${as.pendientes}</strong>
         </div>
         <div class="metric-sub">
-          <span>Urgentes</span>
-          <strong style="color:${as.urgentes>0?'var(--vento-urgent)':'#444'}">${as.urgentes}</strong>
+          <span>Abiertos &gt;1d</span>
+          <strong style="color:${as.abiertos1d>0?'var(--vento-green)':'#444'}">${as.abiertos1d}</strong>
         </div>
       </div>
     `;
@@ -487,17 +488,17 @@ function abrirModalPorMetrica(tipo){
     titulo = "Total Abiertos";
     ticketsFiltrados = rawData.filter(x => x.estado.toLowerCase() === 'open');
   } else if(tipo === 'pendientes'){
-    titulo = "Total Pendientes";
-    ticketsFiltrados = rawData.filter(x => x.estado.toLowerCase() !== 'open');
+    titulo = "Pendientes sin tocar";
+    ticketsFiltrados = rawData.filter(x => x.estado.toLowerCase() !== 'open' && x.diasRetrasoAccion > 0);
   } else if(tipo === 'sla'){
     titulo = "SLA Vencido: Mayor a 3 Días Corridos desde Creación";
     ticketsFiltrados = rawData.filter(x => x.incumpleSLA);
-  } else if(tipo === 'criticos'){
-    titulo = "Críticos (Abiertos > 24h sin accionar)";
+  } else if(tipo === 'abiertos1d'){
+    titulo = "Abiertos > 1 día";
     ticketsFiltrados = rawData.filter(x => x.estado.toLowerCase() === 'open' && x.diasRetrasoAccion > 1);
   } else if(tipo === 'urgentes'){
-    titulo = "Pendientes sin actualización";
-    ticketsFiltrados = rawData.filter(x => x.estado.toLowerCase() !== 'open' && x.diasRetrasoAccion > 0);
+    titulo = "Resumen";
+    ticketsFiltrados = rawData;
   }
 
   document.getElementById('modalTitle').innerText = titulo;
@@ -519,11 +520,11 @@ function construirTablaModal(listaTickets){
     let badgeHtml = '';
     if(t.incumpleSLA) badgeHtml += `<span class="badge badge-sla" style="margin-bottom:4px; display:block;">SLA Vencido</span>`;
     if(esOpen){
-      if(t.diasRetrasoAccion > 1) badgeHtml += `<span class="badge badge-critical">Crítico > 24h</span>`;
-      else if(!t.incumpleSLA) badgeHtml += `<span class="badge badge-ok">Abierto al día</span>`;
+      if(t.diasRetrasoAccion > 1) badgeHtml += `<span class="badge badge-open">Abierto >1d</span>`;
+      else if(!t.incumpleSLA) badgeHtml += `<span class="badge badge-open">Abierto al día</span>`;
     } else {
-      if(t.diasRetrasoAccion > 0) badgeHtml += `<span class="badge badge-urgent">Pend. Urgente</span>`;
-      else if(!t.incumpleSLA) badgeHtml += `<span class="badge badge-ok">Pend. al día</span>`;
+      if(t.diasRetrasoAccion > 0) badgeHtml += `<span class="badge badge-pend">Pend. sin tocar</span>`;
+      else if(!t.incumpleSLA) badgeHtml += `<span class="badge badge-pend">Pend. al día</span>`;
     }
 
     // Construir URL del ticket
@@ -538,7 +539,7 @@ function construirTablaModal(listaTickets){
       <td><span style="background:#eee; padding:4px 8px; border-radius:4px; font-weight:700;">${t.estado}</span></td>
       <td><small>${t.fechaCreacionStr || '-'}</small></td>
       <td><small>${t.fechaActualizacionStr || '-'}</small></td>
-      <td style="font-weight:900; font-size:1rem; color:${t.incumpleSLA ? 'var(--vento-purple)' : 'var(--vento-black)'}">${t.diasCorridosEdad} d.</td>
+      <td style="font-weight:900; font-size:1rem; color:${t.incumpleSLA ? 'var(--vento-red)' : 'var(--vento-black)'}">${t.diasCorridosEdad} d.</td>
       <td>${badgeHtml}</td>
     `;
     tablaCuerpo.appendChild(tr);
@@ -561,19 +562,19 @@ function cerrarModalExterno(event){
 /* Copiar reporte (solo por asesor) con URLs incluidas */
 function copiarReporteDesdeModal(){
   if(asesorActivoModal === "all") return;
-  let slaRotos = [], criticos = [], urgentes = [];
+  let slaRotos = [], pendientes = [], abiertos1d = [];
   rawData.filter(x => x.asesor === asesorActivoModal).forEach(d => {
     const esOpen = d.estado.toLowerCase() === 'open';
     if(d.incumpleSLA) slaRotos.push(`${d.ticket} (${d.diasCorridosEdad}d) - ${TICKET_BASE_URL}${encodeURIComponent(d.ticket)}`);
-    if(esOpen && d.diasRetrasoAccion > 1) criticos.push(`${d.ticket} - ${TICKET_BASE_URL}${encodeURIComponent(d.ticket)}`);
-    else if(!esOpen && d.diasRetrasoAccion > 0) urgentes.push(`${d.ticket} - ${TICKET_BASE_URL}${encodeURIComponent(d.ticket)}`);
+    if(!esOpen && d.diasRetrasoAccion > 0) pendientes.push(`${d.ticket} - ${TICKET_BASE_URL}${encodeURIComponent(d.ticket)}`);
+    if(esOpen && d.diasRetrasoAccion > 1) abiertos1d.push(`${d.ticket} - ${TICKET_BASE_URL}${encodeURIComponent(d.ticket)}`);
   });
 
   let mensaje = `*NOTIFICACIÓN DE AUDITORÍA ATC*\n\n`;
   mensaje += `Hola *${asesorActivoModal}*, este es tu reporte de folios que requieren atención prioritaria hoy:\n\n`;
-  if(slaRotos.length > 0) mensaje += `🟣 *Tickets con mas de 3 Días Corridos:* ${slaRotos.length} ticket(s)\nFolios:\n${slaRotos.join('\n')}\n\n`;
-  if(criticos.length > 0) mensaje += `🚨 *Abiertos con mas de 1 día desde su creación:* ${criticos.length} ticket(s)\nFolios:\n${criticos.join('\n')}\n\n`;
-  if(urgentes.length > 0) mensaje += `⚠️ *Pendientes sin actualizar:* ${urgentes.length} ticket(s)\nFolios:\n${urgentes.join('\n')}\n\n`;
+  if(slaRotos.length > 0) mensaje += `🔴 *SLA vencido (>3 días):* ${slaRotos.length} ticket(s)\n${slaRotos.join('\n')}\n\n`;
+  if(pendientes.length > 0) mensaje += `🟡 *Pendientes sin tocar:* ${pendientes.length} ticket(s)\n${pendientes.join('\n')}\n\n`;
+  if(abiertos1d.length > 0) mensaje += `🟢 *Abiertos >1 día:* ${abiertos1d.length} ticket(s)\n${abiertos1d.join('\n')}\n\n`;
   mensaje += `*Por favor, apóyanos gestionando el cierre o seguimiento de estos casos.*`;
 
   navigator.clipboard.writeText(mensaje).then(() => {
@@ -584,19 +585,19 @@ function copiarReporteDesdeModal(){
 /* Enviar WhatsApp con mensaje prellenado (abre wa.me) */
 function enviarWhatsAppDesdeModal(){
   if(asesorActivoModal === "all") return;
-  let slaRotos = [], criticos = [], urgentes = [];
+  let slaRotos = [], pendientes = [], abiertos1d = [];
   rawData.filter(x => x.asesor === asesorActivoModal).forEach(d => {
     const esOpen = d.estado.toLowerCase() === 'open';
     if(d.incumpleSLA) slaRotos.push(`${d.ticket} (${d.diasCorridosEdad}d) - ${TICKET_BASE_URL}${encodeURIComponent(d.ticket)}`);
-    if(esOpen && d.diasRetrasoAccion > 1) criticos.push(`${d.ticket} - ${TICKET_BASE_URL}${encodeURIComponent(d.ticket)}`);
-    else if(!esOpen && d.diasRetrasoAccion > 0) urgentes.push(`${d.ticket} - ${TICKET_BASE_URL}${encodeURIComponent(d.ticket)}`);
+    if(!esOpen && d.diasRetrasoAccion > 0) pendientes.push(`${d.ticket} - ${TICKET_BASE_URL}${encodeURIComponent(d.ticket)}`);
+    if(esOpen && d.diasRetrasoAccion > 1) abiertos1d.push(`${d.ticket} - ${TICKET_BASE_URL}${encodeURIComponent(d.ticket)}`);
   });
 
   let mensaje = `NOTIFICACIÓN DE AUDITORÍA ATC\n\n`;
   mensaje += `Hola ${asesorActivoModal}, este es tu reporte de folios que requieren atención prioritaria hoy:\n\n`;
-  if(slaRotos.length > 0) mensaje += `Tickets con mas de 3 Días Corridos (${slaRotos.length}):\n${slaRotos.join('\n')}\n\n`;
-  if(criticos.length > 0) mensaje += `Abiertos > 1 día (${criticos.length}):\n${criticos.join('\n')}\n\n`;
-  if(urgentes.length > 0) mensaje += `Pendientes sin actualizar (${urgentes.length}):\n${urgentes.join('\n')}\n\n`;
+  if(slaRotos.length > 0) mensaje += `SLA vencido (>3 días) (${slaRotos.length}):\n${slaRotos.join('\n')}\n\n`;
+  if(pendientes.length > 0) mensaje += `Pendientes sin tocar (${pendientes.length}):\n${pendientes.join('\n')}\n\n`;
+  if(abiertos1d.length > 0) mensaje += `Abiertos >1 día (${abiertos1d.length}):\n${abiertos1d.join('\n')}\n\n`;
   mensaje += `Por favor, apóyanos gestionando el cierre o seguimiento de estos casos.`;
 
   const waUrl = `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
