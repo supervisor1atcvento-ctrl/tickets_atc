@@ -533,7 +533,7 @@
                         fechaActualizacionStr: fechaActualizacionTxt, 
                         estado: estatusTxt,
                         diasRetrasoAccion: diasRetrasoAccion,
-                        diasHabilesEdad: diasHabilesDesdeCreacion,
+                        diasCorridosDesdeCreacion: diasHabilesDesdeCreacion,
                         incumpleSLA: diasHabilesDesdeCreacion > 3 // Nuevo indicador
                     };
                 })
@@ -643,7 +643,7 @@
         
         const ticketsFiltrados = rawData.filter(x => x.asesor === nombre);
         // Ordenar primero por SLA vencido, luego por días hábiles de edad
-        ticketsFiltrados.sort((a, b) => b.diasHabilesEdad - a.diasHabilesEdad);
+        ticketsFiltrados.sort((a, b) => b.diasCorridosDesdeCreacion - a.diasCorridosDesdeCreacion);
 
         construirTablaModal(ticketsFiltrados);
         mostrarModal();
@@ -674,7 +674,7 @@
         }
 
         document.getElementById('modalTitle').innerText = titulo;
-        ticketsFiltrados.sort((a, b) => b.diasHabilesEdad - a.diasHabilesEdad);
+        ticketsFiltrados.sort((a, b) => b.diasCorridosDesdeCreacion - a.diasCorridosDesdeCreacion);
 
         construirTablaModal(ticketsFiltrados);
         mostrarModal();
@@ -713,7 +713,7 @@
                     <td><small>${t.fechaCreacionStr}</small></td>
                     <td><small>${t.fechaActualizacionStr}</small></td>
                     <td style="font-weight:900; font-size:1.1rem; color:${t.incumpleSLA ? 'var(--vento-purple)' : 'var(--vento-black)'}">
-                        ${t.diasHabilesEdad} d. háb.
+                        ${t.diasCorridosDesdeCreacion} d. háb.
                     </td>
                     <td>${badgeHtml}</td>
                 </tr>
@@ -741,7 +741,7 @@
 
         rawData.filter(x => x.asesor === asesorActivoModal).forEach(d => {
             const esOpen = d.estado.toLowerCase() === 'open';
-            if (d.incumpleSLA) slaRotos.push(`${d.ticket} (${d.diasHabilesEdad}d háb.)`);
+            if (d.incumpleSLA) slaRotos.push(`${d.ticket} (${d.diasCorridosDesdeCreacion}d háb.)`);
             if (esOpen && d.diasRetrasoAccion > 1) criticos.push(`${d.ticket}`);
             else if (!esOpen && d.diasRetrasoAccion > 0) urgentes.push(`${d.ticket}`);
         });
