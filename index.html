@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vento ATC - Muro de Control Operativo</title>
+    <title>Vento ATC - Muro de Control Inteligente</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -26,6 +26,10 @@
             margin: 0;
             color: var(--vento-black);
             overflow-x: hidden;
+        }
+
+        body.modal-open {
+            overflow: hidden; /* Evita scroll de fondo cuando la ventana está abierta */
         }
 
         header {
@@ -51,7 +55,7 @@
             margin: 20px auto;
         }
 
-        /* Barra de Control */
+        /* Barra Informativa */
         .control-bar {
             background: var(--vento-white);
             padding: 12px 20px;
@@ -61,33 +65,8 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
-        }
-
-        .info-txt {
             font-size: 0.95rem;
             font-weight: bold;
-        }
-
-        .btn-action {
-            background: var(--vento-orange);
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 700;
-            text-transform: uppercase;
-            display: none;
-        }
-
-        .btn-reset {
-            background: var(--vento-black);
-            color: white;
-            border: none;
-            padding: 8px 14px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 700;
         }
 
         /* KPIs Superiores */
@@ -111,11 +90,6 @@
 
         .kpi-card:hover { transform: translateY(-2px); }
 
-        .kpi-card.active-filter {
-            border: 3px solid var(--vento-orange) !important;
-            background-color: #FFF9F5;
-        }
-
         .kpi-card h3 {
             margin: 0;
             font-size: 0.75rem;
@@ -130,7 +104,7 @@
             font-weight: 900;
         }
 
-        /* SECCIÓN RECOMENDADA: Matriz de Mosaicos Térmicos */
+        /* Sección de Mosaicos Térmicos */
         .matrix-title {
             font-weight: 900;
             text-transform: uppercase;
@@ -158,7 +132,6 @@
             text-align: center;
             cursor: pointer;
             transition: all 0.2s ease;
-            position: relative;
         }
 
         .mosaico-asesor:hover {
@@ -166,19 +139,9 @@
             box-shadow: 0 8px 15px rgba(0,0,0,0.12);
         }
 
-        .mosaico-asesor.selected {
-            border: 3px solid var(--vento-orange) !important;
-        }
-
-        /* Estados Térmicos del Mosaico */
-        .mosaico-clean {
-            background-color: var(--vento-green-light);
-            border-top: 5px solid var(--vento-green);
-        }
-        .mosaico-urgent {
-            background-color: var(--vento-urgent-light);
-            border-top: 5px solid var(--vento-urgent);
-        }
+        /* Estados de Alerta Dinámicos */
+        .mosaico-clean { background-color: var(--vento-green-light); border-top: 5px solid var(--vento-green); }
+        .mosaico-urgent { background-color: var(--vento-urgent-light); border-top: 5px solid var(--vento-urgent); }
         .mosaico-critical {
             background-color: var(--vento-red-light);
             border-top: 5px solid var(--vento-red);
@@ -226,22 +189,92 @@
             font-weight: 900;
         }
 
-        /* Tabla de Incumplimientos */
-        .alert-section {
-            background: var(--vento-white);
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 3px 6px rgba(0,0,0,0.05);
-            border-top: 4px solid var(--vento-black);
+        /* VENTANA EMERGENTE (MODAL) PREMIUM CON DESENFOQUE */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px); /* Hace borroso todo lo de atrás */
+            -webkit-backdrop-filter: blur(8px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
         }
 
-        .alert-section h4 {
-            margin-top: 0;
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-window {
+            background: var(--vento-white);
+            width: 85%;
+            max-width: 950px;
+            max-height: 85vh;
+            border-radius: 12px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transform: translateY(-30px);
+            transition: transform 0.3s ease;
+            border-top: 6px solid var(--vento-orange);
+        }
+
+        .modal-overlay.active .modal-window {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            padding: 18px 25px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h4 {
+            margin: 0;
             text-transform: uppercase;
+            font-weight: 900;
             letter-spacing: 0.5px;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 10px;
-            font-size: 0.95rem;
+            font-size: 1.1rem;
+        }
+
+        .btn-modal-close {
+            background: var(--vento-black);
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.85rem;
+        }
+        .btn-modal-close:hover { background: #333; }
+
+        .btn-modal-copy {
+            background: var(--vento-orange);
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            margin-right: 10px;
+        }
+        .btn-modal-copy:hover { background: #e04f00; }
+
+        .modal-body {
+            padding: 25px;
+            overflow-y: auto;
         }
 
         table {
@@ -252,14 +285,14 @@
 
         th {
             background-color: #f8f9fa;
-            padding: 10px;
+            padding: 12px;
             text-align: left;
             border-bottom: 2px solid #ddd;
             font-weight: 700;
         }
 
         td {
-            padding: 10px;
+            padding: 12px;
             border-bottom: 1px solid #eee;
         }
 
@@ -273,6 +306,7 @@
         .badge-critical { background: #fde8e8; color: var(--vento-red); }
         .badge-urgent { background: #fff3cd; color: #856404; }
 
+        /* Pantalla de carga inicial */
         #loading {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -281,7 +315,7 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 1000;
+            z-index: 3000;
             color: var(--vento-white);
             font-weight: 700;
             letter-spacing: 2px;
@@ -302,7 +336,7 @@
 
 <div id="loading">
     <div class="spinner"></div>
-    CARGANDO MURO DE CONTROL ATC VENTO...
+    SINKRONIZANDO MURO DE CONTROL...
 </div>
 
 <header>
@@ -313,60 +347,66 @@
 <div class="container">
 
     <div class="control-bar">
-        <div class="info-txt" id="barInstruction">
-            📺 Monitoreo General del Equipo Freshdesk. Auto-refresco configurado cada 15 min.
-        </div>
-        <div>
-            <button class="btn-action" id="btnCopiarReporte" onclick="copiarReporteAsesor()">Copiar Mensaje</button>
-            <button class="btn-reset" id="btnResetFiltro" onclick="resetFiltros()" style="display:none;">Ver Todo el Muro</button>
+        <div id="barInstruction">
+            📺 Tablero de control Freshdesk. Haz clic en cualquier recuadro o tarjeta para auditar en ventana flotante. Refresco automático de 15 min.
         </div>
     </div>
 
     <div class="kpi-container">
-        <div class="kpi-card" id="cardOpen" onclick="filtrarPorMetrica('open')">
+        <div class="kpi-card" onclick="abrirModalPorMetrica('open')">
             <h3>Total Abiertos (Open)</h3>
             <p id="kpiTotalOpen" style="color: var(--vento-black);">0</p>
         </div>
-        <div class="kpi-card" id="cardPendientes" onclick="filtrarPorMetrica('pendientes')">
+        <div class="kpi-card" onclick="abrirModalPorMetrica('pendientes')">
             <h3>Total Pendientes</h3>
             <p id="kpiTotalPendientes" style="color: var(--vento-black);">0</p>
         </div>
-        <div class="kpi-card" id="cardCriticos" onclick="filtrarPorMetrica('criticos')">
+        <div class="kpi-card" onclick="abrirModalPorMetrica('criticos')">
             <h3>Críticos (Open > 24h)</h3>
             <p id="kpiOpenCriticos">0</p>
         </div>
-        <div class="kpi-card" id="cardUrgentes" onclick="filtrarPorMetrica('urgentes')">
-            <h3>Urgentes (Sin Tocar Hoy)</h3>
+        <div class="kpi-card" onclick="abrirModalPorMetrica('urgentes')">
+            <h3>Urgentes (Sin Tocar)</h3>
             <p id="kpiPendientesUrgentes">0</p>
         </div>
-        <div class="kpi-card" id="cardTotal" onclick="filtrarPorMetrica('all')">
+        <div class="kpi-card" onclick="abrirModalPorMetrica('all')">
             <h3>Carga Global Activa</h3>
             <p id="kpiTotalActivos" style="color: var(--vento-black);">0</p>
         </div>
     </div>
 
-    <div class="matrix-title">Estado Térmico por Integrante del Equipo</div>
+    <div class="matrix-title">Mapeo de Urgencia por Asesor (Ordenado por Severidad y Retraso)</div>
     <div class="heatmap-grid" id="gridMosaicos">
         </div>
+</div>
 
-    <div class="alert-section">
-        <h4 id="alertTitleTable">Desglose Detallado de Tickets Vinculados</h4>
-        <div style="overflow-x: auto;">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Asesor</th>
-                        <th>ID Ticket</th>
-                        <th>Estatus</th>
-                        <th>Creación</th>
-                        <th>Última Act.</th>
-                        <th>Retraso</th>
-                        <th>Alerta</th>
-                    </tr>
-                </thead>
-                <tbody id="tablaAlertas">
-                    </tbody>
-            </table>
+<div class="modal-overlay" id="modalDetalles" onclick="cerrarModalExterno(event)">
+    <div class="modal-window">
+        <div class="modal-header">
+            <h4 id="modalTitle">Desglose de Tickets</h4>
+            <div>
+                <button class="btn-modal-copy" id="btnModalCopy" onclick="copiarReporteDesdeModal()">Copiar Reporte</button>
+                <button class="btn-modal-close" onclick="cerrarModal()">Cerrar</button>
+            </div>
+        </div>
+        <div class="modal-body">
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Asesor</th>
+                            <th>ID Ticket</th>
+                            <th>Estatus</th>
+                            <th>Creación</th>
+                            <th>Última Act.</th>
+                            <th>Días de Retraso</th>
+                            <th>Gravedad</th>
+                        </tr>
+                    </thead>
+                    <tbody id="modalTablaCuerpo">
+                        </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
@@ -377,8 +417,7 @@
     const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Tickets_BD&tq=${querySQL}`;
 
     let rawData = [];
-    let asesorSeleccionado = "all";
-    let metricaSeleccionada = "all";
+    let asesorActivoModal = "all";
 
     function parsearFechaString(txt) {
         if (!txt) return null;
@@ -408,11 +447,22 @@
 
                     if (!ticketID || ticketID.toLowerCase() === 'ticket id' || /^\d+$/.test(nombreAsesor)) return null;
 
+                    // Calcular días de retraso de forma inmediata para el ordenamiento
+                    const hoy = new Date(); hoy.setHours(0,0,0,0);
+                    const esOpen = estatusTxt.toLowerCase() === 'open';
+                    const fechaObj = esOpen ? parsearFechaString(fechaCreacionTxt) : parsearFechaString(fechaActualizacionTxt);
+                    let calculoDias = 0;
+                    if (fechaObj) {
+                        calculoDias = Math.floor((hoy.getTime() - fechaObj.getTime()) / 86400000);
+                        if (calculoDias < 0) calculoDias = 0;
+                    }
+
                     return {
                         ticket: ticketID, asesor: nombreAsesor,           
                         fechaCreacionStr: fechaCreacionTxt, fechaCreacionObjeto: parsearFechaString(fechaCreacionTxt),
                         fechaActualizacionStr: fechaActualizacionTxt, fechaActualizacionObjeto: parsearFechaString(fechaActualizacionTxt),
-                        estado: estatusTxt              
+                        estado: estatusTxt,
+                        diasRetraso: calculoDias             
                     };
                 })
                 .filter(item => item !== null);
@@ -421,39 +471,8 @@
             document.getElementById('loading').style.display = 'none';
         } catch (e) {
             console.error(e);
-            document.getElementById('loading').innerHTML = "<span>Error de lectura en Base de Datos.</span>";
+            document.getElementById('loading').innerHTML = "<span>Error de conexión con la base de datos.</span>";
         }
-    }
-
-    function filtrarPorMetrica(metrica) {
-        metricaSeleccionada = metrica;
-        document.querySelectorAll('.kpi-card').forEach(c => c.classList.remove('active-filter'));
-        if (metrica !== 'all' || asesorSeleccionado !== 'all') document.getElementById('btnResetFiltro').style.display = 'inline-block';
-        
-        if(metrica === 'open') document.getElementById('cardOpen').classList.add('active-filter');
-        if(metrica === 'pendientes') document.getElementById('cardPendientes').classList.add('active-filter');
-        if(metrica === 'criticos') document.getElementById('cardCriticos').classList.add('active-filter');
-        if(metrica === 'urgentes') document.getElementById('cardUrgentes').classList.add('active-filter');
-        if(metrica === 'all') document.getElementById('cardTotal').classList.add('active-filter');
-
-        updateDashboard();
-    }
-
-    function seleccionarAsesor(nombre) {
-        asesorSeleccionado = nombre;
-        document.getElementById('btnResetFiltro').style.display = 'inline-block';
-        document.getElementById('btnCopiarReporte').style.display = 'inline-block';
-        document.getElementById('btnCopiarReporte').innerText = `Alerta de ${nombre.split(' ')[0]}`;
-        updateDashboard();
-    }
-
-    function resetFiltros() {
-        asesorSeleccionado = "all";
-        metricaSeleccionada = "all";
-        document.querySelectorAll('.kpi-card').forEach(c => c.classList.remove('active-filter'));
-        document.getElementById('btnResetFiltro').style.display = 'none';
-        document.getElementById('btnCopiarReporte').style.display = 'none';
-        updateDashboard();
     }
 
     function updateDashboard() {
@@ -463,27 +482,31 @@
 
         const mapeoAsesores = {};
 
-        // 1. Procesar métricas globales
         rawData.forEach(d => {
             const esOpen = d.estado.toLowerCase() === 'open';
             if (!mapeoAsesores[d.asesor]) {
-                mapeoAsesores[d.asesor] = { open: 0, pendientes: 0, criticos: 0, urgentes: 0 };
+                mapeoAsesores[d.asesor] = { nombre: d.asesor, open: 0, pendientes: 0, criticos: 0, urgentes: 0, maxRetraso: 0 };
+            }
+
+            // Registrar el retraso más alto que tiene el asesor para el ordenamiento de tarjetas
+            if (d.diasRetraso > mapeoAsesores[d.asesor].maxRetraso) {
+                mapeoAsesores[d.asesor].maxRetraso = d.diasRetraso;
             }
 
             if (esOpen) {
                 openTotal++; mapeoAsesores[d.asesor].open++;
-                if (d.fechaCreacionObjeto && Math.floor((hoy.getTime() - d.fechaCreacionObjeto.getTime()) / 86400000) > 1) {
+                if (d.diasRetraso > 1) {
                     criticosTotal++; mapeoAsesores[d.asesor].criticos++;
                 }
             } else {
                 pendTotal++; mapeoAsesores[d.asesor].pendientes++;
-                if (d.fechaActualizacionObjeto && Math.floor((hoy.getTime() - d.fechaActualizacionObjeto.getTime()) / 86400000) > 0) {
+                if (d.diasRetraso > 0) {
                     urgentesTotal++; mapeoAsesores[d.asesor].urgentes++;
                 }
             }
         });
 
-        // Configurar contadores superiores con semáforo inteligente solicitado
+        // Escribir KPIs superiores
         document.getElementById('kpiTotalOpen').innerText = openTotal;
         document.getElementById('kpiTotalPendientes').innerText = pendTotal;
         document.getElementById('kpiTotalActivos').innerText = rawData.length;
@@ -497,141 +520,164 @@
         txtUrg.style.color = urgentesTotal > 0 ? 'var(--vento-red)' : 'var(--vento-green)';
 
 
-        // 2. Inyectar Mosaicos de Calor
+        // IMPLEMENTACIÓN REQUERIDA: Convertir a array y organizar asesores de MAS URGENTES a MENOS URGENTES
+        const listaAsesores = Object.values(mapeoAsesores);
+        listaAsesores.sort((a, b) => {
+            // 1. Prioridad Máxima: Quien tenga tickets críticos va primero
+            if (a.criticos !== b.criticos) return b.criticos - a.criticos;
+            // 2. Segunda Prioridad: Quien tenga más tickets urgentes
+            if (a.urgentes !== b.urgentes) return b.urgentes - a.urgentes;
+            // 3. Tercera Prioridad: Quien tenga el ticket más viejo del área (Días de retraso máximos)
+            return b.maxRetraso - a.maxRetraso;
+        });
+
+        // Inyectar mosaicos en el nuevo orden de urgencia
         const gridMosaicos = document.getElementById('gridMosaicos');
         gridMosaicos.innerHTML = "";
 
-        // Ordenar asesores alfabéticamente para mantener el orden en pantalla
-        const listaAsesoresOrdenada = Object.keys(mapeoAsesores).sort();
-
-        listaAsesoresOrdenada.forEach(asesor => {
-            const datos = mapeoAsesores[asesor];
+        listaAsesores.forEach(as => {
             let claseTermica = "mosaico-clean";
-
-            // Regla de color de retrasos: Críticos mandan (Rojo), luego Urgentes (Naranja), si no Limpios (Verde)
-            if (datos.criticos > 0) {
-                claseTermica = "mosaico-critical";
-            } else if (datos.urgentes > 0) {
-                claseTermica = "mosaico-urgent";
-            }
-
-            // Ocultar del mosaico si hay un filtro KPI que este asesor no tiene
-            if (metricaSeleccionada === 'criticos' && datos.criticos === 0) return;
-            if (metricaSeleccionada === 'urgentes' && datos.urgentes === 0) return;
-            if (metricaSeleccionada === 'open' && datos.open === 0) return;
-            if (metricaSeleccionada === 'pendientes' && datos.pendientes === 0) return;
-
-            const esSeleccionado = asesor === asesorSeleccionado ? 'selected' : '';
+            if (as.criticos > 0) claseTermica = "mosaico-critical";
+            else if (as.urgentes > 0) claseTermica = "mosaico-urgent";
 
             gridMosaicos.innerHTML += `
-                <div class="mosaico-asesor ${claseTermica} ${esSeleccionado}" onclick="seleccionarAsesor('${asesor}')">
-                    <h4>${asesor}</h4>
+                <div class="mosaico-asesor ${claseTermica}" onclick="abrirModalAsesor('${as.nombre}')">
+                    <h4>${as.nombre}</h4>
                     <div class="mosaico-metrics">
                         <div class="metric-sub">
                             <span>Críticos</span>
-                            <strong style="color:${datos.criticos > 0 ? 'var(--vento-red)' : '#444'}">${datos.criticos}</strong>
+                            <strong style="color:${as.criticos > 0 ? 'var(--vento-red)' : '#444'}">${as.criticos}</strong>
                         </div>
                         <div class="metric-sub">
                             <span>Urgentes</span>
-                            <strong style="color:${datos.urgentes > 0 ? 'var(--vento-urgent)' : '#444'}">${datos.urgentes}</strong>
+                            <strong style="color:${as.urgentes > 0 ? 'var(--vento-urgent)' : '#444'}">${as.urgentes}</strong>
                         </div>
                         <div class="metric-sub" style="grid-column: span 2; margin-top:3px;">
-                            <span>Carga Activa (Open/Pend)</span>
-                            <strong>${datos.open} / ${datos.pendientes}</strong>
+                            <span>Carga Activa (O / P)</span>
+                            <strong>${as.open} / ${as.pendientes}</strong>
                         </div>
                     </div>
                 </div>
             `;
         });
+    }
 
+    // INTERACTIVIDAD: Abrir ventana modal para un asesor específico
+    function abrirModalAsesor(nombre) {
+        asesorActivoModal = nombre;
+        document.getElementById('modalTitle').innerText = `Tickets Activos de: ${nombre}`;
+        document.getElementById('btnModalCopy').style.display = 'inline-block';
+        
+        // Filtrar y ordenar los tickets de este asesor de MAYOR A MENOR retraso
+        const ticketsFiltrados = rawData.filter(x => x.asesor === nombre);
+        ticketsFiltrados.sort((a, b) => b.diasRetraso - a.diasRetraso);
 
-        // 3. Renderizar Tabla
-        const tabla = document.getElementById('tablaAlertas');
-        tabla.innerHTML = "";
-        let filas = 0;
+        construirTablaModal(ticketsFiltrados);
+        mostrarModal();
+    }
 
-        rawData.forEach(d => {
-            const esOpen = d.estado.toLowerCase() === 'open';
-            let dias = 0;
-            let cumpleMetrica = false;
+    // INTERACTIVIDAD: Abrir ventana modal global desde los recuadros KPI superiores
+    function abrirModalPorMetrica(tipo) {
+        asesorActivoModal = "all";
+        document.getElementById('btnModalCopy').style.display = 'none'; // Ocultar copiado ya que es un reporte masivo global
+        
+        let titulo = "Carga Global Activa";
+        let ticketsFiltrados = [...rawData];
 
-            if (esOpen && d.fechaCreacionObjeto) {
-                dias = Math.floor((hoy.getTime() - d.fechaCreacionObjeto.getTime()) / 86400000);
-            } else if (!esOpen && d.fechaActualizacionObjeto) {
-                dias = Math.floor((hoy.getTime() - d.fechaActualizacionObjeto.getTime()) / 86400000);
-            }
+        if (tipo === 'open') {
+            titulo = "Listado Total de Tickets Abiertos (Open)";
+            ticketsFiltrados = rawData.filter(x => x.estado.toLowerCase() === 'open');
+        } else if (tipo === 'pendientes') {
+            titulo = "Listado Total de Tickets Pendientes";
+            ticketsFiltrados = rawData.filter(x => x.estado.toLowerCase() !== 'open');
+        } else if (tipo === 'criticos') {
+            titulo = "Listado de los 119 Tickets Críticos (Open > 24h)";
+            ticketsFiltrados = rawData.filter(x => x.estado.toLowerCase() === 'open' && x.diasRetraso > 1);
+        } else if (tipo === 'urgentes') {
+            titulo = "Listado de Tickets Urgentes (Sin Actualización)";
+            ticketsFiltrados = rawData.filter(x => x.estado.toLowerCase() !== 'open' && x.diasRetraso > 0);
+        }
 
-            if (asesorSeleccionado !== 'all' && d.asesor !== asesorSeleccionado) return;
+        document.getElementById('modalTitle').innerText = titulo;
 
-            if (metricaSeleccionada === 'all') cumpleMetrica = true;
-            if (metricaSeleccionada === 'open' && esOpen) cumpleMetrica = true;
-            if (metricaSeleccionada === 'pendientes' && !esOpen) cumpleMetrica = true;
-            if (metricaSeleccionada === 'criticos' && esOpen && dias > 1) cumpleMetrica = true;
-            if (metricaSeleccionada === 'urgentes' && !esOpen && dias > 0) cumpleMetrica = true;
+        // IMPLEMENTACIÓN REQUERIDA: Ordenar la lista global de MAYOR A MENOR días de retraso
+        ticketsFiltrados.sort((a, b) => b.diasRetraso - a.diasRetraso);
 
-            if (!cumpleMetrica) return;
+        construirTablaModal(ticketsFiltrados);
+        mostrarModal();
+    }
 
-            filas++;
+    function construirTablaModal(listaTickets) {
+        const tablaCuerpo = document.getElementById('modalTablaCuerpo');
+        tablaCuerpo.innerHTML = "";
+
+        if (listaTickets.length === 0) {
+            tablaCuerpo.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:30px; font-weight:bold; color:var(--vento-green);">🎉 No se detectaron folios rezagados para este segmento.</td></tr>`;
+            return;
+        }
+
+        listaTickets.forEach(t => {
+            const esOpen = t.estado.toLowerCase() === 'open';
             let badge = "";
+
             if (esOpen) {
-                badge = dias > 1 ? `<span class="badge badge-critical">Crítico &gt; 24h</span>` : `<span class="badge" style="background:#eee;">Abierto</span>`;
+                badge = t.diasRetraso > 1 ? `<span class="badge badge-critical">Crítico &gt; 24h</span>` : `<span class="badge" style="background:#eee;">Abierto</span>`;
             } else {
-                badge = dias > 0 ? `<span class="badge badge-urgent">Urgente</span>` : `<span class="badge" style="background:#e8f5e9; color:green;">Al día</span>`;
+                badge = t.diasRetraso > 0 ? `<span class="badge badge-urgent">Urgente</span>` : `<span class="badge" style="background:#e8f5e9; color:green;">Al día</span>`;
             }
 
-            tabla.innerHTML += `
+            tablaCuerpo.innerHTML += `
                 <tr>
-                    <td><strong>${d.asesor}</strong></td>
-                    <td>${d.ticket}</td>
-                    <td>${d.estado}</td>
-                    <td><small>${d.fechaCreacionStr}</small></td>
-                    <td><small>${d.fechaActualizacionStr}</small></td>
-                    <td style="font-weight:bold; color:${dias > 0 ? 'var(--vento-red)' : '#111'}">${dias} d</td>
+                    <td><strong>${t.asesor}</strong></td>
+                    <td>${t.ticket}</td>
+                    <td>${t.estado}</td>
+                    <td><small>${t.fechaCreacionStr}</small></td>
+                    <td><small>${t.fechaActualizacionStr}</small></td>
+                    <td style="font-weight:bold; color:${t.diasRetraso > 0 ? 'var(--vento-red)' : '#111'}">${t.diasRetraso} días</td>
                     <td>${badge}</td>
                 </tr>
             `;
         });
-
-        let txtTitulo = "Desglose Detallado de Tickets Vinculados";
-        if (asesorSeleccionado !== 'all') txtTitulo += ` para ${asesorSeleccionado}`;
-        if (metricaSeleccionada !== 'all') txtTitulo += ` [Filtro: ${metricaSeleccionada.toUpperCase()}]`;
-        document.getElementById('alertTitleTable').innerText = txtTitulo;
-
-        if(filas === 0) {
-            tabla.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:15px; font-weight:bold; color:var(--vento-green);">🎉 No hay tickets para mostrar bajo los filtros seleccionados.</td></tr>`;
-        }
     }
 
-    function copiarReporteAsesor() {
-        if (asesorSeleccionado === "all") return;
+    function mostrarModal() {
+        document.getElementById('modalDetalles').classList.add('active');
+        document.body.classList.add('modal-open');
+    }
+
+    function cerrarModal() {
+        document.getElementById('modalDetalles').classList.remove('active');
+        document.body.classList.remove('modal-open');
+    }
+
+    function cerrarModalExterno(event) {
+        if (event.target.id === "modalDetalles") cerrarModal();
+    }
+
+    function copiarReporteDesdeModal() {
+        if (asesorActivoModal === "all") return;
         const hoy = new Date(); hoy.setHours(0,0,0,0);
         let criticos = []; let urgentes = [];
 
-        rawData.filter(x => x.asesor === asesorSeleccionado).forEach(d => {
+        rawData.filter(x => x.asesor === asesorActivoModal).forEach(d => {
             const esOpen = d.estado.toLowerCase() === 'open';
-            if (esOpen && d.fechaCreacionObjeto) {
-                let dias = Math.floor((hoy.getTime() - d.fechaCreacionObjeto.getTime()) / 86400000);
-                if (dias > 1) criticos.push(`${d.ticket} (${dias}d)`);
-            } else if (!esOpen && d.fechaActualizacionObjeto) {
-                let dias = Math.floor((hoy.getTime() - d.fechaActualizacionObjeto.getTime()) / 86400000);
-                if (dias > 0) urgentes.push(`${d.ticket} (${dias}d)`);
-            }
+            if (esOpen && d.diasRetraso > 1) criticos.push(`${d.ticket} (${d.diasRetraso}d)`);
+            else if (!esOpen && d.diasRetraso > 0) urgentes.push(`${d.ticket} (${d.diasRetraso}d)`);
         });
 
         let mensaje = `*NOTIFICACIÓN DE ATENCIÓN PRIORITARIA - VENTO ATC*\n\n`;
-        mensaje += `Hola *${asesorSeleccionado}*, se detectaron retrasos de atención en tus folios asignados:\n\n`;
+        mensaje += `Hola *${asesorActivoModal}*, se detectaron retrasos de atención en tus folios asignados:\n\n`;
         if (criticos.length > 0) mensaje += `🚨 *CRÍTICOS (Open > 24h):* ${criticos.length} ticket(s)\nIDs: ${criticos.join(', ')}\n\n`;
         if (urgentes.length > 0) mensaje += `⚠️ *URGENTES (Sin actualizar hoy):* ${urgentes.length} ticket(s)\nIDs: ${urgentes.join(', ')}\n\n`;
         mensaje += `*Por favor, apóyanos gestionando o cerrando estos casos hoy mismo.*`;
 
         navigator.clipboard.writeText(mensaje).then(() => {
-            alert(`Mensaje de alerta listo para pegarse en WhatsApp.`);
+            alert(`Reporte de ${asesorActivoModal.split(' ')[0]} copiado para WhatsApp.`);
         });
     }
 
     fetchData();
-    // Refresco automático cada 15 minutos en segundo plano
-    setInterval(fetchData, 900000);
+    setInterval(fetchData, 900000); // Sincronización automática de 15 minutos
 </script>
 </body>
 </html>
