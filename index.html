@@ -4,161 +4,221 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vento ATC - Muro de Control Inteligente</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
     <style>
         :root {
             --vento-orange: #FF5A00; 
-            --vento-black: #111111;  
-            --vento-gray: #F2F4F7;   
+            --vento-orange-glow: rgba(255, 90, 0, 0.3);
+            --vento-black: #0F0F11;  
+            --vento-bg: #F0F2F5;   
             --vento-white: #FFFFFF;  
-            --vento-dark-gray: #1A1A1A;
-            --vento-red: #D32F2F;
+            --vento-dark-gray: #2D2D30;
+            --vento-red: #E53935;
             --vento-red-light: #FFEBEE;
-            --vento-green: #2E7D32;
+            --vento-green: #43A047;
             --vento-green-light: #E8F5E9;
-            --vento-urgent: #E65100;
+            --vento-urgent: #FB8C00;
             --vento-urgent-light: #FFF3E0;
+            --vento-purple: #8E24AA; /* Para el nuevo SLA */
+            --vento-purple-light: #F3E5F5;
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
+            --shadow-md: 0 8px 16px rgba(0,0,0,0.08);
+            --shadow-lg: 0 12px 24px rgba(0,0,0,0.12);
         }
 
         body {
-            font-family: 'Roboto', sans-serif;
-            background-color: var(--vento-gray);
+            font-family: 'Inter', sans-serif;
+            background-color: var(--vento-bg);
             margin: 0;
             color: var(--vento-black);
             overflow-x: hidden;
         }
 
         body.modal-open {
-            overflow: hidden; /* Evita scroll de fondo cuando la ventana está abierta */
+            overflow: hidden;
         }
 
+        /* Cabecera Moderna */
         header {
-            background-color: var(--vento-black);
+            background: rgba(15, 15, 17, 0.95);
+            backdrop-filter: blur(10px);
             color: var(--vento-white);
-            padding: 1rem 4%;
+            padding: 1.2rem 4%;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 4px solid var(--vento-orange);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            border-bottom: 3px solid var(--vento-orange);
+            box-shadow: var(--shadow-md);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
 
         header h1 {
             margin: 0;
             font-weight: 900;
-            letter-spacing: 2px;
-            font-size: 1.5rem;
+            letter-spacing: 1px;
+            font-size: 1.6rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-badge {
+            font-weight: 800;
+            font-size: 0.75rem;
+            background: var(--vento-orange);
+            padding: 6px 12px;
+            border-radius: 20px;
+            letter-spacing: 0.5px;
+            box-shadow: 0 0 10px var(--vento-orange-glow);
         }
 
         .container {
-            width: 95%;
-            margin: 20px auto;
+            width: 96%;
+            max-width: 1400px;
+            margin: 25px auto;
         }
 
         /* Barra Informativa */
         .control-bar {
             background: var(--vento-white);
-            padding: 12px 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            padding: 15px 25px;
+            border-radius: 12px;
+            box-shadow: var(--shadow-sm);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             font-size: 0.95rem;
-            font-weight: bold;
+            font-weight: 600;
+            color: var(--vento-dark-gray);
+            border-left: 4px solid var(--vento-orange);
         }
 
         /* KPIs Superiores */
         .kpi-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 15px;
-            margin-bottom: 25px;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 35px;
         }
 
         .kpi-card {
             background: var(--vento-white);
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 3px 6px rgba(0,0,0,0.05);
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: var(--shadow-sm);
             text-align: center;
-            border: 1px solid #ddd;
+            border: 1px solid rgba(0,0,0,0.03);
             cursor: pointer;
-            transition: transform 0.15s;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative;
+            overflow: hidden;
         }
 
-        .kpi-card:hover { transform: translateY(-2px); }
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 4px;
+            background: var(--vento-dark-gray);
+            transition: background 0.3s ease;
+        }
+
+        .kpi-card:hover { 
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .kpi-card:hover::before { background: var(--vento-orange); }
 
         .kpi-card h3 {
             margin: 0;
-            font-size: 0.75rem;
-            color: #555;
+            font-size: 0.8rem;
+            color: #666;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            font-weight: 800;
         }
 
         .kpi-card p {
-            margin: 8px 0 0;
-            font-size: 2.2rem;
+            margin: 10px 0 0;
+            font-size: 2.8rem;
             font-weight: 900;
         }
 
-        /* Sección de Mosaicos Térmicos */
+        .kpi-sla { border-bottom: 4px solid var(--vento-purple); }
+        .kpi-sla p { color: var(--vento-purple); }
+
+        /* Mosaicos Térmicos */
         .matrix-title {
             font-weight: 900;
             text-transform: uppercase;
             letter-spacing: 1px;
-            font-size: 1.1rem;
-            margin: 10px 0 15px 0;
-            color: var(--vento-dark-gray);
-            border-left: 5px solid var(--vento-orange);
-            padding-left: 10px;
+            font-size: 1.2rem;
+            margin: 20px 0 20px 0;
+            color: var(--vento-black);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .matrix-title::before {
+            content: '';
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            background: var(--vento-orange);
+            border-radius: 50%;
         }
 
         .heatmap-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 15px;
-            margin-bottom: 30px;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
         }
 
         .mosaico-asesor {
             background: var(--vento-white);
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.06);
-            padding: 16px;
-            border: 1px solid #e1e1e1;
+            border-radius: 16px;
+            box-shadow: var(--shadow-sm);
+            padding: 20px;
+            border: 1px solid rgba(0,0,0,0.05);
             text-align: center;
             cursor: pointer;
             transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
         }
 
         .mosaico-asesor:hover {
-            transform: scale(1.03);
-            box-shadow: 0 8px 15px rgba(0,0,0,0.12);
+            transform: scale(1.02);
+            box-shadow: var(--shadow-md);
         }
 
         /* Estados de Alerta Dinámicos */
-        .mosaico-clean { background-color: var(--vento-green-light); border-top: 5px solid var(--vento-green); }
-        .mosaico-urgent { background-color: var(--vento-urgent-light); border-top: 5px solid var(--vento-urgent); }
+        .mosaico-clean { background-image: linear-gradient(to bottom, var(--vento-white), var(--vento-green-light)); border-top: 5px solid var(--vento-green); }
+        .mosaico-urgent { background-image: linear-gradient(to bottom, var(--vento-white), var(--vento-urgent-light)); border-top: 5px solid var(--vento-urgent); }
+        .mosaico-sla-breach { background-image: linear-gradient(to bottom, var(--vento-white), var(--vento-purple-light)); border-top: 5px solid var(--vento-purple); }
         .mosaico-critical {
-            background-color: var(--vento-red-light);
+            background-image: linear-gradient(to bottom, var(--vento-white), var(--vento-red-light));
             border-top: 5px solid var(--vento-red);
             animation: pulse-border 2s infinite;
         }
 
         @keyframes pulse-border {
-            0% { box-shadow: 0 0 0 0 rgba(211, 47, 47, 0.4); }
-            70% { box-shadow: 0 0 0 6px rgba(211, 47, 47, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(211, 47, 47, 0); }
+            0% { box-shadow: 0 0 0 0 rgba(229, 57, 53, 0.3); }
+            70% { box-shadow: 0 0 0 8px rgba(229, 57, 53, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(229, 57, 53, 0); }
         }
 
         .mosaico-asesor h4 {
-            margin: 0 0 10px 0;
-            font-size: 1rem;
-            font-weight: 700;
+            margin: 0 0 15px 0;
+            font-size: 1.05rem;
+            font-weight: 800;
             text-transform: uppercase;
+            color: var(--vento-dark-gray);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -167,72 +227,69 @@
         .mosaico-metrics {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 5px;
-            margin-top: 5px;
+            gap: 8px;
         }
 
         .metric-sub {
-            background: rgba(255,255,255,0.6);
-            padding: 6px;
-            border-radius: 4px;
-            border: 1px solid rgba(0,0,0,0.05);
+            background: rgba(255,255,255,0.8);
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid rgba(0,0,0,0.04);
+            backdrop-filter: blur(5px);
         }
         .metric-sub span {
             display: block;
             font-size: 0.65rem;
             text-transform: uppercase;
-            color: #444;
-            font-weight: bold;
+            color: #666;
+            font-weight: 800;
         }
         .metric-sub strong {
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             font-weight: 900;
+            display: block;
+            margin-top: 3px;
         }
 
-        /* VENTANA EMERGENTE (MODAL) PREMIUM CON DESENFOQUE */
+        /* MODAL PREMIUM */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(8px); /* Hace borroso todo lo de atrás */
-            -webkit-backdrop-filter: blur(8px);
+            background: rgba(15, 15, 17, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             display: flex;
             justify-content: center;
             align-items: center;
             z-index: 2000;
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.3s ease;
+            transition: opacity 0.4s ease;
         }
 
-        .modal-overlay.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
 
         .modal-window {
             background: var(--vento-white);
-            width: 85%;
-            max-width: 950px;
+            width: 90%;
+            max-width: 1000px;
             max-height: 85vh;
-            border-radius: 12px;
-            box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.25);
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            transform: translateY(-30px);
-            transition: transform 0.3s ease;
+            transform: scale(0.95) translateY(-20px);
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
             border-top: 6px solid var(--vento-orange);
         }
 
-        .modal-overlay.active .modal-window {
-            transform: translateY(0);
-        }
+        .modal-overlay.active .modal-window { transform: scale(1) translateY(0); }
 
         .modal-header {
-            padding: 18px 25px;
-            background: #f8f9fa;
-            border-bottom: 1px solid #eee;
+            padding: 20px 30px;
+            background: var(--vento-white);
+            border-bottom: 1px solid #E0E0E0;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -242,71 +299,63 @@
             margin: 0;
             text-transform: uppercase;
             font-weight: 900;
-            letter-spacing: 0.5px;
-            font-size: 1.1rem;
+            font-size: 1.2rem;
+            color: var(--vento-black);
         }
 
-        .btn-modal-close {
-            background: var(--vento-black);
-            color: white;
-            border: none;
-            padding: 6px 14px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 0.85rem;
-        }
-        .btn-modal-close:hover { background: #333; }
+        .modal-actions { display: flex; gap: 10px; }
 
-        .btn-modal-copy {
-            background: var(--vento-orange);
-            color: white;
+        .btn {
             border: none;
-            padding: 6px 14px;
-            border-radius: 4px;
+            padding: 8px 16px;
+            border-radius: 8px;
             cursor: pointer;
-            font-weight: bold;
+            font-weight: 800;
             font-size: 0.85rem;
             text-transform: uppercase;
-            margin-right: 10px;
-        }
-        .btn-modal-copy:hover { background: #e04f00; }
-
-        .modal-body {
-            padding: 25px;
-            overflow-y: auto;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.9rem;
-        }
+        .btn-close { background: #E0E0E0; color: var(--vento-dark-gray); }
+        .btn-close:hover { background: #D6D6D6; }
 
+        .btn-copy { background: var(--vento-orange); color: white; box-shadow: 0 4px 10px var(--vento-orange-glow); }
+        .btn-copy:hover { background: #E65100; transform: translateY(-2px); }
+
+        .modal-body { padding: 0; overflow-y: auto; background: var(--vento-bg); }
+
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; background: var(--vento-white); }
         th {
-            background-color: #f8f9fa;
-            padding: 12px;
+            background-color: #F8F9FA;
+            padding: 16px 20px;
             text-align: left;
-            border-bottom: 2px solid #ddd;
-            font-weight: 700;
+            border-bottom: 2px solid #E0E0E0;
+            font-weight: 800;
+            color: var(--vento-dark-gray);
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
 
-        td {
-            padding: 12px;
-            border-bottom: 1px solid #eee;
-        }
+        td { padding: 16px 20px; border-bottom: 1px solid #F0F0F0; color: #444; }
+        tr:hover td { background-color: #F9FAFB; }
 
         .badge {
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-weight: bold;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-weight: 800;
             font-size: 0.7rem;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-block;
         }
-        .badge-critical { background: #fde8e8; color: var(--vento-red); }
-        .badge-urgent { background: #fff3cd; color: #856404; }
+        .badge-sla { background: var(--vento-purple-light); color: var(--vento-purple); }
+        .badge-critical { background: var(--vento-red-light); color: var(--vento-red); }
+        .badge-urgent { background: var(--vento-urgent-light); color: var(--vento-urgent); }
+        .badge-ok { background: var(--vento-green-light); color: var(--vento-green); }
 
-        /* Pantalla de carga inicial */
+        /* Loader */
         #loading {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -317,17 +366,18 @@
             align-items: center;
             z-index: 3000;
             color: var(--vento-white);
-            font-weight: 700;
+            font-weight: 800;
             letter-spacing: 2px;
+            font-size: 1.2rem;
         }
 
         .spinner {
-            width: 40px; height: 40px;
-            border: 4px solid #333;
+            width: 50px; height: 50px;
+            border: 4px solid rgba(255,255,255,0.1);
             border-top: 4px solid var(--vento-orange);
             border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 15px;
+            animation: spin 1s cubic-bezier(0.6, 0.2, 0.4, 0.8) infinite;
+            margin-bottom: 20px;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
@@ -336,30 +386,33 @@
 
 <div id="loading">
     <div class="spinner"></div>
-    SINKRONIZANDO MURO DE CONTROL...
+    SINCRONIZANDO MURO OPERATIVO...
 </div>
 
 <header>
-    <h1>VENTO <span style="color:var(--vento-orange)">MURO OPERATIVO</span></h1>
-    <span style="font-weight: bold; font-size: 0.85rem; background: var(--vento-orange); padding: 4px 10px; border-radius: 3px;">PANTALLA DE SEGUIMIENTO</span>
+    <h1>🏍️ VENTO <span style="color:var(--vento-orange); font-weight: 900;">MURO ATC</span></h1>
+    <span class="header-badge">LIVE DASHBOARD</span>
 </header>
 
 <div class="container">
-
     <div class="control-bar">
         <div id="barInstruction">
-            📺 Tablero de control Freshdesk. Haz clic en cualquier recuadro o tarjeta para auditar en ventana flotante. Refresco automático de 15 min.
+            📊 Auditoría Freshdesk. Clic en métricas o asesores para desglose. Refresco automático: 15 min.
         </div>
     </div>
 
     <div class="kpi-container">
         <div class="kpi-card" onclick="abrirModalPorMetrica('open')">
-            <h3>Total Abiertos (Open)</h3>
+            <h3>Abiertos (Open)</h3>
             <p id="kpiTotalOpen" style="color: var(--vento-black);">0</p>
         </div>
         <div class="kpi-card" onclick="abrirModalPorMetrica('pendientes')">
-            <h3>Total Pendientes</h3>
+            <h3>Pendientes</h3>
             <p id="kpiTotalPendientes" style="color: var(--vento-black);">0</p>
+        </div>
+        <div class="kpi-card kpi-sla" onclick="abrirModalPorMetrica('sla')">
+            <h3>SLA Vencido (>3 Días Háb.)</h3>
+            <p id="kpiSLA">0</p>
         </div>
         <div class="kpi-card" onclick="abrirModalPorMetrica('criticos')">
             <h3>Críticos (Open > 24h)</h3>
@@ -369,24 +422,19 @@
             <h3>Urgentes (Sin Tocar)</h3>
             <p id="kpiPendientesUrgentes">0</p>
         </div>
-        <div class="kpi-card" onclick="abrirModalPorMetrica('all')">
-            <h3>Carga Global Activa</h3>
-            <p id="kpiTotalActivos" style="color: var(--vento-black);">0</p>
-        </div>
     </div>
 
-    <div class="matrix-title">Mapeo de Urgencia por Asesor (Ordenado por Severidad y Retraso)</div>
-    <div class="heatmap-grid" id="gridMosaicos">
-        </div>
+    <div class="matrix-title">Mapeo de Atención por Asesor (Prioridad Inteligente)</div>
+    <div class="heatmap-grid" id="gridMosaicos"></div>
 </div>
 
 <div class="modal-overlay" id="modalDetalles" onclick="cerrarModalExterno(event)">
     <div class="modal-window">
         <div class="modal-header">
             <h4 id="modalTitle">Desglose de Tickets</h4>
-            <div>
-                <button class="btn-modal-copy" id="btnModalCopy" onclick="copiarReporteDesdeModal()">Copiar Reporte</button>
-                <button class="btn-modal-close" onclick="cerrarModal()">Cerrar</button>
+            <div class="modal-actions">
+                <button class="btn btn-copy" id="btnModalCopy" onclick="copiarReporteDesdeModal()">Copiar Reporte</button>
+                <button class="btn btn-close" onclick="cerrarModal()">Cerrar</button>
             </div>
         </div>
         <div class="modal-body">
@@ -399,12 +447,11 @@
                             <th>Estatus</th>
                             <th>Creación</th>
                             <th>Última Act.</th>
-                            <th>Días de Retraso</th>
-                            <th>Gravedad</th>
+                            <th>Edad (Días Háb.)</th>
+                            <th>Alerta / Prioridad</th>
                         </tr>
                     </thead>
-                    <tbody id="modalTablaCuerpo">
-                        </tbody>
+                    <tbody id="modalTablaCuerpo"></tbody>
                 </table>
             </div>
         </div>
@@ -419,6 +466,17 @@
     let rawData = [];
     let asesorActivoModal = "all";
 
+    // Días festivos oficiales en México (Se pueden actualizar anualmente)
+    const festivosMexicanos = [
+        '2026-01-01', // Año Nuevo
+        '2026-02-02', // Día de la Constitución (1er lunes de feb)
+        '2026-03-16', // Natalicio Benito Juárez (3er lunes de mar)
+        '2026-05-01', // Día del Trabajo
+        '2026-09-16', // Día de la Independencia
+        '2026-11-16', // Revolución Mexicana (3er lunes de nov)
+        '2026-12-25'  // Navidad
+    ];
+
     function parsearFechaString(txt) {
         if (!txt) return null;
         const limpia = txt.trim().split(' ')[0]; 
@@ -429,12 +487,52 @@
         return null;
     }
 
+    function calcularDiasHabiles(fechaInicio, fechaFin, asesor) {
+        if (!fechaInicio || !fechaFin) return 0;
+        let dias = 0;
+        
+        let actual = new Date(fechaInicio);
+        actual.setHours(0,0,0,0);
+        let fin = new Date(fechaFin);
+        fin.setHours(0,0,0,0);
+
+        // Limpiar el nombre del asesor para la validación (evitar errores por espacios)
+        const asesorLimpio = asesor.trim().toUpperCase();
+        const esEspecial = (asesorLimpio === "ATC ANDREA FUENTES" || asesorLimpio === "SANDY PONCE");
+
+        while (actual < fin) {
+            actual.setDate(actual.getDate() + 1);
+            let diaSemana = actual.getDay(); // 0 = Dom, 1 = Lun ... 6 = Sab
+            
+            // Ajustar formato para comparar con el array de festivos (YYYY-MM-DD)
+            let mes = String(actual.getMonth() + 1).padStart(2, '0');
+            let dia = String(actual.getDate()).padStart(2, '0');
+            let strFecha = `${actual.getFullYear()}-${mes}-${dia}`;
+
+            if (esEspecial) {
+                // Descansan Jueves (4) y Viernes (5). NO se cuentan los días festivos de ley.
+                if (diaSemana !== 4 && diaSemana !== 5) {
+                    dias++;
+                }
+            } else {
+                // Horario normal: Descansan Sábado (6) y Domingo (0). SÍ aplican festivos.
+                if (diaSemana !== 0 && diaSemana !== 6 && !festivosMexicanos.includes(strFecha)) {
+                    dias++;
+                }
+            }
+        }
+        return dias;
+    }
+
     async function fetchData() {
         try {
             const response = await fetch(URL);
             const text = await response.text();
             const json = JSON.parse(text.substr(47).slice(0, -2));
             const rows = json.table.rows;
+
+            const hoy = new Date(); 
+            hoy.setHours(0,0,0,0);
 
             rawData = rows
                 .map(row => {
@@ -447,22 +545,33 @@
 
                     if (!ticketID || ticketID.toLowerCase() === 'ticket id' || /^\d+$/.test(nombreAsesor)) return null;
 
-                    // Calcular días de retraso de forma inmediata para el ordenamiento
-                    const hoy = new Date(); hoy.setHours(0,0,0,0);
                     const esOpen = estatusTxt.toLowerCase() === 'open';
-                    const fechaObj = esOpen ? parsearFechaString(fechaCreacionTxt) : parsearFechaString(fechaActualizacionTxt);
-                    let calculoDias = 0;
-                    if (fechaObj) {
-                        calculoDias = Math.floor((hoy.getTime() - fechaObj.getTime()) / 86400000);
-                        if (calculoDias < 0) calculoDias = 0;
+                    const fechaCreacionObj = parsearFechaString(fechaCreacionTxt);
+                    const fechaActObj = parsearFechaString(fechaActualizacionTxt);
+
+                    // 1. Días de retraso de actualización (Para Urgentes / Críticos) - Días naturales
+                    let diasRetrasoAccion = 0;
+                    const fechaRefAccion = esOpen ? fechaCreacionObj : fechaActObj;
+                    if (fechaRefAccion) {
+                        diasRetrasoAccion = Math.floor((hoy.getTime() - fechaRefAccion.getTime()) / 86400000);
+                        if (diasRetrasoAccion < 0) diasRetrasoAccion = 0;
+                    }
+
+                    // 2. Edad del ticket en Días Hábiles (Para el SLA de 3 días)
+                    let diasHabilesDesdeCreacion = 0;
+                    if (fechaCreacionObj) {
+                        diasHabilesDesdeCreacion = calcularDiasHabiles(fechaCreacionObj, hoy, nombreAsesor);
                     }
 
                     return {
-                        ticket: ticketID, asesor: nombreAsesor,           
-                        fechaCreacionStr: fechaCreacionTxt, fechaCreacionObjeto: parsearFechaString(fechaCreacionTxt),
-                        fechaActualizacionStr: fechaActualizacionTxt, fechaActualizacionObjeto: parsearFechaString(fechaActualizacionTxt),
+                        ticket: ticketID, 
+                        asesor: nombreAsesor,            
+                        fechaCreacionStr: fechaCreacionTxt, 
+                        fechaActualizacionStr: fechaActualizacionTxt, 
                         estado: estatusTxt,
-                        diasRetraso: calculoDias             
+                        diasRetrasoAccion: diasRetrasoAccion,
+                        diasHabilesEdad: diasHabilesDesdeCreacion,
+                        incumpleSLA: diasHabilesDesdeCreacion > 3 // Nuevo indicador
                     };
                 })
                 .filter(item => item !== null);
@@ -471,45 +580,56 @@
             document.getElementById('loading').style.display = 'none';
         } catch (e) {
             console.error(e);
-            document.getElementById('loading').innerHTML = "<span>Error de conexión con la base de datos.</span>";
+            document.getElementById('loading').innerHTML = "<span>Error de conexión con la base de datos. Actualice la página.</span>";
         }
     }
 
     function updateDashboard() {
-        const hoy = new Date(); hoy.setHours(0,0,0,0);
         let openTotal = 0; let pendTotal = 0;
-        let criticosTotal = 0; let urgentesTotal = 0;
+        let criticosTotal = 0; let urgentesTotal = 0; let slaIncumplidoTotal = 0;
 
         const mapeoAsesores = {};
 
         rawData.forEach(d => {
             const esOpen = d.estado.toLowerCase() === 'open';
             if (!mapeoAsesores[d.asesor]) {
-                mapeoAsesores[d.asesor] = { nombre: d.asesor, open: 0, pendientes: 0, criticos: 0, urgentes: 0, maxRetraso: 0 };
+                mapeoAsesores[d.asesor] = { nombre: d.asesor, open: 0, pendientes: 0, criticos: 0, urgentes: 0, slaRotados: 0, maxScorePrioridad: 0 };
             }
 
-            // Registrar el retraso más alto que tiene el asesor para el ordenamiento de tarjetas
-            if (d.diasRetraso > mapeoAsesores[d.asesor].maxRetraso) {
-                mapeoAsesores[d.asesor].maxRetraso = d.diasRetraso;
-            }
+            // Calculamos un "Score de Prioridad" para ordenar los mosaicos
+            let score = 0;
 
             if (esOpen) {
                 openTotal++; mapeoAsesores[d.asesor].open++;
-                if (d.diasRetraso > 1) {
+                if (d.diasRetrasoAccion > 1) {
                     criticosTotal++; mapeoAsesores[d.asesor].criticos++;
+                    score += 5; // Alta penalización para mosaico
                 }
             } else {
                 pendTotal++; mapeoAsesores[d.asesor].pendientes++;
-                if (d.diasRetraso > 0) {
+                if (d.diasRetrasoAccion > 0) {
                     urgentesTotal++; mapeoAsesores[d.asesor].urgentes++;
+                    score += 3; 
                 }
+            }
+
+            if (d.incumpleSLA) {
+                slaIncumplidoTotal++; mapeoAsesores[d.asesor].slaRotados++;
+                score += 10; // Prioridad máxima si rompen el SLA corporativo
+            }
+
+            if (score > mapeoAsesores[d.asesor].maxScorePrioridad) {
+                mapeoAsesores[d.asesor].maxScorePrioridad = score;
             }
         });
 
         // Escribir KPIs superiores
         document.getElementById('kpiTotalOpen').innerText = openTotal;
         document.getElementById('kpiTotalPendientes').innerText = pendTotal;
-        document.getElementById('kpiTotalActivos').innerText = rawData.length;
+        
+        const txtSLA = document.getElementById('kpiSLA');
+        txtSLA.innerText = slaIncumplidoTotal;
+        txtSLA.style.color = slaIncumplidoTotal > 0 ? 'var(--vento-purple)' : 'var(--vento-green)';
 
         const txtCrit = document.getElementById('kpiOpenCriticos');
         txtCrit.innerText = criticosTotal;
@@ -517,44 +637,35 @@
 
         const txtUrg = document.getElementById('kpiPendientesUrgentes');
         txtUrg.innerText = urgentesTotal;
-        txtUrg.style.color = urgentesTotal > 0 ? 'var(--vento-red)' : 'var(--vento-green)';
+        txtUrg.style.color = urgentesTotal > 0 ? 'var(--vento-urgent)' : 'var(--vento-green)';
 
-
-        // IMPLEMENTACIÓN REQUERIDA: Convertir a array y organizar asesores de MAS URGENTES a MENOS URGENTES
         const listaAsesores = Object.values(mapeoAsesores);
-        listaAsesores.sort((a, b) => {
-            // 1. Prioridad Máxima: Quien tenga tickets críticos va primero
-            if (a.criticos !== b.criticos) return b.criticos - a.criticos;
-            // 2. Segunda Prioridad: Quien tenga más tickets urgentes
-            if (a.urgentes !== b.urgentes) return b.urgentes - a.urgentes;
-            // 3. Tercera Prioridad: Quien tenga el ticket más viejo del área (Días de retraso máximos)
-            return b.maxRetraso - a.maxRetraso;
-        });
+        listaAsesores.sort((a, b) => b.maxScorePrioridad - a.maxScorePrioridad);
 
-        // Inyectar mosaicos en el nuevo orden de urgencia
         const gridMosaicos = document.getElementById('gridMosaicos');
         gridMosaicos.innerHTML = "";
 
         listaAsesores.forEach(as => {
             let claseTermica = "mosaico-clean";
-            if (as.criticos > 0) claseTermica = "mosaico-critical";
+            if (as.slaRotados > 0) claseTermica = "mosaico-sla-breach";
+            else if (as.criticos > 0) claseTermica = "mosaico-critical";
             else if (as.urgentes > 0) claseTermica = "mosaico-urgent";
 
             gridMosaicos.innerHTML += `
                 <div class="mosaico-asesor ${claseTermica}" onclick="abrirModalAsesor('${as.nombre}')">
                     <h4>${as.nombre}</h4>
                     <div class="mosaico-metrics">
+                        <div class="metric-sub" style="grid-column: span 2; border-left: 3px solid var(--vento-purple);">
+                            <span>SLA Vencido (>3d)</span>
+                            <strong style="color:${as.slaRotados > 0 ? 'var(--vento-purple)' : '#444'}">${as.slaRotados}</strong>
+                        </div>
                         <div class="metric-sub">
-                            <span>Críticos</span>
+                            <span>Críticos (24h)</span>
                             <strong style="color:${as.criticos > 0 ? 'var(--vento-red)' : '#444'}">${as.criticos}</strong>
                         </div>
                         <div class="metric-sub">
                             <span>Urgentes</span>
                             <strong style="color:${as.urgentes > 0 ? 'var(--vento-urgent)' : '#444'}">${as.urgentes}</strong>
-                        </div>
-                        <div class="metric-sub" style="grid-column: span 2; margin-top:3px;">
-                            <span>Carga Activa (O / P)</span>
-                            <strong>${as.open} / ${as.pendientes}</strong>
                         </div>
                     </div>
                 </div>
@@ -562,46 +673,45 @@
         });
     }
 
-    // INTERACTIVIDAD: Abrir ventana modal para un asesor específico
     function abrirModalAsesor(nombre) {
         asesorActivoModal = nombre;
-        document.getElementById('modalTitle').innerText = `Tickets Activos de: ${nombre}`;
+        document.getElementById('modalTitle').innerText = `Auditoría: ${nombre}`;
         document.getElementById('btnModalCopy').style.display = 'inline-block';
         
-        // Filtrar y ordenar los tickets de este asesor de MAYOR A MENOR retraso
         const ticketsFiltrados = rawData.filter(x => x.asesor === nombre);
-        ticketsFiltrados.sort((a, b) => b.diasRetraso - a.diasRetraso);
+        // Ordenar primero por SLA vencido, luego por días hábiles de edad
+        ticketsFiltrados.sort((a, b) => b.diasHabilesEdad - a.diasHabilesEdad);
 
         construirTablaModal(ticketsFiltrados);
         mostrarModal();
     }
 
-    // INTERACTIVIDAD: Abrir ventana modal global desde los recuadros KPI superiores
     function abrirModalPorMetrica(tipo) {
         asesorActivoModal = "all";
-        document.getElementById('btnModalCopy').style.display = 'none'; // Ocultar copiado ya que es un reporte masivo global
+        document.getElementById('btnModalCopy').style.display = 'none'; 
         
-        let titulo = "Carga Global Activa";
+        let titulo = "Listado Global";
         let ticketsFiltrados = [...rawData];
 
         if (tipo === 'open') {
-            titulo = "Listado Total de Tickets Abiertos (Open)";
+            titulo = "Total Abiertos (Open)";
             ticketsFiltrados = rawData.filter(x => x.estado.toLowerCase() === 'open');
         } else if (tipo === 'pendientes') {
-            titulo = "Listado Total de Tickets Pendientes";
+            titulo = "Total Pendientes";
             ticketsFiltrados = rawData.filter(x => x.estado.toLowerCase() !== 'open');
+        } else if (tipo === 'sla') {
+            titulo = "SLA Vencido: Mayor a 3 Días Hábiles desde Creación";
+            ticketsFiltrados = rawData.filter(x => x.incumpleSLA);
         } else if (tipo === 'criticos') {
-            titulo = "Listado de los 119 Tickets Críticos (Open > 24h)";
-            ticketsFiltrados = rawData.filter(x => x.estado.toLowerCase() === 'open' && x.diasRetraso > 1);
+            titulo = "Críticos (Open > 24h sin accionar)";
+            ticketsFiltrados = rawData.filter(x => x.estado.toLowerCase() === 'open' && x.diasRetrasoAccion > 1);
         } else if (tipo === 'urgentes') {
-            titulo = "Listado de Tickets Urgentes (Sin Actualización)";
-            ticketsFiltrados = rawData.filter(x => x.estado.toLowerCase() !== 'open' && x.diasRetraso > 0);
+            titulo = "Urgentes (Pendientes sin actualización hoy)";
+            ticketsFiltrados = rawData.filter(x => x.estado.toLowerCase() !== 'open' && x.diasRetrasoAccion > 0);
         }
 
         document.getElementById('modalTitle').innerText = titulo;
-
-        // IMPLEMENTACIÓN REQUERIDA: Ordenar la lista global de MAYOR A MENOR días de retraso
-        ticketsFiltrados.sort((a, b) => b.diasRetraso - a.diasRetraso);
+        ticketsFiltrados.sort((a, b) => b.diasHabilesEdad - a.diasHabilesEdad);
 
         construirTablaModal(ticketsFiltrados);
         mostrarModal();
@@ -612,29 +722,37 @@
         tablaCuerpo.innerHTML = "";
 
         if (listaTickets.length === 0) {
-            tablaCuerpo.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:30px; font-weight:bold; color:var(--vento-green);">🎉 No se detectaron folios rezagados para este segmento.</td></tr>`;
+            tablaCuerpo.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:40px; font-weight:800; color:var(--vento-green); font-size:1.1rem;">✨ Todo en orden para este segmento.</td></tr>`;
             return;
         }
 
         listaTickets.forEach(t => {
             const esOpen = t.estado.toLowerCase() === 'open';
-            let badge = "";
+            let badgeHtml = "";
+
+            if (t.incumpleSLA) {
+                badgeHtml += `<span class="badge badge-sla" style="margin-bottom:4px; display:block;">SLA Vencido</span>`;
+            }
 
             if (esOpen) {
-                badge = t.diasRetraso > 1 ? `<span class="badge badge-critical">Crítico &gt; 24h</span>` : `<span class="badge" style="background:#eee;">Abierto</span>`;
+                if (t.diasRetrasoAccion > 1) badgeHtml += `<span class="badge badge-critical">Crítico > 24h</span>`;
+                else if (!t.incumpleSLA) badgeHtml += `<span class="badge badge-ok">Abierto al día</span>`;
             } else {
-                badge = t.diasRetraso > 0 ? `<span class="badge badge-urgent">Urgente</span>` : `<span class="badge" style="background:#e8f5e9; color:green;">Al día</span>`;
+                if (t.diasRetrasoAccion > 0) badgeHtml += `<span class="badge badge-urgent">Pend. Urgente</span>`;
+                else if (!t.incumpleSLA) badgeHtml += `<span class="badge badge-ok">Pend. al día</span>`;
             }
 
             tablaCuerpo.innerHTML += `
                 <tr>
                     <td><strong>${t.asesor}</strong></td>
-                    <td>${t.ticket}</td>
-                    <td>${t.estado}</td>
+                    <td style="font-family: monospace; font-size: 1.05rem;">#${t.ticket}</td>
+                    <td><span style="background:#eee; padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold;">${t.estado}</span></td>
                     <td><small>${t.fechaCreacionStr}</small></td>
                     <td><small>${t.fechaActualizacionStr}</small></td>
-                    <td style="font-weight:bold; color:${t.diasRetraso > 0 ? 'var(--vento-red)' : '#111'}">${t.diasRetraso} días</td>
-                    <td>${badge}</td>
+                    <td style="font-weight:900; font-size:1.1rem; color:${t.incumpleSLA ? 'var(--vento-purple)' : 'var(--vento-black)'}">
+                        ${t.diasHabilesEdad} d. háb.
+                    </td>
+                    <td>${badgeHtml}</td>
                 </tr>
             `;
         });
@@ -656,28 +774,31 @@
 
     function copiarReporteDesdeModal() {
         if (asesorActivoModal === "all") return;
-        const hoy = new Date(); hoy.setHours(0,0,0,0);
-        let criticos = []; let urgentes = [];
+        let slaRotos = []; let criticos = []; let urgentes = [];
 
         rawData.filter(x => x.asesor === asesorActivoModal).forEach(d => {
             const esOpen = d.estado.toLowerCase() === 'open';
-            if (esOpen && d.diasRetraso > 1) criticos.push(`${d.ticket} (${d.diasRetraso}d)`);
-            else if (!esOpen && d.diasRetraso > 0) urgentes.push(`${d.ticket} (${d.diasRetraso}d)`);
+            if (d.incumpleSLA) slaRotos.push(`${d.ticket} (${d.diasHabilesEdad}d háb.)`);
+            if (esOpen && d.diasRetrasoAccion > 1) criticos.push(`${d.ticket}`);
+            else if (!esOpen && d.diasRetrasoAccion > 0) urgentes.push(`${d.ticket}`);
         });
 
-        let mensaje = `*NOTIFICACIÓN DE ATENCIÓN PRIORITARIA - VENTO ATC*\n\n`;
-        mensaje += `Hola *${asesorActivoModal}*, se detectaron retrasos de atención en tus folios asignados:\n\n`;
-        if (criticos.length > 0) mensaje += `🚨 *CRÍTICOS (Open > 24h):* ${criticos.length} ticket(s)\nIDs: ${criticos.join(', ')}\n\n`;
-        if (urgentes.length > 0) mensaje += `⚠️ *URGENTES (Sin actualizar hoy):* ${urgentes.length} ticket(s)\nIDs: ${urgentes.join(', ')}\n\n`;
-        mensaje += `*Por favor, apóyanos gestionando o cerrando estos casos hoy mismo.*`;
+        let mensaje = `*NOTIFICACIÓN DE AUDITORÍA ATC*\n\n`;
+        mensaje += `Hola *${asesorActivoModal}*, este es tu reporte de folios que requieren atención prioritaria hoy:\n\n`;
+        
+        if (slaRotos.length > 0) mensaje += `🟣 *SLA VENCIDO (>3 Días Hábiles):* ${slaRotos.length} ticket(s)\nFolios: ${slaRotos.join(', ')}\n\n`;
+        if (criticos.length > 0) mensaje += `🚨 *CRÍTICOS (Abiertos > 24h):* ${criticos.length} ticket(s)\nFolios: ${criticos.join(', ')}\n\n`;
+        if (urgentes.length > 0) mensaje += `⚠️ *URGENTES (Pendientes sin mover):* ${urgentes.length} ticket(s)\nFolios: ${urgentes.join(', ')}\n\n`;
+        
+        mensaje += `*Por favor, apóyanos gestionando el cierre o seguimiento de estos casos.*`;
 
         navigator.clipboard.writeText(mensaje).then(() => {
-            alert(`Reporte de ${asesorActivoModal.split(' ')[0]} copiado para WhatsApp.`);
+            alert(`Reporte copiado. Listo para enviar por WhatsApp.`);
         });
     }
 
     fetchData();
-    setInterval(fetchData, 900000); // Sincronización automática de 15 minutos
+    setInterval(fetchData, 900000); 
 </script>
 </body>
 </html>
