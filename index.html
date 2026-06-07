@@ -290,7 +290,7 @@
             <p id="kpiSinTocar" style="color: var(--vento-red);">0</p>
         </div>
         <div class="kpi-card">
-            <h3>Total General Tickets</h3>
+            <h3>Total Activos Filtrados</h3>
             <p id="kpiTotal">0</p>
         </div>
     </div>
@@ -332,7 +332,6 @@
 </div>
 
 <script>
-    // URL apuntando explícitamente a la pestaña correcta
     const SHEET_ID = '1JBre4cLAbYiOJuYye_FGcsk5U_BIStDoAiCbV-B8WoA';
     const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Tickets_BD`;
 
@@ -354,7 +353,7 @@
         return null;
     }
 
-    // 1. Obtener y estructurar datos desde Google Drive con Filtro Oculto
+    // 1. Obtener y estructurar datos con Filtro Oculto de Grupo y Estatus "Closed"
     async function fetchData() {
         try {
             const response = await fetch(URL);
@@ -366,12 +365,16 @@
                 .map(row => {
                     if (!row || !row.c) return null;
 
-                    // FILTRO INTERNO DE SEGURIDAD (Columna A -> Índice 0)
+                    // A. FILTRO INTERNO POR GRUPO (Columna A -> Índice 0)
                     const nombreGrupo = row.c[0] ? (row.c[0].f || row.c[0].v || '').toString().trim() : '';
-                    
-                    // Condición: Solo permitir los grupos indicados
                     if (nombreGrupo !== "AMERICAN PISTON (ATC)" && nombreGrupo !== "ATC") {
-                        return null; // Descarta cualquier otro grupo automáticamente
+                        return null; 
+                    }
+
+                    // B. FILTRO INTERNO POR ESTATUS (Columna I -> Índice 8)
+                    const estatusTxt = row.c[8] ? (row.c[8].f || row.c[8].v || 'Sin Estatus').toString().trim() : 'Sin Estatus';
+                    if (estatusTxt.toLowerCase() === 'closed' || estatusTxt.toLowerCase() === 'cerrado') {
+                        return null; // Ignora por completo los tickets ya cerrados
                     }
 
                     const ticketID = row.c[1] ? (row.c[1].f || row.c[1].v || '').toString().trim() : '';
@@ -379,24 +382,22 @@
                     
                     const fechaCreacionTxt = row.c[5] && row.c[5].f ? row.c[5].f : (row.c[5] ? row.c[5].v.toString() : '');
                     const fechaActualizacionTxt = row.c[6] && row.c[6].f ? row.c[6].f : (row.c[6] ? row.c[6].v.toString() : '');
-                    const estatusTxt = row.c[8] ? (row.c[8].f || row.c[8].v || 'Sin Estatus').toString().trim() : 'Sin Estatus';
 
-                    // Descartar encabezados accidentales o registros sin ID
                     if (!ticketID || ticketID.toLowerCase() === 'ticket id' || nombreAsesor.toLowerCase() === 'nombre del agente') {
                         return null;
                     }
 
                     return {
-                        ticket: ticketID,               // Columna B -> Índice 1
-                        asesor: nombreAsesor,           // Columna C -> Índice 2
-                        fechaCreacionStr: fechaCreacionTxt, // Columna F -> Índice 5
+                        ticket: ticketID,               
+                        asesor: nombreAsesor,           
+                        fechaCreacionStr: fechaCreacionTxt, 
                         fechaCreacionObjeto: parsearFechaString(fechaCreacionTxt),
-                        fechaActualizacionStr: fechaActualizacionTxt, // Columna G -> Índice 6
+                        fechaActualizacionStr: fechaActualizacionTxt, 
                         fechaActualizacionObjeto: parsearFechaString(fechaActualizacionTxt),
-                        estado: estatusTxt              // Columna I -> Índice 8
+                        estado: estatusTxt              
                     };
                 })
-                .filter(item => item !== null); // Limpiar los descartados
+                .filter(item => item !== null); 
 
             initDashboard();
             document.getElementById('loading').style.display = 'none';
