@@ -7,237 +7,153 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
 <style>
 :root{
-  --vento-orange:#FF5A00;
-  --vento-black:#0F0F11;
-  --vento-bg:#F0F2F5;
-  --vento-white:#FFFFFF;
-  --vento-dark-gray:#2D2D30;
-  --vento-red:#E53935;
-  --vento-green:#43A047;
-  --vento-urgent:#FB8C00;
-  --vento-yellow:#FBC02D;
-  --vento-purple:#8E24AA;
-  --shadow-sm:0 2px 8px rgba(0,0,0,0.04);
-  --shadow-md:0 8px 16px rgba(0,0,0,0.08);
+--vento-orange:#FF5A00;
+--vento-black:#0F0F11;
+--vento-bg:#F0F2F5;
+--vento-white:#FFFFFF;
+--vento-dark-gray:#2D2D30;
+--vento-red:#E53935;
+--vento-green:#43A047;
+--vento-urgent:#FB8C00;
+--vento-yellow:#FBC02D;
+--vento-purple:#8E24AA;
+--shadow-sm:0 2px 8px rgba(0,0,0,0.04);
+--shadow-md:0 8px 16px rgba(0,0,0,0.08);
 }
-
-/* Reset y base */
-*{box-sizing:border-box}
-body{
-  font-family:'Inter',sans-serif;
-  margin:0;
-  background:var(--vento-bg);
-  color:var(--vento-black);
-  -webkit-font-smoothing:antialiased;
-  -moz-osx-font-smoothing:grayscale;
-}
-
-/* Cabecera compacta */
-header{
-  background:rgba(15,15,17,0.95);
-  color:var(--vento-white);
-  padding:10px 3%;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  border-bottom:2px solid var(--vento-orange);
-  position:sticky;
-  top:0;
-  z-index:1000;
-  box-shadow:var(--shadow-sm);
-}
-header h1{
-  margin:0;
-  font-weight:900;
-  font-size:1.05rem;
-  display:flex;
-  gap:8px;
-  align-items:center;
-}
-.header-badge{
-  background:var(--vento-orange);
-  padding:4px 10px;
-  border-radius:14px;
-  font-weight:700;
-  font-size:0.65rem;
-}
-
-/* Contenedor principal */
-.container{
-  width:95%;
-  max-width:1100px;
-  margin:14px auto;
-}
-
-/* Barra informativa */
-.control-bar{
-  background:var(--vento-white);
-  padding:10px 14px;
-  border-radius:10px;
-  box-shadow:var(--shadow-sm);
-  border-left:3px solid var(--vento-orange);
-  font-weight:600;
-  color:var(--vento-dark-gray);
-  margin-bottom:16px;
-  font-size:0.88rem;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-.db-timestamp {
-  font-size:0.8rem;
-  color:var(--vento-orange);
-  font-weight:800;
-}
-
-/* KPIs compactos */
-.kpi-container{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
-  gap:12px;
-  margin-bottom:18px;
-}
-.kpi-card{
-  background:var(--vento-white);
-  padding:10px;
-  border-radius:10px;
-  box-shadow:var(--shadow-sm);
-  text-align:center;
-  border:1px solid rgba(0,0,0,0.03);
-  cursor:pointer;
-  transition:transform .18s ease, box-shadow .18s ease;
-}
-.kpi-card:hover{ transform:translateY(-4px); box-shadow:var(--shadow-md); }
-.kpi-card h3{
-  margin:0;
-  font-size:0.68rem;
-  color:#666;
-  text-transform:uppercase;
-  font-weight:800;
-}
-.kpi-card p{
-  margin:8px 0 0;
-  font-size:1.6rem;
-  font-weight:900;
-}
-
-/* Título mosaicos */
-.matrix-title{
-  font-weight:800;
-  text-transform:uppercase;
-  font-size:0.88rem;
-  margin:12px 0;
-}
-
-/* Grid mosaicos compacto */
-.heatmap-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(230px,1fr));
-  gap:12px;
-  margin-bottom:28px;
-}
-.mosaico-asesor{
-  background:var(--vento-white);
-  border-radius:10px;
-  padding:12px;
-  box-shadow:var(--shadow-sm);
-  cursor:pointer;
-  transition:transform .15s ease, box-shadow .15s ease;
-  overflow:hidden;
-}
-.mosaico-asesor:hover{ transform:translateY(-3px); box-shadow:var(--shadow-md); }
-.mosaico-asesor h4{
-  margin:0 0 10px 0;
-  font-size:0.88rem;
-  font-weight:800;
-  color:var(--vento-dark-gray);
-  text-transform:uppercase;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  border-bottom: 1px solid #f0f0f0;
-  padding-bottom: 4px;
-}
-.mosaico-metrics{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:6px;
-}
-.metric-sub{
-  background:rgba(255,255,255,0.9);
-  padding:5px 6px;
-  border-radius:6px;
-  border:1px solid rgba(0,0,0,0.04);
-}
-.metric-sub span{ display:block; font-size:0.56rem; text-transform:uppercase; color:#666; font-weight:800; line-height: 1.1; }
-.metric-sub strong{ display:block; font-size:0.95rem; font-weight:900; margin-top:2px; }
-
-/* Semáforo: clases por color */
-.mosaico-red{ border-top:4px solid var(--vento-red); background:linear-gradient(to bottom,var(--vento-white),#fff0f0); }
-.mosaico-yellow{ border-top:4px solid var(--vento-yellow); background:linear-gradient(to bottom,var(--vento-white),#fffaf0); }
-.mosaico-green{ border-top:4px solid var(--vento-green); background:linear-gradient(to bottom,var(--vento-white),#f0fff4); }
-.mosaico-clean{ border-top:4px solid transparent; }
-
-/* Modal compacto */
-.modal-overlay{
-  position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
-  background:rgba(15,15,17,0.55); backdrop-filter:blur(8px); z-index:2000; opacity:0; pointer-events:none; transition:opacity .25s ease;
-}
-.modal-overlay.active{ opacity:1; pointer-events:auto; }
-.modal-window{
-  width:92%; max-width:980px; max-height:82vh; background:var(--vento-white); border-radius:12px; overflow:hidden; box-shadow:0 20px 40px rgba(0,0,0,0.25);
-  display:flex; flex-direction:column; transform:translateY(-10px) scale(.98); transition:all .25s ease;
-}
-.modal-overlay.active .modal-window{ transform:translateY(0) scale(1); }
-.modal-header{ padding:12px 16px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; }
-.modal-header h4{ margin:0; font-size:0.95rem; font-weight:900; text-transform:uppercase; }
-.modal-actions{ display:flex; gap:8px; align-items:center; }
-.btn{ border:none; padding:6px 10px; border-radius:8px; cursor:pointer; font-weight:800; font-size:0.78rem; }
-.btn-close{ background:#E8E8E8; color:var(--vento-dark-gray); }
-.btn-copy{ background:var(--vento-orange); color:#fff; box-shadow:0 6px 14px rgba(255,90,0,0.18); }
-.btn-wa{ background:#25D366; color:#fff; box-shadow:0 6px 14px rgba(37,211,102,0.12); }
-
-/* Tabla modal */
-.modal-body{ padding:0; overflow:auto; background:var(--vento-bg); }
-table{ width:100%; border-collapse:collapse; background:var(--vento-white); font-size:0.88rem; }
-th{ background:#F8F9FA; padding:10px 12px; text-align:left; border-bottom:1px solid #EDEDED; position:sticky; top:0; z-index:5; font-weight:800; }
-td{ padding:10px 12px; border-bottom:1px solid #F5F5F5; color:#444; vertical-align:middle; }
-.badge{ padding:5px 8px; border-radius:6px; font-weight:800; font-size:0.68rem; text-transform:uppercase; display:inline-block; }
-.badge-sla{ background:#F3E5F5; color:var(--vento-purple); }
-.badge-pend{ background:#FFF3E0; color:var(--vento-yellow); }
-.badge-open{ background:#E8F5E9; color:var(--vento-green); }
-
-/* Loader */
-#loading{
-  position:fixed; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
-  background:var(--vento-black); color:#fff; z-index:3000; font-weight:800; letter-spacing:1.5px; font-size:1rem;
-}
-.spinner{ width:44px; height:44px; border:4px solid rgba(255,255,255,0.08); border-top:4px solid var(--vento-orange); border-radius:50%; animation:spin 1s linear infinite; margin-bottom:12px; }
-@keyframes spin{ to{ transform:rotate(360deg); } }
-
-@media (max-width:520px){
-  .kpi-card p{ font-size:1.2rem; }
-  header h1{ font-size:0.95rem; }
-  .matrix-title{ font-size:0.82rem; }
-}
+*{box-sizing:border-box}body{
+font-family:'Inter',sans-serif;
+margin:0;
+background:var(--vento-bg);
+color:var(--vento-black);
+-webkit-font-smoothing:antialiased;
+}header{
+background:rgba(15,15,17,0.95);
+color:var(--vento-white);
+padding:10px 3%;
+display:flex;
+align-items:center;
+justify-content:space-between;
+border-bottom:2px solid var(--vento-orange);
+position:sticky;
+top:0;
+z-index:1000;
+}header h1{
+margin:0;
+font-weight:900;
+font-size:1.05rem;
+display:flex;
+gap:8px;
+align-items:center;
+}.header-badge{
+background:var(--vento-orange);
+padding:4px 10px;
+border-radius:14px;
+font-weight:700;
+font-size:0.65rem;
+}.container{
+width:95%;
+max-width:1100px;
+margin:14px auto;
+}.control-bar{
+background:var(--vento-white);
+padding:10px 14px;
+border-radius:10px;
+box-shadow:var(--shadow-sm);
+border-left:3px solid var(--vento-orange);
+font-weight:600;
+color:var(--vento-dark-gray);
+margin-bottom:16px;
+font-size:0.88rem;
+display:flex;
+justify-content:space-between;
+align-items:center;
+}.db-timestamp {
+font-size:0.8rem;
+color:var(--vento-orange);
+font-weight:800;
+}.kpi-container{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+gap:12px;
+margin-bottom:18px;
+}.kpi-card{
+background:var(--vento-white);
+padding:10px;
+border-radius:10px;
+box-shadow:var(--shadow-sm);
+text-align:center;
+border:1px solid rgba(0,0,0,0.03);
+cursor:pointer;
+transition:transform .18s ease, box-shadow .18s ease;
+}.kpi-card:hover{ transform:translateY(-4px); box-shadow:var(--shadow-md); }.kpi-card h3{
+margin:0;
+font-size:0.68rem;
+color:#666;
+text-transform:uppercase;
+font-weight:800;}.kpi-card p{
+margin:8px 0 0;
+font-size:1.6rem;
+font-weight:900;
+}.matrix-title{
+font-weight:800;
+text-transform:uppercase;
+font-size:0.88rem;
+margin:12px 0;
+}.heatmap-grid{
+display:grid;
+grid-template-columns:repeat(auto-fill,minmax(230px,1fr));
+gap:12px;
+margin-bottom:28px;
+}.mosaico-asesor{
+background:var(--vento-white);
+border-radius:10px;
+padding:12px;
+box-shadow:var(--shadow-sm);
+cursor:pointer;
+transition:transform .15s ease;
+overflow:hidden;
+}.mosaico-asesor:hover{ transform:translateY(-3px); box-shadow:var(--shadow-md); }.mosaico-asesor h4{
+margin:0 0 10px 0;
+font-size:0.88rem;
+font-weight:800;
+color:var(--vento-dark-gray);
+text-transform:uppercase;
+border-bottom: 1px solid #f0f0f0;
+padding-bottom: 4px;
+}.mosaico-metrics{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:6px;
+}.metric-sub{
+background:rgba(255,255,255,0.9);
+padding:5px 6px;
+border-radius:6px;
+border:1px solid rgba(0,0,0,0.04);
+}.metric-sub span{ display:block; font-size:0.56rem; text-transform:uppercase; color:#666; font-weight:800; }.metric-sub strong{ display:block; font-size:0.95rem; font-weight:900; margin-top:2px; }.mosaico-red{ border-top:4px solid var(--vento-red); background:linear-gradient(to bottom,var(--vento-white),#fff0f0); }.mosaico-yellow{ border-top:4px solid var(--vento-yellow); background:linear-gradient(to bottom,var(--vento-white),#fffaf0); }.mosaico-green{ border-top:4px solid var(--vento-green); background:linear-gradient(to bottom,var(--vento-white),#f0fff4); }.modal-overlay{
+position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
+background:rgba(15,15,17,0.55); backdrop-filter:blur(8px); z-index:2000; opacity:0; pointer-events:none; transition:opacity .25s ease;
+}.modal-overlay.active{ opacity:1; pointer-events:auto; }.modal-window{
+width:92%; max-width:980px; max-height:82vh; background:var(--vento-white); border-radius:12px; overflow:hidden;
+display:flex; flex-direction:column; transform:translateY(-10px) scale(.98); transition:all .25s ease;
+}.modal-overlay.active .modal-window{ transform:translateY(0) scale(1); }.modal-header{ padding:12px 16px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; }.modal-header h4{ margin:0; font-size:0.95rem; font-weight:900; text-transform:uppercase; }.modal-actions{ display:flex; gap:8px; align-items:center; }.btn{ border:none; padding:6px 10px; border-radius:8px; cursor:pointer; font-weight:800; font-size:0.78rem; }.btn-close{ background:#E8E8E8; color:var(--vento-dark-gray); }.btn-copy{ background:var(--vento-orange); color:#fff; }.btn-wa{ background:#25D366; color:#fff; }.modal-body{ padding:0; overflow:auto; background:var(--vento-bg); }table{ width:100%; border-collapse:collapse; background:var(--vento-white); font-size:0.88rem; }th{ background:#F8F9FA; padding:10px 12px; text-align:left; border-bottom:1px solid #EDEDED; position:sticky; top:0; z-index:5; font-weight:800; }td{ padding:10px 12px; border-bottom:1px solid #F5F5F5; color:#444; vertical-align:middle; }.badge{ padding:5px 8px; border-radius:6px; font-weight:800; font-size:0.68rem; text-transform:uppercase; display:inline-block; }.badge-sla{ background:#FFF3E0; color:var(--vento-orange); }.badge-pend{ background:#F3E5F5; color:var(--vento-purple); }.badge-open{ background:#E8F5E9; color:var(--vento-green); }#loading{
+position:fixed; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
+background:var(--vento-black); color:#fff; z-index:3000; font-weight:800; font-size:1rem;
+}.spinner{ width:44px; height:44px; border:4px solid rgba(255,255,255,0.08); border-top:4px solid var(--vento-orange); border-radius:50%; animation:spin 1s linear infinite; margin-bottom:12px; }@keyframes spin{ to{ transform:rotate(360deg); } }
 </style>
 </head>
 <body>
-
 <div id="loading">
   <div class="spinner"></div>
-  SINCRONIZANDO MURO OPERATIVO...
+  CALIBRANDO LOGICA OPERATIVA ATC...
 </div>
-
 <header>
   <h1>🏍️ VENTO <span style="color:var(--vento-orange); font-weight:900;">MURO ATC</span></h1>
   <span class="header-badge">LIVE DASHBOARD</span>
 </header>
-
 <div class="container">
   <div class="control-bar" id="barInstruction">
-    <span>📊 Auditoría Freshdesk. Clic en métricas o asesores para desglose. Refresco automático: 15 min.</span>
-    <span class="db-timestamp" id="dbTimestamp">Base: Buscando fecha...</span>
+    <span>📊 Monitoreo de Filtros de Auditoría Operativa. Clic en métricas para desglosar.</span>
+    <span class="db-timestamp" id="dbTimestamp">Buscando fecha Z1...</span>
   </div>
 
   <div class="kpi-container">
@@ -245,30 +161,34 @@ td{ padding:10px 12px; border-bottom:1px solid #F5F5F5; color:#444; vertical-ali
       <h3>Tickets Totales</h3>
       <p id="kpiTotalGlobal" style="color:var(--vento-black);">0</p>
     </div>
-    <div class="kpi-card" onclick="abrirModalPorMetrica('pendientes')">
-      <h3>Pendientes s/tocar</h3>
-      <p id="kpiTotalPendientes">0</p>
+
+    <div class="kpi-card" onclick="abrirModalPorMetrica('pendientes_stocar')">
+      <h3>Pendientes s/Tocar</h3>
+      <p id="kpiPendientesSTocar" style="color:var(--vento-purple);">0</p>
     </div>
-    <div class="kpi-card" onclick="abrirModalPorMetrica('sla')">
-      <h3>SLA Vencido (&gt;3d)</h3>
-      <p id="kpiSLA">0</p>
+
+    <div class="kpi-card" onclick="abrirModalPorMetrica('sla_4d')">
+      <h3>SLA Vencido (&gt;4D)</h3>
+      <p id="kpiSLA4D" style="color:var(--vento-red);">0</p>
     </div>
-    <div class="kpi-card" onclick="abrirModalPorMetrica('abiertos1d')">
-      <h3>Abiertos Warnings</h3>
-      <p id="kpiOpenCriticos">0</p>
+
+    <div class="kpi-card" onclick="abrirModalPorMetrica('preventivos')">
+      <h3>Preventivos</h3>
+      <p id="kpiPreventivos" style="color:var(--vento-yellow);">0</p>
     </div>
+
     <div class="kpi-card" onclick="abrirModalPorMetrica('urgentes')">
       <h3>Total Urgentes</h3>
-      <p id="kpiPendientesUrgentes">0</p>
+      <p id="kpiUrgentesTotal" style="color:var(--vento-red);">0</p>
     </div>
   </div>
 
-  <div class="matrix-title">Mapeo de Atención por Asesor (Prioridad Inteligente)</div>
+  <div class="matrix-title">Mapeo de Atención por Asesor (Prioridad Operativa)</div>
   <div class="heatmap-grid" id="gridMosaicos"></div>
 </div>
 
 <div class="modal-overlay" id="modalDetalles" onclick="cerrarModalExterno(event)">
-  <div class="modal-window" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal-window">
     <div class="modal-header">
       <h4 id="modalTitle">Desglose de Tickets</h4>
       <div class="modal-actions">
@@ -288,7 +208,7 @@ td{ padding:10px 12px; border-bottom:1px solid #F5F5F5; color:#444; vertical-ali
               <th>Creación</th>
               <th>Última Act.</th>
               <th>Edad (Días)</th>
-              <th>Alerta / Prioridad</th>
+              <th>Clasificación Muro</th>
             </tr>
           </thead>
           <tbody id="modalTablaCuerpo"></tbody>
@@ -300,19 +220,36 @@ td{ padding:10px 12px; border-bottom:1px solid #F5F5F5; color:#444; vertical-ali
 
 <script>
 const SHEET_ID = '1JBre4cLAbYiOJuYye_FGcsk5U_BIStDoAiCbV-B8WoA';
-
-// Modificamos la consulta SQL para que incluya la columna Z, así nos traemos la celda de actualización en el mismo paquete de datos.
 const querySQLTickets = encodeURIComponent("SELECT A, B, C, F, G, I, Z");
 const URL_TICKETS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Tickets_BD&tq=${querySQLTickets}`;
-
 let rawData = [];
 let asesorActivoModal = "all";
 let ultimaActualizacionBase = "No disponible";
 const TICKET_BASE_URL = 'https://ayuda.vento.com/a/tickets/';
 
+// --- Nuevas utilidades para fecha/hora y horas de vida ---
+function parsearFechaHoraString(txt){
+  if(!txt) return null;
+  const partes = txt.trim().split(' ');
+  const fecha = (partes[0] || '').replace(/\//g,'-');
+  const hora = partes[1] || '00:00';
+  const fparts = fecha.split('-');
+  let d, m, y;
+  if(fparts.length !== 3) return null;
+  if(fparts[0].length === 4){
+    y = parseInt(fparts[0],10); m = parseInt(fparts[1],10)-1; d = parseInt(fparts[2],10);
+  } else {
+    d = parseInt(fparts[0],10); m = parseInt(fparts[1],10)-1; y = parseInt(fparts[2],10);
+  }
+  const hparts = hora.split(':');
+  const hh = parseInt(hparts[0]||'0',10);
+  const mm = parseInt(hparts[1]||'0',10);
+  return new Date(y, m, d, hh, mm, 0);
+}
+
 function parsearFechaString(txt){
   if(!txt) return null;
-  const limpia = txt.trim().split(' ')[0];
+  const limpia = txt.trim().split(' ')[0].replace(/\//g, '-');
   const partes = limpia.split('-');
   if(partes.length === 3){
     if(partes[0].length === 4) {
@@ -324,45 +261,41 @@ function parsearFechaString(txt){
   return null;
 }
 
-function parsearFechaCompleta(txt){
-  if(!txt) return null;
-  const str = txt.trim().replace(/-/g, '/');
-  const d = new Date(str);
-  return isNaN(d.getTime()) ? null : d;
-}
-
 function calcularDiasCorridos(fechaInicio, fechaFin){
   if(!fechaInicio || !fechaFin) return 0;
   const inicio = new Date(fechaInicio); inicio.setHours(0,0,0,0);
   const fin = new Date(fechaFin); fin.setHours(0,0,0,0);
-  const diff = Math.floor((fin.getTime() - inicio.getTime()) / 86400000);
-  return diff < 0 ? 0 : diff;
+  return Math.floor((fin.getTime() - inicio.getTime()) / 86400000);
 }
 
+function calcularHorasCorridas(fechaInicio, fechaFin){
+  if(!fechaInicio || !fechaFin) return 0;
+  const diffMs = (new Date(fechaFin)).getTime() - (new Date(fechaInicio)).getTime();
+  return Math.floor(diffMs / (1000 * 60 * 60));
+}
+
+// --- Fetch y mapeo de datos ---
 async function fetchData(){
   try{
     const resTickets = await fetch(URL_TICKETS);
     const textTickets = await resTickets.text();
     const jsonTK = JSON.parse(textTickets.substr(47).slice(0,-2));
     const rows = jsonTK.table.rows || [];
-    const hoy = new Date();
     const hoySinHora = new Date(); hoySinHora.setHours(0,0,0,0);
 
-    // Método infalible: Escaneamos toda la columna Z del JSON buscando el texto que empiece con "Actualizado:"
+    // Búsqueda robusta de la celda de actualización en la columna Z
     for (let i = 0; i < rows.length; i++) {
       if (rows[i] && rows[i].c && rows[i].c[6]) {
         let valorZ = (rows[i].c[6].f || rows[i].c[6].v || '').toString().trim();
         if (valorZ.toLowerCase().includes('actualizado')) {
           ultimaActualizacionBase = valorZ;
-          break; 
+          break;
         }
       }
     }
 
-    // Procesar los renglones ordinarios para armar los KPIs y mosaicos
     rawData = rows.map(row => {
       if(!row || !row.c) return null;
-      
       const tipoATC = row.c[0] ? (row.c[0].f || row.c[0].v || '').toString().trim() : '';
       const ticketID = row.c[1] ? (row.c[1].f || row.c[1].v || '').toString().trim() : '';
       const nombreAsesor = row.c[2] ? (row.c[2].f || row.c[2].v || '').toString().trim() : 'Sin Asesor';
@@ -370,47 +303,29 @@ async function fetchData(){
       const fechaActualizacionTxt = row.c[4] && row.c[4].f ? row.c[4].f : (row.c[4] ? row.c[4].v.toString() : '');
       const estatusTxt = row.c[5] ? (row.c[5].f || row.c[5].v || 'Open').toString().trim() : 'Open';
 
-      // Filtros duros idénticos a los que usabas antes
       if(!ticketID || ticketID.toLowerCase() === 'ticket id') return null;
       if(estatusTxt.toLowerCase() === 'closed') return null;
       if(tipoATC !== 'AMERICAN PISTON (ATC)' && tipoATC !== 'ATC') return null;
 
-      const esOpen = estatusTxt.toLowerCase() === 'open';
-      const fechaCreacionObj = parsearFechaString(fechaCreacionTxt);
+      // Fecha/hora completas y cálculo de horas
+      const fechaCreacionObjFull = parsearFechaHoraString(fechaCreacionTxt) || parsearFechaString(fechaCreacionTxt);
       const fechaActObj = parsearFechaString(fechaActualizacionTxt);
-      const fechaCreacionCompleta = parsearFechaCompleta(fechaCreacionTxt) || fechaCreacionObj;
+      const ahora = new Date();
 
-      let diasCorridosEdad = 0;
-      if(fechaCreacionObj){
-        diasCorridosEdad = calcularDiasCorridos(fechaCreacionObj, hoySinHora);
-      }
+      const horasEdad = fechaCreacionObjFull ? calcularHorasCorridas(fechaCreacionObjFull, ahora) : 0;
+      const diasEdad = fechaCreacionObjFull ? calcularDiasCorridos(fechaCreacionObjFull, hoySinHora) : 0;
+      const diasUltimaAct = fechaActObj ? calcularDiasCorridos(fechaActObj, hoySinHora) : 0;
+      const esOpen = estatusTxt.toLowerCase() === 'open';
+      const tocadoHoy = (diasUltimaAct === 0);
 
-      let diasDesdeUltimaAct = 0;
-      if(fechaActObj){
-        diasDesdeUltimaAct = calcularDiasCorridos(fechaActObj, hoySinHora);
-      }
-
-      let horasDesdeCreacion = 0;
-      if(fechaCreacionCompleta){
-        horasDesdeCreacion = (hoy.getTime() - fechaCreacionCompleta.getTime()) / (1000 * 60 * 60);
-      }
-
-      let nivelAlerta = 'verde';
-      
-      if (diasCorridosEdad > 3) {
-        nivelAlerta = 'rojo';
-      } else if (esOpen) {
-        if (horasDesdeCreacion > 24) {
-          nivelAlerta = 'rojo';
-        } else if (horasDesdeCreacion > 4) {
-          nivelAlerta = 'amarillo';
-        }
-      } else {
-        if (diasDesdeUltimaAct >= 2) {
-          nivelAlerta = 'rojo';
-        } else if (diasDesdeUltimaAct > 0) {
-          nivelAlerta = 'amarillo';
-        }
+      // NUEVA CLASIFICACIÓN DE ALERTA OPERATIVA:
+      let subClase = 'preventivo';
+      if (diasEdad > 4) {
+        subClase = 'urgente-sla'; // Mayor a 4 días (Crítico directo)
+      } else if (!esOpen && !tocadoHoy) {
+        subClase = 'pendiente-stocar'; // Estatus que no es open y no se tocó hoy
+      } else if (esOpen && diasUltimaAct >= 2) {
+        subClase = 'urgente-stocar'; // Abiertos abandonados más de 48 horas
       }
 
       return {
@@ -419,10 +334,11 @@ async function fetchData(){
         fechaCreacionStr: fechaCreacionTxt,
         fechaActualizacionStr: fechaActualizacionTxt,
         estado: estatusTxt,
-        diasCorridosEdad: diasCorridosEdad,
-        diasDesdeUltimaAct: diasDesdeUltimaAct,
-        horasDesdeCreacion: horasDesdeCreacion,
-        nivelAlerta: nivelAlerta
+        diasEdad: diasEdad,
+        horasEdad: horasEdad,
+        tocadoHoy: tocadoHoy,
+        esOpen: esOpen,
+        subClase: subClase
       };
     }).filter(x => x !== null);
 
@@ -430,93 +346,77 @@ async function fetchData(){
     document.getElementById('loading').style.display = 'none';
   } catch(e){
     console.error(e);
-    const load = document.getElementById('loading');
-    if(load) load.innerHTML = "<span style='color:#fff; font-weight:800;'>Error de conexión con la base de datos. Actualice la página.</span>";
+    document.getElementById('loading').innerHTML = "<span>Error crítico al mapear datos. Verifica la estructura.</span>";
   }
 }
 
+// --- Actualización del dashboard con regla de 4 horas para preventivos ---
 function updateDashboard(){
-  let pendSinTocarTotal = 0, warningOpenTotal = 0, slaVencidoTotal = 0, urgentesTotal = 0, globalTotal = 0;
+  let cTotales = 0, cPendientesSTocar = 0, cSla4D = 0, cPreventivos = 0, cUrgentes = 0;
   const mapeoAsesores = {};
-
-  // Inyectamos la fecha recuperada del barrido de la columna Z
   document.getElementById('dbTimestamp').innerText = `${ultimaActualizacionBase}`;
 
   rawData.forEach(d => {
-    const esOpen = d.estado.toLowerCase() === 'open';
-    globalTotal++;
-
+    cTotales++;
     if(!mapeoAsesores[d.asesor]){
-      mapeoAsesores[d.asesor] = { nombre: d.asesor, rojos: 0, amarillos: 0, verdes: 0, totales: 0, tickets: [] };
+      mapeoAsesores[d.asesor] = { nombre: d.asesor, urgentes: 0, pendientes: 0, preventivos: 0, totales: 0 };
     }
-    mapeoAsesores[d.asesor].tickets.push(d);
     mapeoAsesores[d.asesor].totales++;
 
-    if (d.nivelAlerta === 'rojo') {
-      urgentesTotal++;
-      mapeoAsesores[d.asesor].rojos++;
-      if (d.diasCorridosEdad > 3) slaVencidoTotal++;
-    } else if (d.nivelAlerta === 'amarillo') {
-      mapeoAsesores[d.asesor].amarillos++;
-      if (!esOpen) pendSinTocarTotal++;
-      else warningOpenTotal++;
+    if (d.diasEdad > 4) {
+      cSla4D++;
+    }
+
+    if (d.subClase === 'pendiente-stocar') {
+      cPendientesSTocar++;
+      mapeoAsesores[d.asesor].pendientes++;
+    } else if (d.subClase === 'urgente-sla' || d.subClase === 'urgente-stocar') {
+      cUrgentes++;
+      mapeoAsesores[d.asesor].urgentes++;
     } else {
-      mapeoAsesores[d.asesor].verdes++;
+      // Solo contar preventivos con >= 4 horas
+      if (d.horasEdad >= 4) {
+        cPreventivos++;
+        mapeoAsesores[d.asesor].preventivos++;
+      }
     }
   });
 
-  document.getElementById('kpiTotalGlobal').innerText = globalTotal;
-  document.getElementById('kpiTotalPendientes').innerText = pendSinTocarTotal;
-  
-  const txtSLA = document.getElementById('kpiSLA');
-  txtSLA.innerText = slaVencidoTotal;
-  txtSLA.style.color = slaVencidoTotal > 0 ? 'var(--vento-red)' : 'var(--vento-green)';
-  
-  const txtAb1d = document.getElementById('kpiOpenCriticos');
-  txtAb1d.innerText = warningOpenTotal;
-  txtAb1d.style.color = warningOpenTotal > 0 ? 'var(--vento-yellow)' : 'var(--vento-green)';
-  
-  const txtResumen = document.getElementById('kpiPendientesUrgentes');
-  txtResumen.innerText = urgentesTotal;
-  txtResumen.style.color = urgentesTotal > 0 ? 'var(--vento-red)' : 'var(--vento-green)';
+  document.getElementById('kpiTotalGlobal').innerText = cTotales;
+  document.getElementById('kpiPendientesSTocar').innerText = cPendientesSTocar;
+  document.getElementById('kpiSLA4D').innerText = cSla4D;
+  document.getElementById('kpiPreventivos').innerText = cPreventivos;
+  document.getElementById('kpiUrgentesTotal').innerText = cUrgentes;
 
   const listaAsesores = Object.values(mapeoAsesores);
-  listaAsesores.sort((a, b) => {
-    if (b.rojos !== a.rojos) return b.rojos - a.rojos;
-    return b.amarillos - a.amarillos;
-  });
+  listaAsesores.sort((a, b) => b.urgentes - a.urgentes || b.pendientes - a.pendientes);
 
   const gridMosaicos = document.getElementById('gridMosaicos');
   gridMosaicos.innerHTML = '';
-  
+
   listaAsesores.forEach(as => {
-    let claseTermica = "mosaico-clean";
-    if (as.rojos > 0) claseTermica = "mosaico-red";
-    else if (as.amarillos > 0) claseTermica = "mosaico-yellow";
-    else if (as.verdes > 0) claseTermica = "mosaico-green";
+    let claseColor = "mosaico-green";
+    if (as.urgentes > 0) claseColor = "mosaico-red";
+    else if (as.pendientes > 0) claseColor = "mosaico-yellow";
+    else if (as.preventivos > 0) claseColor = "mosaico-yellow"; // preventivos amarillos
 
     const nodo = document.createElement('div');
-    nodo.className = `mosaico-asesor ${claseTermica}`;
+    nodo.className = `mosaico-asesor ${claseColor}`;
     nodo.setAttribute('onclick', `abrirModalAsesor('${as.nombre.replace(/'/g,"\\'")}')`);
-
     nodo.innerHTML = `
       <h4>${as.nombre}</h4>
       <div class="mosaico-metrics">
         <div class="metric-sub" style="grid-column: span 2; background:#fdfdfd; border-bottom:1px dashed #ddd;">
-          <span>Tickets Totales</span>
+          <span>Tickets Asignados</span>
           <strong style="color:var(--vento-black); font-size:1.1rem;">${as.totales}</strong>
         </div>
         <div class="metric-sub" style="border-left:3px solid var(--vento-red);">
           <span>Urgentes</span>
-          <strong style="color:${as.rojos > 0 ? 'var(--vento-red)' : '#444'}">${as.rojos}</strong>
+          <strong style="color:${as.urgentes > 0 ? 'var(--vento-red)' : '#444'}">${as.urgentes}</strong>
         </div>
-        <div class="metric-sub" style="border-left:3px solid var(--vento-yellow);">
-          <span>Preventivos</span>
-          <strong style="color:${as.amarillos > 0 ? 'var(--vento-yellow)' : '#444'}">${as.amarillos}</strong>
-        </div>
-        <div class="metric-sub" style="border-left:3px solid var(--vento-green); grid-column: span 2;">
-          <span>Al día</span>
-          <strong style="color:${as.verdes > 0 ? 'var(--vento-green)' : '#444'}">${as.verdes}</strong>
+        <div class="metric-sub" style="border-left:3px solid var(--vento-purple);">
+          <span>No Tocados</span>
+          <strong style="color:${as.pendientes > 0 ? 'var(--vento-purple)' : '#444'}">${as.pendientes}</strong>
         </div>
       </div>
     `;
@@ -524,143 +424,173 @@ function updateDashboard(){
   });
 }
 
+// --- Abrir modal por asesor con alerta resumen ---
 function abrirModalAsesor(nombre){
   asesorActivoModal = nombre;
   document.getElementById('modalTitle').innerText = `Auditoría: ${nombre}`;
   document.getElementById('btnModalCopy').style.display = 'inline-block';
   document.getElementById('btnModalWA').style.display = 'inline-block';
-  const ticketsFiltrados = rawData.filter(x => x.asesor === nombre);
-  ticketsFiltrados.sort((a,b) => b.diasCorridosEdad - a.diasCorridosEdad);
-  construirTablaModal(ticketsFiltrados);
+
+  const tkFiltrados = rawData.filter(x => x.asesor === nombre);
+  tkFiltrados.sort((a,b) => b.diasEdad - a.diasEdad);
+
+  // Resumen rápido por alerta
+  const resumen = { urg:0, pend:0, prev:0 };
+  rawData.filter(x => x.asesor === nombre).forEach(d => {
+    if (d.subClase === 'pendiente-stocar') resumen.pend++;
+    else if (d.subClase === 'urgente-sla' || d.subClase === 'urgente-stocar') resumen.urg++;
+    else if (d.subClase === 'preventivo' && d.horasEdad >= 4) resumen.prev++;
+  });
+  alert(`Asesor: ${nombre}\n🔴 Urgentes: ${resumen.urg}\n🟣 No tocados: ${resumen.pend}\n🟡 Preventivos (>=4h): ${resumen.prev}`);
+
+  construirTablaModal(tkFiltrados);
   mostrarModal();
 }
 
+// --- Abrir modal por KPI/segmento y mostrar alerta top asesores ---
 function abrirModalPorMetrica(tipo){
   asesorActivoModal = "all";
   document.getElementById('btnModalCopy').style.display = 'none';
   document.getElementById('btnModalWA').style.display = 'none';
-  let titulo = "Listado Global";
-  let ticketsFiltrados = [...rawData];
+  let titulo = "Listado Muro";
+  let tkFiltrados = [];
 
   if(tipo === 'totales_global'){
     titulo = "Todos los Tickets Activos en Muro";
-    ticketsFiltrados = [...rawData];
-  } else if(tipo === 'pendientes'){
-    titulo = "Pendientes sin tocar hoy";
-    ticketsFiltrados = rawData.filter(x => x.estado.toLowerCase() !== 'open' && x.nivelAlerta === 'amarillo');
-  } else if(tipo === 'sla'){
-    titulo = "SLA Vencido: Mayor a 3 Días";
-    ticketsFiltrados = rawData.filter(x => x.diasCorridosEdad > 3);
-  } else if(tipo === 'abiertos1d'){
-    titulo = "Abiertos en Estado de Warning (4h a 24h)";
-    ticketsFiltrados = rawData.filter(x => x.estado.toLowerCase() === 'open' && x.nivelAlerta === 'amarillo');
+    tkFiltrados = [...rawData];
+  } else if(tipo === 'pendientes_stocar'){
+    titulo = "Estatus No Open - Sin tocar hoy";
+    tkFiltrados = rawData.filter(x => x.subClase === 'pendiente-stocar');
+  } else if(tipo === 'sla_4d'){
+    titulo = "SLA Crítico: Mayor a 4 Días de Creación";
+    tkFiltrados = rawData.filter(x => x.diasEdad > 4);
+  } else if(tipo === 'preventivos'){
+    titulo = "Tickets Preventivos / Al Día (>=4h desde creación)";
+    tkFiltrados = rawData.filter(x => x.subClase === 'preventivo' && x.horasEdad >= 4);
   } else if(tipo === 'urgentes'){
-    titulo = "Resumen de Casos Urgentes (Rojo)";
-    ticketsFiltrados = rawData.filter(x => x.nivelAlerta === 'rojo');
+    titulo = "Total Casos Urgentes (SLA >4D o Sin Act)";
+    tkFiltrados = rawData.filter(x => x.subClase === 'urgente-sla' || x.subClase === 'urgente-stocar');
   }
 
   document.getElementById('modalTitle').innerText = titulo;
-  ticketsFiltrados.sort((a,b) => b.diasCorridosEdad - a.diasCorridosEdad);
-  construirTablaModal(ticketsFiltrados);
+  tkFiltrados.sort((a,b) => b.diasEdad - a.diasEdad);
+
+  // Si se hizo clic en un KPI, mostrar alerta con top 5 asesores por rezagos (urgentes + pendientes + preventivos válidos)
+  if (['totales_global','pendientes_stocar','sla_4d','preventivos','urgentes'].includes(tipo)) {
+    const asesoresArray = Object.values(
+      rawData.reduce((acc, d) => {
+        if(!acc[d.asesor]) acc[d.asesor] = { nombre: d.asesor, rezago: 0 };
+        if (d.subClase === 'pendiente-stocar') acc[d.asesor].rezago++;
+        else if (d.subClase === 'urgente-sla' || d.subClase === 'urgente-stocar') acc[d.asesor].rezago++;
+        else if (d.subClase === 'preventivo' && d.horasEdad >= 4) acc[d.asesor].rezago++;
+        return acc;
+      }, {})
+    );
+    asesoresArray.sort((a,b) => b.rezago - a.rezago);
+    const top = asesoresArray.slice(0,5).filter(x => x.rezago>0);
+    if(top.length>0){
+      const msg = top.map(x => `${x.nombre}: ${x.rezago}`).join('\n');
+      alert(`Top asesores con más rezagos:\n${msg}`);
+    }
+  }
+
+  construirTablaModal(tkFiltrados);
   mostrarModal();
 }
 
+// --- Construir tabla modal con orden por prioridad ---
 function construirTablaModal(listaTickets){
   const tablaCuerpo = document.getElementById('modalTablaCuerpo');
   tablaCuerpo.innerHTML = '';
+
   if(listaTickets.length === 0){
-    tablaCuerpo.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:30px; font-weight:800; color:var(--vento-green);">✨ Todo en orden para este segmento.</td></tr>`;
+    tablaCuerpo.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:30px; font-weight:800; color:var(--vento-green);">✨ Cero folios en este segmento.</td></tr>`;
     return;
   }
+
+  // Prioridad: urgente -> 1, preventivo -> 2, pendiente-stocar (Al día) -> 3
+  const prioridad = p => {
+    if(p.subClase === 'urgente-sla' || p.subClase === 'urgente-stocar') return 1;
+    if(p.subClase === 'preventivo') return 2;
+    return 3;
+  };
+  listaTickets.sort((a,b) => {
+    const pa = prioridad(a), pb = prioridad(b);
+    if(pa !== pb) return pa - pb;
+    return b.diasEdad - a.diasEdad;
+  });
+
   listaTickets.forEach(t => {
     let badgeHtml = '';
-    
-    if (t.nivelAlerta === 'rojo') {
-      let razon = t.diasDesdeUltimaAct >= 2 ? ' (Falta Act)' : ' (Crítico)';
-      badgeHtml = `<span class="badge" style="background:var(--vento-red); color:#fff;">URGENTE${razon}</span>`;
-    } else if (t.nivelAlerta === 'amarillo') {
-      badgeHtml = `<span class="badge badge-pend">WARNING</span>`;
+    if (t.diasEdad > 4) {
+      badgeHtml = `<span class="badge" style="background:var(--vento-red); color:#fff;">🔴 SLA &gt; 4 DÍAS</span>`;
+    } else if (t.subClase === 'pendiente-stocar') {
+      badgeHtml = `<span class="badge" style="background:var(--vento-purple); color:#fff;">🟣 NO OPEN S/TOCAR</span>`;
+    } else if (t.subClase === 'urgente-stocar') {
+      badgeHtml = `<span class="badge" style="background:var(--vento-urgent); color:#fff;">🟠 ABIERTO ABANDONADO</span>`;
     } else {
-      badgeHtml = `<span class="badge badge-open">AL DÍA</span>`;
+      // Preventivo -> amarillo
+      badgeHtml = `<span class="badge" style="background:var(--vento-yellow); color:#000;">🟡 PREVENTIVO</span>`;
     }
-
-    const ticketUrl = `${TICKET_BASE_URL}${encodeURIComponent(t.ticket)}`;
 
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td><strong>${t.asesor}</strong></td>
       <td style="font-family:monospace; font-size:1.02rem;">
-        <a href="${ticketUrl}" target="_blank" rel="noopener noreferrer">#${t.ticket}</a>
+        <a href="${TICKET_BASE_URL}${encodeURIComponent(t.ticket)}" target="_blank">#${t.ticket}</a>
       </td>
       <td><span style="background:#eee; padding:4px 8px; border-radius:4px; font-weight:700;">${t.estado}</span></td>
       <td><small>${t.fechaCreacionStr || '-'}</small></td>
       <td><small>${t.fechaActualizacionStr || '-'}</small></td>
-      <td style="font-weight:900; font-size:1rem; color:${t.diasCorridosEdad > 3 ? 'var(--vento-red)' : 'var(--vento-black)'}">${t.diasCorridosEdad} d.</td>
+      <td style="font-weight:900; color:${t.diasEdad > 4 ? 'var(--vento-red)' : 'var(--vento-black)'}">${t.diasEdad} d.</td>
       <td>${badgeHtml}</td>
     `;
     tablaCuerpo.appendChild(tr);
   });
 }
 
-function mostrarModal(){
-  document.getElementById('modalDetalles').classList.add('active');
-  document.body.classList.add('modal-open');
-}
-function cerrarModal(){
-  document.getElementById('modalDetalles').classList.remove('active');
-  document.body.classList.remove('modal-open');
-}
-function cerrarModalExterno(event){
-  if(event.target.id === 'modalDetalles') cerrarModal();
-}
+function mostrarModal(){ document.getElementById('modalDetalles').classList.add('active'); }
+function cerrarModal(){ document.getElementById('modalDetalles').classList.remove('active'); }
+function cerrarModalExterno(event){ if(event.target.id === 'modalDetalles') cerrarModal(); }
 
+// --- Copiar y enviar WA desde modal (respeta regla de preventivos >=4h) ---
 function copiarReporteDesdeModal(){
   if(asesorActivoModal === "all") return;
-  let urgentes = [], warnings = [], aldia = [];
-  
+  let urg = [], pend = [], prev = [];
   rawData.filter(x => x.asesor === asesorActivoModal).forEach(d => {
-    const itemStr = `${d.ticket} (${d.diasCorridosEdad}d) - ${TICKET_BASE_URL}${encodeURIComponent(d.ticket)}`;
-    if(d.nivelAlerta === 'rojo') urgentes.push(itemStr);
-    else if(d.nivelAlerta === 'amarillo') warnings.push(itemStr);
-    else aldia.push(itemStr);
+    const l = `#${d.ticket} (${d.diasEdad}d) - ${TICKET_BASE_URL}${d.ticket}`;
+    if(d.diasEdad > 4 || d.subClase==='urgente-stocar') urg.push(l);
+    else if(d.subClase === 'pendiente-stocar') pend.push(l);
+    else if(d.subClase === 'preventivo' && d.horasEdad >= 4) prev.push(l);
   });
 
-  let mensaje = `*NOTIFICACIÓN DE AUDITORÍA ATC*\n\n`;
-  mensaje += `Hola *${asesorActivoModal}*, este es tu reporte operativo de folios analizados:\n\n`;
-  if(urgentes.length > 0) mensaje += `🔴 *URGENTES:* ${urgentes.length} ticket(s)\n${urgentes.join('\n')}\n\n`;
-  if(warnings.length > 0) mensaje += `🟡 *WARNINGS:* ${warnings.length} ticket(s)\n${warnings.join('\n')}\n\n`;
-  if(aldia.length > 0) mensaje += `🟢 *AL DÍA:* ${aldia.length} ticket(s)\n${aldia.join('\n')}\n\n`;
-  mensaje += `*Por favor, apóyanos gestionando el cierre o seguimiento de estos casos prioritarios.*`;
-
-  navigator.clipboard.writeText(mensaje).then(() => {
-    alert('Reporte copiado. Listo para enviar por WhatsApp.');
-  }).catch(()=>{ alert('No se pudo copiar automáticamente. Selecciona y copia manualmente.'); });
+  let m = `*AUDITORÍA ATC VENTO*\nAsesor: *${asesorActivoModal}*\n\n`;
+  if(urg.length>0) m+=`🔴 *URGENTES:* \n${urg.join('\n')}\n\n`;
+  if(pend.length>0) m+=`🟣 *NO TOCADOS HOY:* \n${pend.join('\n')}\n\n`;
+  if(prev.length>0) m+=`🟡 *PREVENTIVOS (>=4h):* \n${prev.join('\n')}\n\n`;
+  navigator.clipboard.writeText(m).then(()=>alert('Copiado.'));
 }
 
 function enviarWhatsAppDesdeModal(){
   if(asesorActivoModal === "all") return;
-  let urgentes = [], warnings = [], aldia = [];
-  
+  let urg = [], pend = [], prev = [];
   rawData.filter(x => x.asesor === asesorActivoModal).forEach(d => {
-    const itemStr = `${d.ticket} (${d.diasCorridosEdad}d) - ${TICKET_BASE_URL}${encodeURIComponent(d.ticket)}`;
-    if(d.nivelAlerta === 'rojo') urgentes.push(itemStr);
-    else if(d.nivelAlerta === 'amarillo') warnings.push(itemStr);
-    else aldia.push(itemStr);
+    const l = `#${d.ticket} (${d.diasEdad}d) - ${TICKET_BASE_URL}${d.ticket}`;
+    if(d.diasEdad > 4 || d.subClase==='urgente-stocar') urg.push(l);
+    else if(d.subClase === 'pendiente-stocar') pend.push(l);
+    else if(d.subClase === 'preventivo' && d.horasEdad >= 4) prev.push(l);
   });
 
-  let mensaje = `NOTIFICACIÓN DE AUDITORÍA ATC\n\n`;
-  mensaje += `Hola ${asesorActivoModal}, este es tu reporte operativo de folios analizados:\n\n`;
-  if(urgentes.length > 0) mensaje += `URGENTES (${urgentes.length}):\n${urgentes.join('\n')}\n\n`;
-  if(warnings.length > 0) mensaje += `WARNINGS (${warnings.length}):\n${warnings.join('\n')}\n\n`;
-  mensaje += `Por favor, apóyanos gestionando el cierre o seguimiento de estos casos.`;
-
-  const waUrl = `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
-  window.open(waUrl, '_blank');
+  let m = `*AUDITORÍA ATC VENTO*\nAsesor: *${asesorActivoModal}*\n\n`;
+  if(urg.length>0) m+=`🔴 *URGENTES:* \n${urg.join('\n')}\n\n`;
+  if(pend.length>0) m+=`🟣 *NO TOCADOS HOY:* \n${pend.join('\n')}\n\n`;
+  if(prev.length>0) m+=`🟡 *PREVENTIVOS (>=4h):* \n${prev.join('\n')}\n\n`;
+  window.open(`https://wa.me/?text=${encodeURIComponent(m)}`, '_blank');
 }
 
+// Inicializar
 fetchData();
-setInterval(fetchData, 900000); // Refresco automático cada 15 minutos
+setInterval(fetchData, 900000);
 </script>
-
 </body>
 </html>
