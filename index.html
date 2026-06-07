@@ -403,7 +403,7 @@
 
     <div class="kpi-container">
         <div class="kpi-card" onclick="abrirModalPorMetrica('open')">
-            <h3>Abiertos (Open)</h3>
+            <h3>Abiertos</h3>
             <p id="kpiTotalOpen" style="color: var(--vento-black);">0</p>
         </div>
         <div class="kpi-card" onclick="abrirModalPorMetrica('pendientes')">
@@ -411,7 +411,7 @@
             <p id="kpiTotalPendientes" style="color: var(--vento-black);">0</p>
         </div>
         <div class="kpi-card kpi-sla" onclick="abrirModalPorMetrica('sla')">
-            <h3>SLA Vencido (>3 Días Háb.)</h3>
+            <h3>SLA Vencido</h3>
             <p id="kpiSLA">0</p>
         </div>
         <div class="kpi-card" onclick="abrirModalPorMetrica('criticos')">
@@ -629,7 +629,7 @@
         
         const txtSLA = document.getElementById('kpiSLA');
         txtSLA.innerText = slaIncumplidoTotal;
-        txtSLA.style.color = slaIncumplidoTotal > 0 ? 'var(--vento-purple)' : 'var(--vento-green)';
+        txtSLA.style.color = slaIncumplidoTotal > 0 ? 'var(--vento-red)' : 'var(--vento-green)';
 
         const txtCrit = document.getElementById('kpiOpenCriticos');
         txtCrit.innerText = criticosTotal;
@@ -637,7 +637,7 @@
 
         const txtUrg = document.getElementById('kpiPendientesUrgentes');
         txtUrg.innerText = urgentesTotal;
-        txtUrg.style.color = urgentesTotal > 0 ? 'var(--vento-urgent)' : 'var(--vento-green)';
+        txtUrg.style.color = urgentesTotal > 0 ? 'var(--vento-red)' : 'var(--vento-green)';
 
         const listaAsesores = Object.values(mapeoAsesores);
         listaAsesores.sort((a, b) => b.maxScorePrioridad - a.maxScorePrioridad);
@@ -694,7 +694,7 @@
         let ticketsFiltrados = [...rawData];
 
         if (tipo === 'open') {
-            titulo = "Total Abiertos (Open)";
+            titulo = "Total Abiertos";
             ticketsFiltrados = rawData.filter(x => x.estado.toLowerCase() === 'open');
         } else if (tipo === 'pendientes') {
             titulo = "Total Pendientes";
@@ -703,10 +703,10 @@
             titulo = "SLA Vencido: Mayor a 3 Días Hábiles desde Creación";
             ticketsFiltrados = rawData.filter(x => x.incumpleSLA);
         } else if (tipo === 'criticos') {
-            titulo = "Críticos (Open > 24h sin accionar)";
+            titulo = "Críticos (Abiertos > 24h sin accionar)";
             ticketsFiltrados = rawData.filter(x => x.estado.toLowerCase() === 'open' && x.diasRetrasoAccion > 1);
         } else if (tipo === 'urgentes') {
-            titulo = "Urgentes (Pendientes sin actualización hoy)";
+            titulo = "Pendientes sin actualización";
             ticketsFiltrados = rawData.filter(x => x.estado.toLowerCase() !== 'open' && x.diasRetrasoAccion > 0);
         }
 
@@ -786,9 +786,9 @@
         let mensaje = `*NOTIFICACIÓN DE AUDITORÍA ATC*\n\n`;
         mensaje += `Hola *${asesorActivoModal}*, este es tu reporte de folios que requieren atención prioritaria hoy:\n\n`;
         
-        if (slaRotos.length > 0) mensaje += `🟣 *SLA VENCIDO (>3 Días Hábiles):* ${slaRotos.length} ticket(s)\nFolios: ${slaRotos.join(', ')}\n\n`;
-        if (criticos.length > 0) mensaje += `🚨 *CRÍTICOS (Abiertos > 24h):* ${criticos.length} ticket(s)\nFolios: ${criticos.join(', ')}\n\n`;
-        if (urgentes.length > 0) mensaje += `⚠️ *URGENTES (Pendientes sin mover):* ${urgentes.length} ticket(s)\nFolios: ${urgentes.join(', ')}\n\n`;
+        if (slaRotos.length > 0) mensaje += `🟣 *Tickets con mas de 3 Días Hábiles:* ${slaRotos.length} ticket(s)\nFolios: ${slaRotos.join(', ')}\n\n`;
+        if (criticos.length > 0) mensaje += `🚨 *Abiertos con mas de 1 día desde su creación:* ${criticos.length} ticket(s)\nFolios: ${criticos.join(', ')}\n\n`;
+        if (urgentes.length > 0) mensaje += `⚠️ *Pendientes sin actualizar:* ${urgentes.length} ticket(s)\nFolios: ${urgentes.join(', ')}\n\n`;
         
         mensaje += `*Por favor, apóyanos gestionando el cierre o seguimiento de estos casos.*`;
 
