@@ -332,6 +332,7 @@
 </div>
 
 <script>
+    // URL apuntando explícitamente a la pestaña correcta
     const SHEET_ID = '1JBre4cLAbYiOJuYye_FGcsk5U_BIStDoAiCbV-B8WoA';
     const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Tickets_BD`;
 
@@ -353,7 +354,7 @@
         return null;
     }
 
-    // 1. Obtener y estructurar datos desde Google Drive
+    // 1. Obtener y estructurar datos desde Google Drive con Filtro Oculto
     async function fetchData() {
         try {
             const response = await fetch(URL);
@@ -361,12 +362,18 @@
             const json = JSON.parse(text.substr(47).slice(0, -2));
             const rows = json.table.rows;
 
-            // Procesar y limpiar filas válidas
             rawData = rows
                 .map(row => {
                     if (!row || !row.c) return null;
 
-                    // CORRECCIÓN SEGURA: Intentar extraer texto visible (.f) antes que valor numérico interno (.v)
+                    // FILTRO INTERNO DE SEGURIDAD (Columna A -> Índice 0)
+                    const nombreGrupo = row.c[0] ? (row.c[0].f || row.c[0].v || '').toString().trim() : '';
+                    
+                    // Condición: Solo permitir los grupos indicados
+                    if (nombreGrupo !== "AMERICAN PISTON (ATC)" && nombreGrupo !== "ATC") {
+                        return null; // Descarta cualquier otro grupo automáticamente
+                    }
+
                     const ticketID = row.c[1] ? (row.c[1].f || row.c[1].v || '').toString().trim() : '';
                     const nombreAsesor = row.c[2] ? (row.c[2].f || row.c[2].v || '').toString().trim() : '';
                     
@@ -374,8 +381,8 @@
                     const fechaActualizacionTxt = row.c[6] && row.c[6].f ? row.c[6].f : (row.c[6] ? row.c[6].v.toString() : '');
                     const estatusTxt = row.c[8] ? (row.c[8].f || row.c[8].v || 'Sin Estatus').toString().trim() : 'Sin Estatus';
 
-                    // Si no tiene ticket ni asesor válido, o si es la fila de encabezado, la descartamos
-                    if (!ticketID || !nombreAsesor || nombreAsesor.toLowerCase() === 'nombre del agente' || ticketID.toLowerCase() === 'ticket id') {
+                    // Descartar encabezados accidentales o registros sin ID
+                    if (!ticketID || ticketID.toLowerCase() === 'ticket id' || nombreAsesor.toLowerCase() === 'nombre del agente') {
                         return null;
                     }
 
@@ -389,7 +396,7 @@
                         estado: estatusTxt              // Columna I -> Índice 8
                     };
                 })
-                .filter(item => item !== null); // Eliminar filas vacías o de encabezados
+                .filter(item => item !== null); // Limpiar los descartados
 
             initDashboard();
             document.getElementById('loading').style.display = 'none';
@@ -404,7 +411,6 @@
         const asesores = [...new Set(rawData.map(item => item.asesor))].sort();
         const selectAsesor = document.getElementById('filterAsesor');
         
-        // Limpiar opciones anteriores excepto la primera
         selectAsesor.innerHTML = '<option value="all">Todos los Asesores</option>';
         
         asesores.forEach(as => {
