@@ -333,7 +333,11 @@
 
 <script>
     const SHEET_ID = '1JBre4cLAbYiOJuYye_FGcsk5U_BIStDoAiCbV-B8WoA';
-    const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Tickets_BD`;
+    
+    // OPTIMIZACIÓN DE VELOCIDAD: Filtramos directamente desde el servidor de Google Hojas de Cálculo
+    // Selecciona registros donde Grupo (A) sea 'AMERICAN PISTON (ATC)' o 'ATC' y el Estatus (I) no sea 'Closed'
+    const querySQL = encodeURIComponent("SELECT * WHERE (A = 'AMERICAN PISTON (ATC)' OR A = 'ATC') AND LOWER(I) != 'closed'");
+    const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Tickets_BD&tq=${querySQL}`;
 
     let rawData = [];
     let chartPie, chartAsesores;
@@ -353,7 +357,7 @@
         return null;
     }
 
-    // 1. Obtener y estructurar datos con Filtro Oculto de Grupo y Estatus "Closed"
+    // 1. Obtener y procesar la información optimizada
     async function fetchData() {
         try {
             const response = await fetch(URL);
@@ -365,24 +369,14 @@
                 .map(row => {
                     if (!row || !row.c) return null;
 
-                    // A. FILTRO INTERNO POR GRUPO (Columna A -> Índice 0)
-                    const nombreGrupo = row.c[0] ? (row.c[0].f || row.c[0].v || '').toString().trim() : '';
-                    if (nombreGrupo !== "AMERICAN PISTON (ATC)" && nombreGrupo !== "ATC") {
-                        return null; 
-                    }
-
-                    // B. FILTRO INTERNO POR ESTATUS (Columna I -> Índice 8)
-                    const estatusTxt = row.c[8] ? (row.c[8].f || row.c[8].v || 'Sin Estatus').toString().trim() : 'Sin Estatus';
-                    if (estatusTxt.toLowerCase() === 'closed' || estatusTxt.toLowerCase() === 'cerrado') {
-                        return null; // Ignora por completo los tickets ya cerrados
-                    }
-
                     const ticketID = row.c[1] ? (row.c[1].f || row.c[1].v || '').toString().trim() : '';
                     const nombreAsesor = row.c[2] ? (row.c[2].f || row.c[2].v || '').toString().trim() : '';
                     
                     const fechaCreacionTxt = row.c[5] && row.c[5].f ? row.c[5].f : (row.c[5] ? row.c[5].v.toString() : '');
                     const fechaActualizacionTxt = row.c[6] && row.c[6].f ? row.c[6].f : (row.c[6] ? row.c[6].v.toString() : '');
+                    const estatusTxt = row.c[8] ? (row.c[8].f || row.c[8].v || 'Sin Estatus').toString().trim() : 'Sin Estatus';
 
+                    // Evitar filas vacías accidentales o renglones duplicados de títulos
                     if (!ticketID || ticketID.toLowerCase() === 'ticket id' || nombreAsesor.toLowerCase() === 'nombre del agente') {
                         return null;
                     }
@@ -448,7 +442,7 @@
         });
     }
 
-    // 4. Lógica de Filtrado Dinámico y Renderizado de Totales
+    // 4. Lógica de Filtrado Dinámico en Pantalla y Renderizado de Totales
     function updateDashboard() {
         const selAsesor = document.getElementById('filterAsesor').value;
         const fechaInicioVal = document.getElementById('filterFechaInicio').value;
