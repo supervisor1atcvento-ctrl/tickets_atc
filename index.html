@@ -111,8 +111,8 @@ a:hover { text-decoration: underline; }
   <div class="brand">
     <div class="logo">V</div>
     <div>
-      <h1>Vento — Muro ATC</h1>
-      <div class="muted" style="font-size:0.82rem">Paleta institucional aplicada</div>
+      <h1>Seguimiento ATC</h1>
+      <div class="muted" style="font-size:0.82rem">Seguimientos en tiempo real</div>
     </div>
   </div>
   <div class="header-actions">
@@ -128,36 +128,31 @@ a:hover { text-decoration: underline; }
       <div class="kpi" onclick="abrirModalPorMetrica('totales_global')">
         <div class="label">Tickets Totales</div>
         <div class="value countup" id="kpiTotalGlobal">0</div>
-        <div class="meta muted">Bandeja activa</div>
       </div>
 
       <div class="kpi" onclick="abrirModalPorMetrica('en_tiempo')">
         <div class="label">En Tiempo</div>
         <div class="value countup" id="kpiEnTiempo">0</div>
-        <div class="meta muted">Pending tocados hoy + Open ≤4h</div>
       </div>
 
       <div class="kpi" onclick="abrirModalPorMetrica('pendientes_stocar')">
         <div class="label">Pendientes s/Tocar</div>
         <div class="value countup" id="kpiPendientesSTocar">0</div>
-        <div class="meta muted">Pending 24–48h</div>
       </div>
 
       <div class="kpi" onclick="abrirModalPorMetrica('preventivos')">
         <div class="label">Preventivos</div>
         <div class="value countup" id="kpiPreventivos">0</div>
-        <div class="meta muted">Open 4–24h</div>
       </div>
 
       <div class="kpi" onclick="abrirModalPorMetrica('urgentes')">
         <div class="label">Urgentes</div>
         <div class="value countup" id="kpiUrgentesTotal">0</div>
-        <div class="meta muted">Open ≥24h, Pending ≥48h, creado ≥72h</div>
       </div>
     </div>
   </section>
 
-  <div class="matrix-title">Mapeo de Atención por Asesor</div>
+  <div class="matrix-title">Seguimiento por Asesor</div>
   <div class="grid-asesores" id="gridMosaicos"></div>
 </main>
 
@@ -273,7 +268,7 @@ function clasificarTicketObj(ticket, ahora = new Date()){
   if(!GRUPOS_VALIDOS.includes(grupo)) return { categoria: 'fuera-scope', razon: 'grupo no ATC' };
   if(estatus === 'closed') return { categoria: 'exclude', razon: 'closed' };
 
-  if(creado && horasDesdeCreacion >= 72) return { categoria: 'urgente', razon: 'creado >= 72h' };
+  if(creado && horasDesdeCreacion >= 72) return { categoria: 'urgente' };
   if(estatus === 'open' && horasDesdeCreacion >= 24) return { categoria: 'urgente', razon: 'open >= 24h' };
   if(estatus === 'pending' && horasDesdeUltAct >= 48) return { categoria: 'urgente', razon: 'pending sin actualizar >= 48h' };
   if(estatus !== 'open' && estatus !== 'pending') return { categoria: 'urgente', razon: `estatus ${ticket.estado} no permitido` };
