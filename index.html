@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Vento ATC — Muro (Colores Institucionales)</title>
+<title>Vento ATC — Muro (Colores Institucionales · Responsive)</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -23,8 +23,15 @@
   --shadow-md: 0 12px 30px rgba(35,31,32,0.10);
   --radius:12px;
   --gap:12px;
+
+  /* Responsive helpers */
+  --kpi-min: 140px;
+  --compact-scale: 0.86;
 }
+
+/* Reset & base */
 *{box-sizing:border-box}
+html,body{height:100%}
 body{
   margin:0;
   font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
@@ -32,70 +39,116 @@ body{
   color:var(--text);
   -webkit-font-smoothing:antialiased;
   -moz-osx-font-smoothing:grayscale;
-  padding-bottom:40px;
+  padding-bottom:64px;
+  -webkit-font-smoothing:antialiased;
 }
 
 /* Header */
 header{
   display:flex; align-items:center; justify-content:space-between;
-  padding:18px 28px; background:var(--white);
-  border-bottom:2px solid rgba(35,31,32,0.04); position:sticky; top:0; z-index:40;
+  padding:12px 18px; background:var(--white);
+  border-bottom:2px solid rgba(35,31,32,0.04); position:sticky; top:0; z-index:60;
 }
-.brand{ display:flex; gap:12px; align-items:center; }
+.brand{ display:flex; gap:12px; align-items:center; min-width:0; }
 .logo{ width:44px; height:44px; border-radius:10px; background:var(--orange);
-  display:flex; align-items:center; justify-content:center; color:var(--white); font-weight:900; font-size:18px; box-shadow:var(--shadow-sm); }
-header h1{ margin:0; font-size:1.05rem; font-weight:800; color:var(--black); }
-.header-actions{ display:flex; gap:10px; align-items:center; color:var(--muted); }
+  display:flex; align-items:center; justify-content:center; color:var(--white); font-weight:900; font-size:18px; box-shadow:var(--shadow-sm); flex:0 0 44px; }
+header h1{ margin:0; font-size:clamp(1rem,1.6vw + 0.4rem,1.1rem); font-weight:800; color:var(--black); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.header-actions{ display:flex; gap:10px; align-items:center; color:var(--muted); flex-wrap:wrap; }
 
 /* Layout */
-.container{ max-width:1200px; margin:20px auto; padding:0 18px; }
-.top-row{ display:flex; gap:var(--gap); align-items:flex-start; margin-bottom:18px; flex-wrap:wrap; }
+.container{ max-width:1280px; margin:18px auto; padding:0 16px; width:calc(100% - 32px); }
+.top-row{ display:flex; gap:var(--gap); align-items:flex-start; margin-bottom:14px; flex-wrap:wrap; }
 
-/* KPI grid */
-.kpi-grid{ display:grid; grid-template-columns:repeat(5,1fr); gap:12px; flex:1; min-width:320px; }
-.kpi{ background:var(--card); border-radius:10px; padding:12px 14px;
-  box-shadow:var(--shadow-sm); border:1px solid rgba(35,31,32,0.04); transition:transform .12s ease; cursor:pointer; }
+/* KPI grid (responsive) */
+.kpi-grid{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(var(--kpi-min), 1fr));
+  gap:12px;
+  width:100%;
+}
+.kpi{
+  background:var(--card); border-radius:10px; padding:10px 12px;
+  box-shadow:var(--shadow-sm); border:1px solid rgba(35,31,32,0.04);
+  transition:transform .12s ease; cursor:pointer; min-height:72px; display:flex; flex-direction:column; justify-content:center;
+}
 .kpi:hover{ transform:translateY(-6px); box-shadow:var(--shadow-md); }
-.kpi .label{ font-size:0.72rem; color:var(--muted); font-weight:700; text-transform:uppercase; }
-.kpi .value{ font-size:1.6rem; font-weight:900; letter-spacing:-0.6px; color:var(--black); }
-.kpi .meta{ font-size:0.78rem; color:var(--muted); }
+.kpi .label{ font-size:0.68rem; color:var(--muted); font-weight:700; text-transform:uppercase; }
+.kpi .value{ font-size:clamp(1.1rem,2.6vw + 0.2rem,1.6rem); font-weight:900; letter-spacing:-0.6px; color:var(--black); }
+.kpi .meta{ font-size:0.74rem; color:var(--muted); margin-top:6px; }
 
 /* Advisors grid */
-.matrix-title{ font-weight:800; margin:18px 0 8px; color:var(--black); }
-.grid-asesores{ display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px; }
-.card-asesor{ background:linear-gradient(180deg,#FFFFFF,#FBFBFB); border-radius:var(--radius);
-  padding:14px; box-shadow:var(--shadow-sm); border:1px solid rgba(35,31,32,0.04); transition:transform .12s ease; cursor:pointer; display:flex; flex-direction:column; gap:10px; }
+.matrix-title{ font-weight:800; margin:14px 0 8px; color:var(--black); font-size:clamp(0.95rem,1.2vw + 0.2rem,1rem); }
+.grid-asesores{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap:12px;
+}
+
+/* Card asesor */
+.card-asesor{
+  background:linear-gradient(180deg,#FFFFFF,#FBFBFB); border-radius:var(--radius);
+  padding:12px; box-shadow:var(--shadow-sm); border:1px solid rgba(35,31,32,0.04);
+  transition:transform .12s ease; cursor:pointer; display:flex; flex-direction:column; gap:10px; min-height:120px;
+}
 .card-asesor:hover{ transform:translateY(-6px); box-shadow:var(--shadow-md); }
-.card-asesor h4{ margin:0; font-size:0.95rem; font-weight:800; color:var(--black); }
+.card-asesor h4{ margin:0; font-size:clamp(0.9rem,1.6vw + 0.1rem,1rem); font-weight:800; color:var(--black); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .card-row{ display:flex; gap:10px; align-items:center; justify-content:space-between; }
 
 /* metrics */
 .metrics-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
 .metric{ background:rgba(35,31,32,0.02); border-radius:8px; padding:8px; border:1px solid rgba(35,31,32,0.03); }
 .metric .m-label{ font-size:0.66rem; color:var(--muted); font-weight:800; text-transform:uppercase; }
-.metric .m-value{ font-size:1.05rem; font-weight:900; margin-top:6px; color:var(--black); }
+.metric .m-value{ font-size:1.02rem; font-weight:900; margin-top:6px; color:var(--black); }
 
 /* pills */
-.pill{ display:inline-flex; gap:8px; align-items:center; padding:6px 8px; border-radius:999px; font-weight:800; font-size:0.72rem; }
+.pill{ display:inline-flex; gap:8px; align-items:center; padding:6px 8px; border-radius:999px; font-weight:800; font-size:0.72rem; white-space:nowrap; }
 .pill.green{ background:rgba(46,204,113,0.06); color:#1B7A3A; border:1px solid rgba(46,204,113,0.08); }
-.pill.red{ background:rgba(242,143,23,0.06); color:var(--orange); border:1px solid rgba(242,143,23,0.08); } /* using orange as alert accent */
+.pill.red{ background:rgba(242,143,23,0.06); color:var(--orange); border:1px solid rgba(242,143,23,0.08); }
 .pill.yellow{ background:rgba(242,143,23,0.04); color:var(--orange); border:1px solid rgba(242,143,23,0.06); }
 
 /* modal */
-.modal-overlay{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.35); z-index:120; }
+.modal-overlay{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.35); z-index:120; padding:16px; }
 .modal-overlay.active{ display:flex; }
-.modal{ width:94%; max-width:1100px; background:var(--white); border-radius:12px; overflow:hidden; box-shadow:0 30px 80px rgba(35,31,32,0.12); color:var(--black); }
-.modal-head{ padding:14px 18px; border-bottom:1px solid rgba(35,31,32,0.04); display:flex; justify-content:space-between; align-items:center; gap:12px; }
-.modal-body{ padding:12px 18px; max-height:62vh; overflow:auto; }
-table{ width:100%; border-collapse:collapse; font-size:0.9rem; color:var(--black); }
-th, td{ padding:10px 12px; text-align:left; border-bottom:1px solid rgba(35,31,32,0.04); }
+.modal{ width:100%; max-width:1100px; background:var(--white); border-radius:12px; overflow:hidden; box-shadow:0 30px 80px rgba(35,31,32,0.12); color:var(--black); }
+.modal-head{ padding:12px 14px; border-bottom:1px solid rgba(35,31,32,0.04); display:flex; justify-content:space-between; align-items:center; gap:12px; }
+.modal-body{ padding:10px 12px; max-height:68vh; overflow:auto; }
+.table-wrap{ width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+
+/* table */
+table{ width:100%; border-collapse:collapse; font-size:0.9rem; color:var(--black); min-width:720px; }
+th, td{ padding:10px 12px; text-align:left; border-bottom:1px solid rgba(35,31,32,0.04); vertical-align:middle; }
 th{ background:rgba(245,245,245,0.9); position:sticky; top:0; z-index:2; font-weight:800; color:var(--muted); font-size:0.78rem; text-transform:uppercase; }
 tr:hover td{ background:rgba(35,31,32,0.02); }
 
-/* responsive */
-@media (max-width:1100px){ .kpi-grid{ grid-template-columns:repeat(3,1fr); } }
-@media (max-width:700px){ .kpi-grid{ grid-template-columns:repeat(2,1fr); } .matrix-title{ font-size:0.9rem } }
-@media (max-width:420px){ .kpi-grid{ grid-template-columns:repeat(1,1fr); } .metrics-grid{ grid-template-columns:repeat(1,1fr); } }
+/* compact mode toggle */
+.compact-toggle{
+  position:fixed; right:14px; bottom:14px; z-index:9999; background:var(--accent); color:var(--white);
+  border:none; padding:10px 12px; border-radius:10px; box-shadow:0 8px 20px rgba(0,0,0,0.18); cursor:pointer; font-weight:800;
+}
+
+/* compact-mode scaling */
+.compact-mode .kpi, .compact-mode .card-asesor, .compact-mode table th, .compact-mode table td {
+  transform: scale(var(--compact-scale));
+  transform-origin: top left;
+}
+
+/* responsive tweaks */
+@media (max-width:1100px){
+  .kpi-grid{ grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); }
+  table{ min-width:640px; }
+}
+@media (max-width:720px){
+  .kpi .meta{ display:none; }
+  table{ font-size:0.82rem; min-width:560px; }
+  th, td{ padding:8px 10px; white-space:nowrap; }
+  .grid-asesores{ grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+}
+@media (max-width:420px){
+  .kpi-grid{ grid-template-columns: repeat(2, 1fr); }
+  .grid-asesores{ grid-template-columns: 1fr; }
+  .card-asesor{ padding:10px; min-height:100px; }
+  table{ min-width:480px; }
+}
 
 /* helpers */
 .muted{ color:var(--muted); font-size:0.85rem; }
@@ -104,17 +157,21 @@ tr:hover td{ background:rgba(35,31,32,0.02); }
 .countup{ transition:all .45s cubic-bezier(.2,.9,.2,1); }
 a { color: var(--orange); text-decoration: none; }
 a:hover { text-decoration: underline; }
+
+/* accessibility: focus outlines */
+button:focus, a:focus { outline: 3px solid rgba(242,143,23,0.18); outline-offset:2px; }
 </style>
 </head>
 <body>
 <header>
   <div class="brand">
     <div class="logo">V</div>
-    <div>
-      <h1>Seguimiento ATC</h1>
+    <div style="min-width:0;">
+      <h1 title="Vento — Muro ATC">Vento — Muro ATC</h1>
       <div class="muted" style="font-size:0.82rem">Seguimientos en tiempo real</div>
     </div>
   </div>
+
   <div class="header-actions">
     <div class="muted" id="dbTimestamp">Última actualización: —</div>
     <button class="btn ghost" onclick="fetchData()">Refrescar</button>
@@ -128,34 +185,40 @@ a:hover { text-decoration: underline; }
       <div class="kpi" onclick="abrirModalPorMetrica('totales_global')">
         <div class="label">Tickets Totales</div>
         <div class="value countup" id="kpiTotalGlobal">0</div>
+        <div class="meta muted">Bandeja activa</div>
       </div>
 
       <div class="kpi" onclick="abrirModalPorMetrica('en_tiempo')">
         <div class="label">En Tiempo</div>
         <div class="value countup" id="kpiEnTiempo">0</div>
+        <div class="meta muted">Pending tocados hoy + Open ≤4h</div>
       </div>
 
       <div class="kpi" onclick="abrirModalPorMetrica('pendientes_stocar')">
         <div class="label">Pendientes s/Tocar</div>
         <div class="value countup" id="kpiPendientesSTocar">0</div>
+        <div class="meta muted">Pending 24–48h</div>
       </div>
 
       <div class="kpi" onclick="abrirModalPorMetrica('preventivos')">
         <div class="label">Preventivos</div>
         <div class="value countup" id="kpiPreventivos">0</div>
+        <div class="meta muted">Open 4–24h</div>
       </div>
 
       <div class="kpi" onclick="abrirModalPorMetrica('urgentes')">
         <div class="label">Urgentes</div>
         <div class="value countup" id="kpiUrgentesTotal">0</div>
+        <div class="meta muted">Open ≥24h, Pending ≥48h, creado ≥72h</div>
       </div>
     </div>
   </section>
 
   <div class="matrix-title">Seguimiento por Asesor</div>
-  <div class="grid-asesores" id="gridMosaicos"></div>
+  <div class="grid-asesores" id="gridMosaicos" aria-live="polite"></div>
 </main>
 
+<!-- Modal -->
 <div class="modal-overlay" id="modalDetalles" onclick="cerrarModalExterno(event)">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <div class="modal-head">
@@ -164,12 +227,14 @@ a:hover { text-decoration: underline; }
         <div class="muted" id="modalSummary">Resumen operativo</div>
       </div>
       <div style="display:flex; gap:8px; align-items:center;">
-        <button class="btn" onclick="enviarWhatsAppDesdeModal()">Enviar WA</button>
+        <!-- Copiar eliminado por petición; solo WA y Cerrar -->
+        <button class="btn" onclick="enviarWhatsAppDesdeModal()">📲 Enviar por WA</button>
         <button class="btn ghost" onclick="cerrarModal()">Cerrar</button>
       </div>
     </div>
+
     <div class="modal-body">
-      <div style="overflow-x:auto;">
+      <div class="table-wrap">
         <table aria-describedby="modalSummary">
           <thead>
             <tr>
@@ -189,9 +254,12 @@ a:hover { text-decoration: underline; }
   </div>
 </div>
 
+<!-- Compact mode toggle -->
+<button class="compact-toggle" id="compactToggle" title="Alternar modo compacto">Compacto</button>
+
 <script>
 /* -------------------------
-   Config y utilidades (idénticas a la lógica que validaste)
+   Config y utilidades
    ------------------------- */
 const SHEET_ID = '1JBre4cLAbYiOJuYye_FGcsk5U_BIStDoAiCbV-B8WoA';
 const querySQLTickets = encodeURIComponent("SELECT A, B, C, F, G, I, Z");
@@ -203,6 +271,7 @@ let rawData = [];
 let ultimaActualizacionBase = '—';
 let asesorActivoModal = 'all';
 
+/* Parseo robusto de fechas (soporta yyyy-mm-dd y dd/mm/yyyy y con hora) */
 function parsearFechaHoraString(txt){
   if(!txt) return null;
   const s = txt.toString().trim();
@@ -256,7 +325,9 @@ function calcularHorasCorridas(fechaInicio, fechaFin){
   return Math.floor(diffMs / (1000 * 60 * 60));
 }
 
-/* Clasificación (balanceada) */
+/* -------------------------
+   Clasificación (balanceada)
+   ------------------------- */
 function clasificarTicketObj(ticket, ahora = new Date()){
   const creado = parsearFechaHoraString(ticket.fechaCreacionStr) || parsearFechaString(ticket.fechaCreacionStr);
   const ultima = parsearFechaHoraString(ticket.fechaActualizacionStr) || parsearFechaString(ticket.fechaActualizacionStr);
@@ -268,18 +339,20 @@ function clasificarTicketObj(ticket, ahora = new Date()){
   if(!GRUPOS_VALIDOS.includes(grupo)) return { categoria: 'fuera-scope', razon: 'grupo no ATC' };
   if(estatus === 'closed') return { categoria: 'exclude', razon: 'closed' };
 
-  if(creado && horasDesdeCreacion >= 72) return { categoria: 'urgente' };
-  if(estatus === 'open' && horasDesdeCreacion >= 24) return { categoria: 'urgente' };
-  if(estatus === 'pending' && horasDesdeUltAct >= 48) return { categoria: 'urgente' };
-  if(estatus !== 'open' && estatus !== 'pending') return { categoria: 'urgente'};
-  if(estatus === 'open' && horasDesdeCreacion >= 4 && horasDesdeCreacion < 24) return { categoria: 'preventivo'};
-  if(estatus === 'pending' && horasDesdeUltAct >= 24 && horasDesdeUltAct < 48) return { categoria: 'sin-tocar' };
-  if(estatus === 'pending' && horasDesdeUltAct < 24) return { categoria: 'en-tiempo' };
-  if(estatus === 'open' && horasDesdeCreacion <= 4) return { categoria: 'en-tiempo' };
-  return { categoria: 'en-tiempo' };
+  if(creado && horasDesdeCreacion >= 72) return { categoria: 'urgente', razon: 'creado >= 72h' };
+  if(estatus === 'open' && horasDesdeCreacion >= 24) return { categoria: 'urgente', razon: 'open >= 24h' };
+  if(estatus === 'pending' && horasDesdeUltAct >= 48) return { categoria: 'urgente', razon: 'pending sin actualizar >= 48h' };
+  if(estatus !== 'open' && estatus !== 'pending') return { categoria: 'urgente', razon: `estatus ${ticket.estado} no permitido` };
+  if(estatus === 'open' && horasDesdeCreacion >= 4 && horasDesdeCreacion < 24) return { categoria: 'preventivo', razon: 'open >=4h y <24h' };
+  if(estatus === 'pending' && horasDesdeUltAct >= 24 && horasDesdeUltAct < 48) return { categoria: 'sin-tocar', razon: 'pending sin actualizar 24-48h' };
+  if(estatus === 'pending' && horasDesdeUltAct < 24) return { categoria: 'en-tiempo', razon: 'pending tocado <24h' };
+  if(estatus === 'open' && horasDesdeCreacion <= 4) return { categoria: 'en-tiempo', razon: 'open <=4h' };
+  return { categoria: 'en-tiempo', razon: 'en-tiempo' };
 }
 
-/* Fetch y mapeo */
+/* -------------------------
+   Fetch y mapeo de datos
+   ------------------------- */
 async function fetchData(){
   try{
     document.getElementById('dbTimestamp').innerText = 'Actualizando...';
@@ -289,6 +362,7 @@ async function fetchData(){
     const rows = jsonTK.table.rows || [];
     const ahora = new Date();
 
+    // Leer Z1 robustamente
     let zVal = '';
     if(rows[0] && rows[0].c && rows[0].c[6]) zVal = (rows[0].c[6].f || rows[0].c[6].v || '').toString().trim();
     if(!zVal){
@@ -356,7 +430,9 @@ async function fetchData(){
   }
 }
 
-/* UI update */
+/* -------------------------
+   Actualizar UI: KPIs y tarjetas
+   ------------------------- */
 function updateDashboard(){
   let cTotales = 0, cEnTiempo = 0, cPendientesSTocar = 0, cPreventivos = 0, cUrgentes = 0;
   const mapeoAsesores = {};
@@ -372,12 +448,14 @@ function updateDashboard(){
     else if(d.categoria === 'en-tiempo'){ cEnTiempo++; mapeoAsesores[d.asesor].enTiempo++; }
   });
 
+  // animación count-up simple
   animateCount('kpiTotalGlobal', cTotales);
   animateCount('kpiEnTiempo', cEnTiempo);
   animateCount('kpiPendientesSTocar', cPendientesSTocar);
   animateCount('kpiPreventivos', cPreventivos);
   animateCount('kpiUrgentesTotal', cUrgentes);
 
+  // construir tarjetas por asesor
   const grid = document.getElementById('gridMosaicos');
   grid.innerHTML = '';
   const lista = Object.values(mapeoAsesores).sort((a,b) => b.urgentes - a.urgentes || b.pendientes - a.pendientes);
@@ -387,7 +465,7 @@ function updateDashboard(){
     div.setAttribute('onclick', `abrirModalAsesor('${as.nombre.replace(/'/g,"\\'")}')`);
     div.innerHTML = `
       <div class="card-row">
-        <h4>${as.nombre}</h4>
+        <h4 title="${as.nombre}">${as.nombre}</h4>
         <div class="pill ${as.urgentes>0 ? 'red' : (as.pendientes>0 ? 'yellow' : 'green')}">
           ${as.urgentes>0 ? 'Atención' : (as.pendientes>0 ? 'Seguimiento' : 'OK')}
         </div>
@@ -404,6 +482,7 @@ function updateDashboard(){
   });
 }
 
+/* simple count-up animation */
 function animateCount(id, target){
   const el = document.getElementById(id);
   if(!el) return;
@@ -422,7 +501,9 @@ function animateCount(id, target){
   }, stepTime);
 }
 
-/* Modal & tablas */
+/* -------------------------
+   Modal, tablas y resúmenes
+   ------------------------- */
 function abrirModalAsesor(nombre){
   asesorActivoModal = nombre;
   document.getElementById('modalTitle').innerText = `Auditoría: ${nombre}`;
@@ -483,9 +564,17 @@ function generarResumenPorAsesor(nombre){
   const pend = tickets.filter(t => t.categoria === 'sin-tocar').length;
   const enTiempo = tickets.filter(t => t.categoria === 'en-tiempo').length;
   const tot = tickets.length;
-  let msg = `👋🏼 *Hola, ${nombre}* \n\nTe comparto el corte actual de tus tickets asignados. Por favor, dale prioridad a los casos críticos: \n\n📊 *Resumen:* \n• *Total:* ${tot}\n• *En tiempo:* ${enTiempo}\n• *Pendientes sin tocar:* ${pend}\n\n⚠️ *Atención requerida:* \n• *Preventivos:* ${prev}\n• *Urgentes:* ${urg}\n\n¡Gracias por tu apoyo para mantener el tablero al día! 👊🏼`;
+
+  // Mensaje amigable para WA (informal, con emojis)
+  let msg = `¡Hola equipo! 👋\n*Resumen ${nombre}*\n\n`;
+  msg += `📊 Total: ${tot}\n`;
+  msg += `✅ En tiempo: ${enTiempo}\n`;
+  msg += `⏳ Pendientes s/Tocar: ${pend}\n`;
+  msg += `⚠️ Preventivos: ${prev}\n`;
+  msg += `🚨 Urgentes: ${urg}\n\n`;
   const topUrg = tickets.filter(t => t.categoria === 'urgente').slice(0,3).map(t => `#${t.ticket}`).join(', ');
-  if(topUrg) msg += `\nEjemplos urgentes: ${topUrg}`;
+  if(topUrg) msg += `Ejemplos urgentes: ${topUrg}\n\n`;
+  msg += `Porfa, prioricen los URGENTES ahora mismo. 🙏\nConfirmen cuando terminen. 💪\n\nGracias!`;
   return msg;
 }
 function generarResumenGeneral(tipo){
@@ -498,30 +587,51 @@ function generarResumenGeneral(tipo){
     else if(t.categoria === 'sin-tocar'){ resumen.pend++; porAsesor[t.asesor].pend++; }
     else if(t.categoria === 'en-tiempo'){ resumen.enTiempo++; porAsesor[t.asesor].enTiempo++; }
   });
+
+  // Mensaje amigable para WA (informal)
+  let msg = `¡Hola equipo! 👋\n*Resumen general*\n\n`;
+  msg += `📊 Total tickets: ${resumen.totales}\n`;
+  msg += `🚨 Urgentes: ${resumen.urg}\n`;
+  msg += `⚠️ Preventivos: ${resumen.prev}\n`;
+  msg += `⏳ Pendientes s/Tocar: ${resumen.pend}\n`;
+  msg += `✅ En tiempo: ${resumen.enTiempo}\n\n`;
+  msg += `Asesores con más rezagos:\n`;
   const asesoresArray = Object.keys(porAsesor).map(name => ({ nombre: name, urg: porAsesor[name].urg, prev: porAsesor[name].prev, pend: porAsesor[name].pend }));
   asesoresArray.sort((a,b) => b.urg - a.urg || b.prev - a.prev || b.pend - a.pend);
   const top = asesoresArray.slice(0,5).filter(x => x.urg > 0 || x.prev > 0 || x.pend > 0);
-  let titulo = tipo === 'totales_global' ? 'Resumen general - Todos los tickets' : `Resumen - ${tipo}`;
-  let msg = `${titulo}\nTotal tickets en bandeja: ${resumen.totales}\nUrgentes: ${resumen.urg}\nPreventivos: ${resumen.prev}\nPendientes s/Tocar: ${resumen.pend}\nEn tiempo: ${resumen.enTiempo}\n\nAsesores con más rezagos:\n`;
-  if(top.length === 0) msg += 'Ninguno en este momento.'; else msg += top.map(a => `${a.nombre}: U=${a.urg} P=${a.prev} Pend=${a.pend}`).join('\n');
+  if(top.length === 0) msg += 'Ninguno en este momento.\n\n';
+  else msg += top.map(a => `${a.nombre}: U=${a.urg} P=${a.prev} Pend=${a.pend}`).join('\n') + '\n\n';
+  msg += `Porfa, prioricen los URGENTES ahora mismo. 🙏\nGracias!`;
   return msg;
 }
 
-/*
-function copiarReporteDesdeModal(){
-  const texto = asesorActivoModal === 'all' ? generarResumenGeneral('totales_global') : generarResumenPorAsesor(asesorActivoModal);
-  navigator.clipboard.writeText(texto);
-} 
-*/
-  
+/* enviar WA: abre wa.me con mensaje amigable */
 function enviarWhatsAppDesdeModal(){
   const texto = asesorActivoModal === 'all' ? generarResumenGeneral('totales_global') : generarResumenPorAsesor(asesorActivoModal);
-  window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, '_blank');
+  const waUrl = `https://wa.me/?text=${encodeURIComponent(texto)}`;
+  window.open(waUrl, '_blank');
 }
+
+/* copiar eliminado por petición del cliente */
 
 /* init */
 fetchData();
 setInterval(fetchData, 300000); // 5 minutos
+
+/* Compact mode toggle: persist preference */
+(function(){
+  const btn = document.getElementById('compactToggle');
+  if(!btn) return;
+  btn.addEventListener('click', () => {
+    document.documentElement.classList.toggle('compact-mode');
+    const active = document.documentElement.classList.contains('compact-mode');
+    try{ localStorage.setItem('dashboard_compact', active ? '1' : '0'); }catch(e){}
+    setTimeout(()=> window.dispatchEvent(new Event('resize')), 120);
+  });
+  try{
+    if(localStorage.getItem('dashboard_compact') === '1') document.documentElement.classList.add('compact-mode');
+  }catch(e){}
+})();
 </script>
 </body>
 </html>
