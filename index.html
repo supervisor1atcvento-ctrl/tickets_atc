@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Vento ATC - Muro de Control Inteligente</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
 <style>
@@ -16,11 +16,12 @@
   --vento-green:#43A047;
   --vento-urgent:#FB8C00;
   --vento-yellow:#FBC02D;
-  --vento-teal:#00897B; /* reemplazo del morado por teal */
+  --vento-teal:#00897B; /* color elegido para "pendientes / no tocados" */
   --shadow-sm:0 2px 8px rgba(0,0,0,0.04);
   --shadow-md:0 8px 16px rgba(0,0,0,0.08);
 }
-*{box-sizing:border-box}body{
+*{box-sizing:border-box}
+body{
   font-family:'Inter',sans-serif;
   margin:0;
   background:var(--vento-bg);
@@ -78,7 +79,7 @@ th{ background:#F8F9FA; padding:10px 12px; text-align:left; border-bottom:1px so
 td{ padding:10px 12px; border-bottom:1px solid #F5F5F5; color:#444; vertical-align:middle; }
 .badge{ padding:5px 8px; border-radius:6px; font-weight:800; font-size:0.68rem; text-transform:uppercase; display:inline-block; }
 .badge-sla{ background:#FFF3E0; color:var(--vento-orange); }
-.badge-pend{ background:#E3F2F2; color:var(--vento-teal); } /* teal para pendientes */
+.badge-pend{ background:#E3F2F2; color:var(--vento-teal); }
 .badge-open{ background:#E8F5E9; color:var(--vento-green); }
 #loading{ position:fixed; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; background:var(--vento-black); color:#fff; z-index:3000; font-weight:800; font-size:1rem; }
 .spinner{ width:44px; height:44px; border:4px solid rgba(255,255,255,0.08); border-top:4px solid var(--vento-orange); border-radius:50%; animation:spin 1s linear infinite; margin-bottom:12px; }
@@ -90,20 +91,22 @@ td{ padding:10px 12px; border-bottom:1px solid #F5F5F5; color:#444; vertical-ali
   <div class="spinner"></div>
   CALIBRANDO LOGICA OPERATIVA ATC...
 </div>
+
 <header>
   <h1>🏍️ VENTO <span style="color:var(--vento-orange); font-weight:900;">MURO ATC</span></h1>
   <span class="header-badge">LIVE DASHBOARD</span>
 </header>
+
 <div class="container">
   <div class="control-bar" id="barInstruction">
-    <span>📊 Monitoreo de Filtros de Auditoría Operativa. Clic en métricas para desglosar.</span>
+    <span>📊 Reglas operativas: bandeja 72h, open 4h/24h, pending toque diario, otros -> urgente.</span>
     <span class="db-timestamp" id="dbTimestamp">Buscando fecha Z1...</span>
   </div>
 
   <div class="kpi-container">
     <div class="kpi-card" onclick="abrirModalPorMetrica('totales_global')">
       <h3>Tickets Totales</h3>
-      <p id="kpiTotalGlobal" style="color:var(--vento-black);">0</p>
+      <p id="kpiTotalGlobal">0</p>
     </div>
 
     <div class="kpi-card" onclick="abrirModalPorMetrica('pendientes_stocar')">
@@ -111,9 +114,9 @@ td{ padding:10px 12px; border-bottom:1px solid #F5F5F5; color:#444; vertical-ali
       <p id="kpiPendientesSTocar" style="color:var(--vento-teal);">0</p>
     </div>
 
-    <div class="kpi-card" onclick="abrirModalPorMetrica('sla_4d')">
-      <h3>SLA Vencido (&gt;=4D)</h3>
-      <p id="kpiSLA4D" style="color:var(--vento-red);">0</p>
+    <div class="kpi-card" onclick="abrirModalPorMetrica('sla_72h')">
+      <h3>Bandeja 72h (SLA)</h3>
+      <p id="kpiSLA72H" style="color:var(--vento-red);">0</p>
     </div>
 
     <div class="kpi-card" onclick="abrirModalPorMetrica('preventivos')">
@@ -152,7 +155,7 @@ td{ padding:10px 12px; border-bottom:1px solid #F5F5F5; color:#444; vertical-ali
               <th>Creación</th>
               <th>Última Act.</th>
               <th>Edad (Días)</th>
-              <th>Clasificación Muro</th>
+              <th>Clasificación</th>
             </tr>
           </thead>
           <tbody id="modalTablaCuerpo"></tbody>
@@ -163,15 +166,21 @@ td{ padding:10px 12px; border-bottom:1px solid #F5F5F5; color:#444; vertical-ali
 </div>
 
 <script>
+/* -------------------------
+   CONFIG
+   ------------------------- */
 const SHEET_ID = '1JBre4cLAbYiOJuYye_FGcsk5U_BIStDoAiCbV-B8WoA';
 const querySQLTickets = encodeURIComponent("SELECT A, B, C, F, G, I, Z");
 const URL_TICKETS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Tickets_BD&tq=${querySQLTickets}`;
+const TICKET_BASE_URL = 'https://ayuda.vento.com/a/tickets/';
+const GRUPOS_VALIDOS = ['ATC','AMERICAN PISTON (ATC)','American Piston (ATC)']; // grupos a considerar
 let rawData = [];
 let asesorActivoModal = "all";
 let ultimaActualizacionBase = "No disponible";
-const TICKET_BASE_URL = 'https://ayuda.vento.com/a/tickets/';
 
-// Utilidades fecha/hora
+/* -------------------------
+   UTILIDADES FECHA/HORA
+   ------------------------- */
 function parsearFechaHoraString(txt){
   if(!txt) return null;
   const partes = txt.trim().split(' ');
@@ -218,81 +227,137 @@ function calcularHorasCorridas(fechaInicio, fechaFin){
   return Math.floor(diffMs / (1000 * 60 * 60));
 }
 
-// Fetch y mapeo de datos (lectura robusta de Z1 y filtro closed reestablecido)
+/* -------------------------
+   CLASIFICACIÓN SEGÚN REGLAS
+   -------------------------
+   Reglas implementadas (precedencia):
+   1) Bandeja 72h (edad >=72h) -> Urgente (override)
+   2) Open:
+      - horas >=24 -> Urgente
+      - horas >=4  -> Preventivo
+      - else -> Al día
+   3) Pending:
+      - si no se tocó hoy y última actividad fue ayer -> Preventivo
+      - si horas desde última actividad >=24 -> Urgente
+      - else -> Al día
+   4) Otros estatus -> Urgente
+   Excluir siempre estatus 'closed'
+*/
+function clasificarTicketObj(ticket, ahora = new Date()){
+  // ticket: { grupo, estatus, fechaCreacionStr, fechaActualizacionStr }
+  const creado = parsearFechaHoraString(ticket.fechaCreacionStr) || parsearFechaString(ticket.fechaCreacionStr);
+  const ultima = parsearFechaHoraString(ticket.fechaActualizacionStr) || parsearFechaString(ticket.fechaActualizacionStr);
+  const horasDesdeCreacion = creado ? calcularHorasCorridas(creado, ahora) : Infinity;
+  const horasDesdeUltAct = ultima ? calcularHorasCorridas(ultima, ahora) : Infinity;
+  const diasDesdeCreacion = creado ? calcularDiasCorridos(creado, ahora) : Infinity;
+  const diasDesdeUltAct = ultima ? calcularDiasCorridos(ultima, ahora) : Infinity;
+  const estatus = (ticket.estado || '').toString().trim().toLowerCase();
+  const grupo = (ticket.grupo || '').toString().trim();
+
+  // Fuera de scope de grupos
+  if(!GRUPOS_VALIDOS.includes(grupo)) return { categoria: 'fuera-scope', razon: 'grupo no ATC' };
+
+  // 0) Excluir closed (no deben aparecer)
+  if(estatus === 'closed') return { categoria: 'exclude', razon: 'closed' };
+
+  // 1) Bandeja 72h override
+  if(horasDesdeCreacion >= 72) return { categoria: 'urgente', razon: 'edad >= 72h (bandeja)' };
+
+  // 2) Open
+  if(estatus === 'open'){
+    if(horasDesdeCreacion >= 24) return { categoria: 'urgente', razon: 'open >= 24h' };
+    if(horasDesdeCreacion >= 4) return { categoria: 'preventivo', razon: 'open >= 4h' };
+    return { categoria: 'al-dia', razon: 'open < 4h' };
+  }
+
+  // 3) Pending
+  if(estatus === 'pending'){
+    // tocado hoy?
+    const tocadoHoy = horasDesdeUltAct < 24;
+    // si no se tocó hoy y la última actividad fue ayer -> preventivo
+    if(!tocadoHoy && diasDesdeUltAct === 1) return { categoria: 'preventivo', razon: 'pending no tocado hoy (última act ayer)' };
+    // si no se tocó por >=24h -> urgente
+    if(horasDesdeUltAct >= 24) return { categoria: 'urgente', razon: 'pending sin tocar >=24h' };
+    return { categoria: 'al-dia', razon: 'pending tocado hoy' };
+  }
+
+  // 4) Otros estatus -> urgente (no deberían estar)
+  return { categoria: 'urgente', razon: `estatus ${ticket.estado} no permitido` };
+}
+
+/* -------------------------
+   FETCH Y MAPEO DE DATOS
+   ------------------------- */
 async function fetchData(){
   try{
     const resTickets = await fetch(URL_TICKETS);
     const textTickets = await resTickets.text();
     const jsonTK = JSON.parse(textTickets.substr(47).slice(0,-2));
     const rows = jsonTK.table.rows || [];
+    const ahora = new Date();
     const hoySinHora = new Date(); hoySinHora.setHours(0,0,0,0);
 
-    // Lectura robusta de Z1:
-    // 1) Intentar fila 0, columna 6
-    // 2) Si no existe, buscar la primera celda no vacía en columna 6
-    // 3) Si no, intentar leer jsonTK.table.cols[6].label o jsonTK.table.cols[6].pattern
+    // Lectura robusta de Z1 (última versión)
     let zVal = '';
-    if (rows[0] && rows[0].c && rows[0].c[6]) {
-      zVal = (rows[0].c[6].f || rows[0].c[6].v || '').toString().trim();
-    }
+    if(rows[0] && rows[0].c && rows[0].c[6]) zVal = (rows[0].c[6].f || rows[0].c[6].v || '').toString().trim();
     if(!zVal){
-      for (let i = 0; i < rows.length; i++) {
-        if (rows[i] && rows[i].c && rows[i].c[6]) {
+      for(let i=0;i<rows.length;i++){
+        if(rows[i] && rows[i].c && rows[i].c[6]){
           const v = (rows[i].c[6].f || rows[i].c[6].v || '').toString().trim();
-          if (v) { zVal = v; break; }
+          if(v){ zVal = v; break; }
         }
       }
     }
-    if(!zVal && jsonTK.table.cols && jsonTK.table.cols[6]) {
+    if(!zVal && jsonTK.table.cols && jsonTK.table.cols[6]){
       zVal = (jsonTK.table.cols[6].label || jsonTK.table.cols[6].pattern || '').toString().trim();
     }
     if(zVal) ultimaActualizacionBase = zVal;
 
+    // Mapear filas a objetos ticket
     rawData = rows.map(row => {
       if(!row || !row.c) return null;
-      const tipoATC = row.c[0] ? (row.c[0].f || row.c[0].v || '').toString().trim() : '';
+      const grupo = row.c[0] ? (row.c[0].f || row.c[0].v || '').toString().trim() : '';
       const ticketID = row.c[1] ? (row.c[1].f || row.c[1].v || '').toString().trim() : '';
       const nombreAsesor = row.c[2] ? (row.c[2].f || row.c[2].v || '').toString().trim() : 'Sin Asesor';
       const fechaCreacionTxt = row.c[3] && row.c[3].f ? row.c[3].f : (row.c[3] ? row.c[3].v.toString() : '');
       const fechaActualizacionTxt = row.c[4] && row.c[4].f ? row.c[4].f : (row.c[4] ? row.c[4].v.toString() : '');
       const estatusTxt = row.c[5] ? (row.c[5].f || row.c[5].v || 'Open').toString().trim() : 'Open';
 
-      // Re-aplicar filtro para excluir closed
       if(!ticketID || ticketID.toLowerCase() === 'ticket id') return null;
+      // Excluir closed aquí (según tu petición)
       if(estatusTxt.toLowerCase() === 'closed') return null;
-      if(tipoATC !== 'AMERICAN PISTON (ATC)' && tipoATC !== 'ATC') return null;
+      // Solo grupos ATC
+      if(!GRUPOS_VALIDOS.includes(grupo)) return null;
 
       const fechaCreacionObjFull = parsearFechaHoraString(fechaCreacionTxt) || parsearFechaString(fechaCreacionTxt);
-      const fechaActObj = parsearFechaString(fechaActualizacionTxt);
-      const ahora = new Date();
+      const fechaActObjFull = parsearFechaHoraString(fechaActualizacionTxt) || parsearFechaString(fechaActualizacionTxt);
 
       const horasEdad = fechaCreacionObjFull ? calcularHorasCorridas(fechaCreacionObjFull, ahora) : 0;
       const diasEdad = fechaCreacionObjFull ? calcularDiasCorridos(fechaCreacionObjFull, hoySinHora) : 0;
-      const diasUltimaAct = fechaActObj ? calcularDiasCorridos(fechaActObj, hoySinHora) : 0;
-      const esOpen = estatusTxt.toLowerCase() === 'open';
-      const tocadoHoy = (diasUltimaAct === 0);
+      const horasUltAct = fechaActObjFull ? calcularHorasCorridas(fechaActObjFull, ahora) : null;
+      const diasUltAct = fechaActObjFull ? calcularDiasCorridos(fechaActObjFull, hoySinHora) : null;
 
-      // Clasificación operativa con SLA >=4 días como urgente (independiente de estatus)
-      let subClase = 'preventivo';
-      if (diasEdad >= 4) {
-        subClase = 'urgente-sla';
-      } else if (!esOpen && !tocadoHoy) {
-        subClase = 'pendiente-stocar';
-      } else if (esOpen && diasUltimaAct >= 2) {
-        subClase = 'urgente-stocar';
-      }
+      // Clasificar según reglas
+      const cls = clasificarTicketObj({
+        grupo: grupo,
+        estado: estatusTxt,
+        fechaCreacionStr: fechaCreacionTxt,
+        fechaActualizacionStr: fechaActualizacionTxt
+      }, ahora);
 
       return {
         ticket: ticketID,
         asesor: nombreAsesor,
+        grupo: grupo,
         fechaCreacionStr: fechaCreacionTxt,
         fechaActualizacionStr: fechaActualizacionTxt,
         estado: estatusTxt,
         diasEdad: diasEdad,
         horasEdad: horasEdad,
-        tocadoHoy: tocadoHoy,
-        esOpen: esOpen,
-        subClase: subClase
+        horasUltAct: horasUltAct,
+        diasUltAct: diasUltAct,
+        categoria: cls.categoria,
+        razon: cls.razon
       };
     }).filter(x => x !== null);
 
@@ -304,66 +369,65 @@ async function fetchData(){
   }
 }
 
-// Actualización del dashboard (SLA >=4 cuenta como urgente, evitar doble conteo)
+/* -------------------------
+   ACTUALIZAR DASHBOARD
+   ------------------------- */
 function updateDashboard(){
-  let cTotales = 0, cPendientesSTocar = 0, cSla4D = 0, cPreventivos = 0, cUrgentes = 0;
+  let cTotales = 0, cPendientesSTocar = 0, cSla72h = 0, cPreventivos = 0, cUrgentes = 0;
   const mapeoAsesores = {};
   document.getElementById('dbTimestamp').innerText = `${ultimaActualizacionBase}`;
 
   rawData.forEach(d => {
     cTotales++;
-    if(!mapeoAsesores[d.asesor]){
-      mapeoAsesores[d.asesor] = { nombre: d.asesor, urgentes: 0, pendientes: 0, preventivos: 0, totales: 0 };
-    }
+    if(!mapeoAsesores[d.asesor]) mapeoAsesores[d.asesor] = { nombre: d.asesor, urgentes:0, pendientes:0, preventivos:0, totales:0 };
     mapeoAsesores[d.asesor].totales++;
 
-    // SLA crítico: cualquier ticket con diasEdad >= 4
-    if (d.diasEdad >= 4) {
-      cSla4D++;
+    // Conteos según categoria (evitar doble conteo por precedencia ya aplicada en clasificación)
+    if(d.categoria === 'urgente'){
       cUrgentes++;
       mapeoAsesores[d.asesor].urgentes++;
-      return;
-    }
-
-    // Urgente por abandono (abierto sin tocar >=2 días)
-    if (d.subClase === 'urgente-stocar') {
-      cUrgentes++;
-      mapeoAsesores[d.asesor].urgentes++;
-      return;
-    }
-
-    // Pendientes no open y no tocado hoy
-    if (d.subClase === 'pendiente-stocar') {
-      cPendientesSTocar++;
-      mapeoAsesores[d.asesor].pendientes++;
-      return;
-    }
-
-    // Preventivos: solo contar si horasEdad >= 4
-    if (d.subClase === 'preventivo' && d.horasEdad >= 4) {
+      // si la razón es bandeja 72h, contarlo también en SLA72H
+      if(d.razon && d.razon.includes('72h')) cSla72h++;
+    } else if(d.categoria === 'preventivo'){
       cPreventivos++;
       mapeoAsesores[d.asesor].preventivos++;
-      return;
+    } else if(d.categoria === 'al-dia'){
+      // no sumar a preventivos ni urgentes
+    } else if(d.categoria === 'pendiente' || d.categoria === 'fuera-scope'){
+      // no sumar
+    }
+    // Pendientes no tocados hoy: detectarlos por razon o por estado+ultima act
+    if(d.estado.toLowerCase() === 'pending'){
+      // si no tocado hoy and diasUltAct === 1 -> pendiente-stocar (mostrar en KPI)
+      if(d.diasUltAct === 1 && (d.horasUltAct === null || d.horasUltAct >= 24)) {
+        // si horasUltAct >=24 ya fue clasificado como urgente; else si diasUltAct===1 y no tocado hoy -> preventivo
+        // handled in classification; here we count pending-like items that are preventivo
+      }
+      // For KPI we count pending items that are not urgent
+      if(!(d.categoria === 'urgente')) {
+        cPendientesSTocar++;
+        mapeoAsesores[d.asesor].pendientes++;
+      }
     }
   });
 
   document.getElementById('kpiTotalGlobal').innerText = cTotales;
   document.getElementById('kpiPendientesSTocar').innerText = cPendientesSTocar;
-  document.getElementById('kpiSLA4D').innerText = cSla4D;
+  document.getElementById('kpiSLA72H').innerText = cSla72h;
   document.getElementById('kpiPreventivos').innerText = cPreventivos;
   document.getElementById('kpiUrgentesTotal').innerText = cUrgentes;
 
+  // Construir mosaicos por asesor
   const listaAsesores = Object.values(mapeoAsesores);
-  listaAsesores.sort((a, b) => b.urgentes - a.urgentes || b.pendientes - a.pendientes);
-
+  listaAsesores.sort((a,b) => b.urgentes - a.urgentes || b.pendientes - a.pendientes);
   const gridMosaicos = document.getElementById('gridMosaicos');
   gridMosaicos.innerHTML = '';
 
   listaAsesores.forEach(as => {
     let claseColor = "mosaico-green";
-    if (as.urgentes > 0) claseColor = "mosaico-red";
-    else if (as.pendientes > 0) claseColor = "mosaico-yellow";
-    else if (as.preventivos > 0) claseColor = "mosaico-yellow";
+    if(as.urgentes > 0) claseColor = "mosaico-red";
+    else if(as.pendientes > 0) claseColor = "mosaico-yellow";
+    else if(as.preventivos > 0) claseColor = "mosaico-yellow";
 
     const nodo = document.createElement('div');
     nodo.className = `mosaico-asesor ${claseColor}`;
@@ -389,7 +453,9 @@ function updateDashboard(){
   });
 }
 
-// Abrir modal por asesor con alerta resumen
+/* -------------------------
+   MODALES, TABLAS Y ALERTAS
+   ------------------------- */
 function abrirModalAsesor(nombre){
   asesorActivoModal = nombre;
   document.getElementById('modalTitle').innerText = `Auditoría: ${nombre}`;
@@ -397,21 +463,32 @@ function abrirModalAsesor(nombre){
   document.getElementById('btnModalWA').style.display = 'inline-block';
 
   const tkFiltrados = rawData.filter(x => x.asesor === nombre);
-  tkFiltrados.sort((a,b) => b.diasEdad - a.diasEdad);
-
-  const resumen = { urg:0, pend:0, prev:0 };
-  rawData.filter(x => x.asesor === nombre).forEach(d => {
-    if (d.diasEdad >= 4) resumen.urg++;
-    else if (d.subClase === 'pendiente-stocar') resumen.pend++;
-    else if (d.subClase === 'preventivo' && d.horasEdad >= 4) resumen.prev++;
+  tkFiltrados.sort((a,b) => {
+    // ordenar por prioridad: urgente -> preventivo -> al-dia, luego por horas desde creación desc
+    const prioridad = p => {
+      if(p.categoria === 'urgente') return 1;
+      if(p.categoria === 'preventivo') return 2;
+      return 3;
+    };
+    const pa = prioridad(a), pb = prioridad(b);
+    if(pa !== pb) return pa - pb;
+    return b.horasEdad - a.horasEdad;
   });
-  alert(`Asesor: ${nombre}\n🔴 Urgentes (>=4d): ${resumen.urg}\n🟢 No tocados: ${resumen.pend}\n🟡 Preventivos (>=4h): ${resumen.prev}`);
+
+  // Alerta resumen del asesor
+  const resumen = { urg:0, pend:0, prev:0, aldia:0 };
+  tkFiltrados.forEach(d => {
+    if(d.categoria === 'urgente') resumen.urg++;
+    else if(d.categoria === 'preventivo') resumen.prev++;
+    else if(d.estado.toLowerCase() === 'pending' && d.categoria !== 'urgente') resumen.pend++;
+    else if(d.categoria === 'al-dia') resumen.aldia++;
+  });
+  alert(`Asesor: ${nombre}\n🔴 Urgentes: ${resumen.urg}\n🟡 Preventivos: ${resumen.prev}\n🟦 Pendientes no tocados: ${resumen.pend}\n🟢 Al día: ${resumen.aldia}`);
 
   construirTablaModal(tkFiltrados);
   mostrarModal();
 }
 
-// Abrir modal por KPI/segmento y mostrar alerta top asesores
 function abrirModalPorMetrica(tipo){
   asesorActivoModal = "all";
   document.getElementById('btnModalCopy').style.display = 'none';
@@ -420,48 +497,46 @@ function abrirModalPorMetrica(tipo){
   let tkFiltrados = [];
 
   if(tipo === 'totales_global'){
-    titulo = "Todos los Tickets Activos en Muro";
+    titulo = "Todos los Tickets Activos en Muro (excluye closed)";
     tkFiltrados = [...rawData];
   } else if(tipo === 'pendientes_stocar'){
-    titulo = "Estatus No Open - Sin tocar hoy";
-    tkFiltrados = rawData.filter(x => x.subClase === 'pendiente-stocar');
-  } else if(tipo === 'sla_4d'){
-    titulo = "SLA Crítico: Mayor o igual a 4 Días de Creación";
-    tkFiltrados = rawData.filter(x => x.diasEdad >= 4);
+    titulo = "Estatus Pending - No tocados hoy / Seguimiento diario";
+    tkFiltrados = rawData.filter(x => x.estado.toLowerCase() === 'pending' && x.categoria !== 'urgente');
+  } else if(tipo === 'sla_72h'){
+    titulo = "Bandeja 72h - Tickets que superan 72 horas";
+    tkFiltrados = rawData.filter(x => x.horasEdad >= 72);
   } else if(tipo === 'preventivos'){
-    titulo = "Tickets Preventivos / Al Día (>=4h desde creación)";
-    tkFiltrados = rawData.filter(x => x.subClase === 'preventivo' && x.horasEdad >= 4);
+    titulo = "Tickets Preventivos (open >=4h o pending no tocado hoy)";
+    tkFiltrados = rawData.filter(x => x.categoria === 'preventivo');
   } else if(tipo === 'urgentes'){
-    titulo = "Total Casos Urgentes (SLA >=4D o Abandonados)";
-    tkFiltrados = rawData.filter(x => x.diasEdad >= 4 || x.subClase === 'urgente-stocar');
+    titulo = "Total Casos Urgentes (SLA 72h, open >=24h, pending sin tocar >=24h, otros estatus)";
+    tkFiltrados = rawData.filter(x => x.categoria === 'urgente');
   }
 
   document.getElementById('modalTitle').innerText = titulo;
-  tkFiltrados.sort((a,b) => b.diasEdad - a.diasEdad);
+  tkFiltrados.sort((a,b) => b.horasEdad - a.horasEdad);
 
-  if (['totales_global','pendientes_stocar','sla_4d','preventivos','urgentes'].includes(tipo)) {
-    const asesoresArray = Object.values(
-      rawData.reduce((acc, d) => {
-        if(!acc[d.asesor]) acc[d.asesor] = { nombre: d.asesor, rezago: 0 };
-        if (d.diasEdad >= 4) acc[d.asesor].rezago++;
-        else if (d.subClase === 'pendiente-stocar') acc[d.asesor].rezago++;
-        else if (d.subClase === 'preventivo' && d.horasEdad >= 4) acc[d.asesor].rezago++;
-        return acc;
-      }, {})
-    );
-    asesoresArray.sort((a,b) => b.rezago - a.rezago);
-    const top = asesoresArray.slice(0,5).filter(x => x.rezago>0);
-    if(top.length>0){
-      const msg = top.map(x => `${x.nombre}: ${x.rezago}`).join('\n');
-      alert(`Top asesores con más rezagos:\n${msg}`);
-    }
+  // Alerta top 5 asesores por rezagos (urgentes + preventivos + pendientes relevantes)
+  const asesoresArray = Object.values(
+    rawData.reduce((acc, d) => {
+      if(!acc[d.asesor]) acc[d.asesor] = { nombre: d.asesor, rezago: 0 };
+      if(d.categoria === 'urgente') acc[d.asesor].rezago++;
+      else if(d.categoria === 'preventivo') acc[d.asesor].rezago++;
+      else if(d.estado.toLowerCase() === 'pending' && d.categoria !== 'urgente') acc[d.asesor].rezago++;
+      return acc;
+    }, {})
+  );
+  asesoresArray.sort((a,b) => b.rezago - a.rezago);
+  const top = asesoresArray.slice(0,5).filter(x => x.rezago>0);
+  if(top.length>0){
+    const msg = top.map(x => `${x.nombre}: ${x.rezago}`).join('\n');
+    alert(`Top asesores con más rezagos:\n${msg}`);
   }
 
   construirTablaModal(tkFiltrados);
   mostrarModal();
 }
 
-// Construir tabla modal con orden por prioridad
 function construirTablaModal(listaTickets){
   const tablaCuerpo = document.getElementById('modalTablaCuerpo');
   tablaCuerpo.innerHTML = '';
@@ -471,28 +546,28 @@ function construirTablaModal(listaTickets){
     return;
   }
 
+  // Orden por prioridad: urgente -> preventivo -> al-dia
   const prioridad = p => {
-    if(p.diasEdad >= 4) return 1;
-    if(p.subClase === 'urgente-stocar') return 1;
-    if(p.subClase === 'preventivo') return 2;
+    if(p.categoria === 'urgente') return 1;
+    if(p.categoria === 'preventivo') return 2;
     return 3;
   };
   listaTickets.sort((a,b) => {
     const pa = prioridad(a), pb = prioridad(b);
     if(pa !== pb) return pa - pb;
-    return b.diasEdad - a.diasEdad;
+    return b.horasEdad - a.horasEdad;
   });
 
   listaTickets.forEach(t => {
     let badgeHtml = '';
-    if (t.diasEdad >= 4) {
-      badgeHtml = `<span class="badge" style="background:var(--vento-red); color:#fff;">🔴 SLA &gt;= 4 DÍAS</span>`;
-    } else if (t.subClase === 'pendiente-stocar') {
-      badgeHtml = `<span class="badge badge-pend">🟦 NO OPEN S/TOCAR</span>`;
-    } else if (t.subClase === 'urgente-stocar') {
-      badgeHtml = `<span class="badge" style="background:var(--vento-urgent); color:#fff;">🟠 ABIERTO ABANDONADO</span>`;
-    } else {
+    if(t.categoria === 'urgente'){
+      badgeHtml = `<span class="badge" style="background:var(--vento-red); color:#fff;">🔴 URGENTE</span>`;
+    } else if(t.categoria === 'preventivo'){
       badgeHtml = `<span class="badge" style="background:var(--vento-yellow); color:#000;">🟡 PREVENTIVO</span>`;
+    } else if(t.estado.toLowerCase() === 'pending'){
+      badgeHtml = `<span class="badge badge-pend">🟦 PENDING (seguir)</span>`;
+    } else {
+      badgeHtml = `<span class="badge badge-open">🟢 AL DÍA</span>`;
     }
 
     const tr = document.createElement('tr');
@@ -505,7 +580,7 @@ function construirTablaModal(listaTickets){
       <td><small>${t.fechaCreacionStr || '-'}</small></td>
       <td><small>${t.fechaActualizacionStr || '-'}</small></td>
       <td style="font-weight:900; color:${t.diasEdad >= 4 ? 'var(--vento-red)' : 'var(--vento-black)'}">${t.diasEdad} d.</td>
-      <td>${badgeHtml}</td>
+      <td>${badgeHtml} <div style="font-size:0.72rem; color:#666; margin-top:4px;">${t.razon || ''}</div></td>
     `;
     tablaCuerpo.appendChild(tr);
   });
@@ -515,44 +590,52 @@ function mostrarModal(){ document.getElementById('modalDetalles').classList.add(
 function cerrarModal(){ document.getElementById('modalDetalles').classList.remove('active'); }
 function cerrarModalExterno(event){ if(event.target.id === 'modalDetalles') cerrarModal(); }
 
-// Copiar y enviar WA desde modal (respeta regla de preventivos >=4h)
+/* -------------------------
+   COPIAR / WHATSAPP
+   ------------------------- */
 function copiarReporteDesdeModal(){
   if(asesorActivoModal === "all") return;
-  let urg = [], pend = [], prev = [];
+  let urg = [], pend = [], prev = [], aldia = [];
   rawData.filter(x => x.asesor === asesorActivoModal).forEach(d => {
-    const l = `#${d.ticket} (${d.diasEdad}d) - ${TICKET_BASE_URL}${d.ticket}`;
-    if(d.diasEdad >= 4 || d.subClase==='urgente-stocar') urg.push(l);
-    else if(d.subClase === 'pendiente-stocar') pend.push(l);
-    else if(d.subClase === 'preventivo' && d.horasEdad >= 4) prev.push(l);
+    const l = `#${d.ticket} (${d.horasEdad}h / ${d.diasEdad}d) - ${TICKET_BASE_URL}${d.ticket}`;
+    if(d.categoria === 'urgente') urg.push(l);
+    else if(d.categoria === 'preventivo') prev.push(l);
+    else if(d.estado.toLowerCase() === 'pending' && d.categoria !== 'urgente') pend.push(l);
+    else aldia.push(l);
   });
 
-  let m = `*AUDITORÍA ATC VENTO*\nAsesor: *${asesorActivoModal}*\n\n`;
-  if(urg.length>0) m+=`🔴 *URGENTES:* \n${urg.join('\n')}\n\n`;
-  if(pend.length>0) m+=`🟦 *NO TOCADOS HOY:* \n${pend.join('\n')}\n\n`;
-  if(prev.length>0) m+=`🟡 *PREVENTIVOS (>=4h):* \n${prev.join('\n')}\n\n`;
+  let m = `AUDITORÍA ATC VENTO\nAsesor: ${asesorActivoModal}\n\n`;
+  if(urg.length>0) m+=`URGENTES:\n${urg.join('\n')}\n\n`;
+  if(prev.length>0) m+=`PREVENTIVOS:\n${prev.join('\n')}\n\n`;
+  if(pend.length>0) m+=`PENDING (seguimiento):\n${pend.join('\n')}\n\n`;
+  if(aldia.length>0) m+=`AL DÍA:\n${aldia.join('\n')}\n\n`;
   navigator.clipboard.writeText(m).then(()=>alert('Copiado.'));
 }
 
 function enviarWhatsAppDesdeModal(){
   if(asesorActivoModal === "all") return;
-  let urg = [], pend = [], prev = [];
+  let urg = [], pend = [], prev = [], aldia = [];
   rawData.filter(x => x.asesor === asesorActivoModal).forEach(d => {
-    const l = `#${d.ticket} (${d.diasEdad}d) - ${TICKET_BASE_URL}${d.ticket}`;
-    if(d.diasEdad >= 4 || d.subClase==='urgente-stocar') urg.push(l);
-    else if(d.subClase === 'pendiente-stocar') pend.push(l);
-    else if(d.subClase === 'preventivo' && d.horasEdad >= 4) prev.push(l);
+    const l = `#${d.ticket} (${d.horasEdad}h / ${d.diasEdad}d) - ${TICKET_BASE_URL}${d.ticket}`;
+    if(d.categoria === 'urgente') urg.push(l);
+    else if(d.categoria === 'preventivo') prev.push(l);
+    else if(d.estado.toLowerCase() === 'pending' && d.categoria !== 'urgente') pend.push(l);
+    else aldia.push(l);
   });
 
-  let m = `*AUDITORÍA ATC VENTO*\nAsesor: *${asesorActivoModal}*\n\n`;
-  if(urg.length>0) m+=`🔴 *URGENTES:* \n${urg.join('\n')}\n\n`;
-  if(pend.length>0) m+=`🟦 *NO TOCADOS HOY:* \n${pend.join('\n')}\n\n`;
-  if(prev.length>0) m+=`🟡 *PREVENTIVOS (>=4h):* \n${prev.join('\n')}\n\n`;
+  let m = `AUDITORÍA ATC VENTO\nAsesor: ${asesorActivoModal}\n\n`;
+  if(urg.length>0) m+=`URGENTES:\n${urg.join('\n')}\n\n`;
+  if(prev.length>0) m+=`PREVENTIVOS:\n${prev.join('\n')}\n\n`;
+  if(pend.length>0) m+=`PENDING (seguimiento):\n${pend.join('\n')}\n\n`;
+  if(aldia.length>0) m+=`AL DÍA:\n${aldia.join('\n')}\n\n`;
   window.open(`https://wa.me/?text=${encodeURIComponent(m)}`, '_blank');
 }
 
-// Inicializar
+/* -------------------------
+   INICIALIZAR
+   ------------------------- */
 fetchData();
-setInterval(fetchData, 900000);
+setInterval(fetchData, 900000); // refrescar cada 15 minutos
 </script>
 </body>
 </html>
