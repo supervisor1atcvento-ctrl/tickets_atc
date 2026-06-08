@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Vento ATC — Muro (3x navegación · Semáforo aplicado)</title>
+<title>Vento ATC — Muro (3x · Modal solo tabla · Sin scroll vertical)</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -39,7 +39,8 @@ body{
   color:var(--text);
   -webkit-font-smoothing:antialiased;
   -moz-osx-font-smoothing:grayscale;
-  padding-bottom:64px;
+  /* quitar scroll vertical de la página */
+  overflow:hidden;
 }
 
 /* Header fixed */
@@ -67,14 +68,15 @@ header h1{ margin:0; font-size:clamp(1rem,1.6vw + 0.4rem,1.1rem); font-weight:80
   box-shadow: 0 8px 20px rgba(35,31,32,0.04);
 }
 
-/* Main scroll area */
+/* Main area: no vertical scroll on body; this area fills remaining viewport */
 .main-scroll {
   width:100%;
-  min-height:calc(100vh - var(--header-h) - var(--top-h));
+  height:calc(100vh - var(--header-h) - var(--top-h));
+  overflow:hidden; /* quitar scroll vertical */
 }
 
 /* Container */
-.container{ max-width:1280px; margin:0 auto; padding:18px 16px; width:calc(100% - 32px); box-sizing:border-box; }
+.container{ max-width:1280px; margin:0 auto; padding:18px 16px; width:calc(100% - 32px); box-sizing:border-box; height:100%; }
 
 /* KPI grid */
 .kpi-grid{
@@ -104,7 +106,7 @@ header h1{ margin:0; font-size:clamp(1rem,1.6vw + 0.4rem,1.1rem); font-weight:80
 .matrix-title{ font-weight:800; margin:8px 0 8px; color:var(--black); font-size:clamp(0.95rem,1.2vw + 0.2rem,1rem); }
 
 /* Advisors: horizontal scroll row */
-.grid-asesores-wrap{ position:relative; }
+.grid-asesores-wrap{ position:relative; height:100%; display:flex; align-items:flex-start; }
 .grid-asesores{
   display:flex;
   gap:12px;
@@ -115,17 +117,20 @@ header h1{ margin:0; font-size:clamp(1rem,1.6vw + 0.4rem,1.1rem); font-weight:80
   scroll-behavior:smooth;
   align-items:flex-start;
   flex-wrap:nowrap;
+  height:100%;
 }
 
 /* each card width will be set dynamically to show exactly 3 per view */
 .card-asesor{
-  flex:0 0 300px; /* fallback; JS will override to fit 3 per view */
+  flex:0 0 33.333%; /* fallback; JS will override to exact px width */
+  max-width: 33.333%;
+  box-sizing:border-box;
   background:linear-gradient(180deg,#FFFFFF,#FBFBFB); border-radius:12px;
-  padding:12px; box-shadow:var(--shadow-sm); border:1px solid rgba(35,31,32,0.04);
-  transition:transform .12s ease; cursor:pointer; display:flex; flex-direction:column; gap:10px; min-height:120px;
+  padding:16px; box-shadow:var(--shadow-sm); border:1px solid rgba(35,31,32,0.04);
+  transition:transform .12s ease; cursor:pointer; display:flex; flex-direction:column; gap:12px; min-height:220px;
 }
 .card-asesor:hover{ transform:translateY(-6px); box-shadow:var(--shadow-md); }
-.card-asesor h4{ margin:0; font-size:1rem; font-weight:800; color:var(--black); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.card-asesor h4{ margin:0; font-size:1.05rem; font-weight:800; color:var(--black); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .card-row{ display:flex; gap:10px; align-items:center; justify-content:space-between; }
 
 /* semaforo indicator (small circle) */
@@ -138,17 +143,17 @@ header h1{ margin:0; font-size:clamp(1rem,1.6vw + 0.4rem,1.1rem); font-weight:80
 .semaforo.green{ background:var(--semaforo-green); }   /* Verde - En tiempo */
 
 /* metrics inside card */
-.metrics-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
-.metric{ background:rgba(35,31,32,0.02); border-radius:8px; padding:8px; border:1px solid rgba(35,31,32,0.03); }
-.metric .m-label{ font-size:0.66rem; color:var(--muted); font-weight:800; text-transform:uppercase; }
-.metric .m-value{ font-size:1.02rem; font-weight:900; margin-top:6px; color:var(--black); }
+.metrics-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px; flex:1; }
+.metric{ background:rgba(35,31,32,0.02); border-radius:8px; padding:10px; border:1px solid rgba(35,31,32,0.03); display:flex; flex-direction:column; justify-content:center; }
+.metric .m-label{ font-size:0.72rem; color:var(--muted); font-weight:800; text-transform:uppercase; }
+.metric .m-value{ font-size:1.2rem; font-weight:900; margin-top:6px; color:var(--black); }
 
 /* navigation arrows (left/right) */
 .nav-arrow{
   position:absolute;
   top:50%;
   transform:translateY(-50%);
-  width:44px; height:44px; border-radius:10px;
+  width:48px; height:48px; border-radius:12px;
   display:flex; align-items:center; justify-content:center;
   background:rgba(35,31,32,0.06); border:1px solid rgba(35,31,32,0.06);
   cursor:pointer; z-index:20; font-size:22px; color:var(--black);
@@ -157,41 +162,37 @@ header h1{ margin:0; font-size:clamp(1rem,1.6vw + 0.4rem,1.1rem); font-weight:80
 .nav-left{ left:6px; }
 .nav-right{ right:6px; }
 
-/* hide arrows on very small screens if desired */
-@media (max-width:520px){
-  .nav-arrow{ display:none; }
-}
-
-/* modal overlay + compact modal */
+/* modal overlay + compact modal (sin preview) */
 .modal-overlay{
   position:fixed; inset:0; display:none; align-items:center; justify-content:center;
   background:rgba(2,6,23,0.45); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
   z-index:140; padding:12px; transition:opacity .18s ease; opacity:0; pointer-events:none;
 }
 .modal-overlay.active{ display:flex; opacity:1; pointer-events:auto; }
-.modal{ width:100%; max-width:720px; border-radius:12px; overflow:hidden; background:var(--white); box-shadow:0 30px 80px rgba(35,31,32,0.12); color:var(--black); transform:translateY(6px) scale(.995); transition:transform .18s, opacity .18s; opacity:0; max-height:78vh; display:flex; flex-direction:column; }
+.modal{ width:100%; max-width:900px; border-radius:12px; overflow:hidden; background:var(--white); box-shadow:0 30px 80px rgba(35,31,32,0.12); color:var(--black); transform:translateY(6px) scale(.995); transition:transform .18s, opacity .18s; opacity:0; max-height:86vh; display:flex; flex-direction:column; }
 .modal-overlay.active .modal{ transform:translateY(0) scale(1); opacity:1; }
 .modal-head{ padding:10px 12px; border-bottom:1px solid rgba(35,31,32,0.04); display:flex; justify-content:space-between; align-items:center; gap:10px; }
 .modal-body{ padding:8px 10px; overflow:auto; -webkit-overflow-scrolling:touch; }
 .table-wrap{ width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; }
-table{ width:100%; border-collapse:collapse; font-size:0.86rem; color:var(--black); min-width:640px; }
-th, td{ padding:8px 10px; text-align:left; border-bottom:1px solid rgba(35,31,32,0.04); vertical-align:middle; }
+table{ width:100%; border-collapse:collapse; font-size:0.9rem; color:var(--black); min-width:640px; }
+th, td{ padding:10px 12px; text-align:left; border-bottom:1px solid rgba(35,31,32,0.04); vertical-align:middle; }
 th{ font-size:0.72rem; color:var(--muted); text-transform:uppercase; }
 
 /* classification badge colors (use semáforo) */
-.pill.red{ background:rgba(255,107,107,0.08); color:var(--semaforo-red); border:1px solid rgba(255,107,107,0.12); }
-.pill.yellow{ background:rgba(246,200,95,0.08); color:var(--semaforo-yellow); border:1px solid rgba(246,200,95,0.12); }
-.pill.orange{ background:rgba(242,143,23,0.06); color:var(--semaforo-orange); border:1px solid rgba(242,143,23,0.08); }
-.pill.green{ background:rgba(46,204,113,0.06); color:var(--semaforo-green); border:1px solid rgba(46,204,113,0.08); }
+.pill.red{ background:rgba(255,107,107,0.08); color:var(--semaforo-red); border:1px solid rgba(255,107,107,0.12); padding:6px 8px; border-radius:8px; font-weight:800; }
+.pill.yellow{ background:rgba(246,200,95,0.08); color:var(--semaforo-yellow); border:1px solid rgba(246,200,95,0.12); padding:6px 8px; border-radius:8px; font-weight:800; }
+.pill.orange{ background:rgba(242,143,23,0.06); color:var(--semaforo-orange); border:1px solid rgba(242,143,23,0.08); padding:6px 8px; border-radius:8px; font-weight:800; }
+.pill.green{ background:rgba(46,204,113,0.06); color:var(--semaforo-green); border:1px solid rgba(46,204,113,0.08); padding:6px 8px; border-radius:8px; font-weight:800; }
 
 /* responsive adjustments */
-@media (max-width:900px){
+@media (max-width:1100px){
   :root{ --kpi-min:120px; }
-  .card-asesor{ flex:0 0 260px; }
+  .card-asesor{ min-height:200px; }
 }
-@media (max-width:600px){
-  .card-asesor{ flex:0 0 220px; }
-  table{ min-width:520px; font-size:0.82rem; }
+@media (max-width:800px){
+  .card-asesor{ min-height:180px; padding:12px; }
+  .nav-arrow{ display:none; }
+  .modal{ max-width:92%; }
 }
 
 /* helpers */
@@ -264,13 +265,13 @@ button:focus, a:focus { outline: 3px solid rgba(242,143,23,0.18); outline-offset
     </div>
   </div>
 
-  <!-- Main scrollable area (only this scrolls) -->
+  <!-- Main area: no vertical scroll on body; this area fills remaining viewport -->
   <div id="mainScroll" class="main-scroll" role="main">
-    <div class="container">
+    <div class="container" style="height:100%; display:flex; flex-direction:column;">
       <div class="matrix-title">Seguimiento por Asesor</div>
 
       <!-- Advisors row: horizontal scroll with nav arrows -->
-      <div class="grid-asesores-wrap" style="margin-bottom:18px;">
+      <div class="grid-asesores-wrap" style="margin-bottom:8px; flex:1; display:flex; align-items:flex-start;">
         <div class="nav-arrow nav-left" id="navLeft" title="Desplazar a la izquierda" onclick="scrollGrid('left')">‹</div>
 
         <div class="grid-asesores" id="gridMosaicos" aria-live="polite" tabindex="0" role="region" aria-label="Tarjetas de asesores, desplázalas horizontalmente"></div>
@@ -278,18 +279,17 @@ button:focus, a:focus { outline: 3px solid rgba(242,143,23,0.18); outline-offset
         <div class="nav-arrow nav-right" id="navRight" title="Desplazar a la derecha" onclick="scrollGrid('right')">›</div>
       </div>
 
-      <!-- espacio extra para que el scroll no tape el footer -->
-      <div style="height:40px"></div>
+      <!-- espacio inferior fijo -->
+      <div style="height:8px"></div>
     </div>
   </div>
 
-  <!-- Modal -->
+  <!-- Modal (solo tabla + WA) -->
   <div class="modal-overlay" id="modalDetalles" onclick="cerrarModalExterno(event)">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
       <div class="modal-head">
         <div>
           <h3 id="modalTitle">Desglose</h3>
-          <div class="muted" id="modalSummary">Resumen operativo</div>
         </div>
         <div style="display:flex; gap:8px; align-items:center;">
           <button class="btn" onclick="enviarWhatsAppDesdeModal()">📲 Enviar por WA</button>
@@ -299,7 +299,7 @@ button:focus, a:focus { outline: 3px solid rgba(242,143,23,0.18); outline-offset
 
       <div class="modal-body">
         <div class="table-wrap">
-          <table aria-describedby="modalSummary">
+          <table aria-describedby="modalTitle">
             <thead>
               <tr>
                 <th>Asesor</th>
@@ -319,9 +319,7 @@ button:focus, a:focus { outline: 3px solid rgba(242,143,23,0.18); outline-offset
   </div>
 
 <script>
-/* -------------------------
-   Ajustes de layout fijo + ancho de tarjetas para mostrar 3 por vista
-   ------------------------- */
+/* Ajustes de layout fijo + ancho de tarjetas para mostrar 3 por vista */
 function ajustarLayoutFijo(){
   const header = document.getElementById('appHeader');
   const top = document.getElementById('topArea');
@@ -331,9 +329,8 @@ function ajustarLayoutFijo(){
   const topH = top.getBoundingClientRect().height;
   document.documentElement.style.setProperty('--header-h', headerH + 'px');
   document.documentElement.style.setProperty('--top-h', topH + 'px');
-  main.style.paddingTop = (headerH + topH) + 'px';
-  top.style.top = headerH + 'px';
-  ajustarAnchoTarjetas(); // recalcular ancho de tarjetas cuando cambie layout
+  // main area height already set via CSS calc; no body scroll
+  ajustarAnchoTarjetas();
 }
 
 /* Ajusta el ancho de cada tarjeta para que quepan exactamente 3 en la vista del contenedor */
@@ -343,22 +340,26 @@ function ajustarAnchoTarjetas(){
   const wrap = grid.parentElement; // .grid-asesores-wrap
   const gap = parseFloat(getComputedStyle(grid).gap) || 12;
   // ancho disponible dentro del wrap (restar flechas si visibles)
-  const wrapWidth = wrap.clientWidth -  (document.querySelector('.nav-left') ?  (document.querySelector('.nav-left').offsetWidth + 12) : 0) - (document.querySelector('.nav-right') ? (document.querySelector('.nav-right').offsetWidth + 12) : 0);
+  const leftArrow = document.querySelector('.nav-left');
+  const rightArrow = document.querySelector('.nav-right');
+  const arrowSpace = ((leftArrow && leftArrow.offsetWidth) ? (leftArrow.offsetWidth + 12) : 0) + ((rightArrow && rightArrow.offsetWidth) ? (rightArrow.offsetWidth + 12) : 0);
+  const wrapWidth = wrap.clientWidth - arrowSpace;
   // calcular ancho por tarjeta para 3 tarjetas visibles (2 gaps entre ellas)
   const cardWidth = Math.floor((wrapWidth - (gap * 2)) / 3);
-  // aplicar a cada tarjeta (si no hay tarjetas aún, aplicarlo como fallback para futuros)
+  // aplicar a cada tarjeta
   const cards = grid.querySelectorAll('.card-asesor');
   if(cards.length === 0){
-    // setear variable CSS fallback para cuando se creen
+    // guardar como variable CSS para futuros
     grid.style.setProperty('--computed-card-width', cardWidth + 'px');
     return;
   }
   cards.forEach(c => {
     c.style.flex = `0 0 ${cardWidth}px`;
+    c.style.maxWidth = `${cardWidth}px`;
   });
 }
 
-/* Scroll horizontal por 3 tarjetas (usa el ancho calculado) */
+/* Scroll horizontal por 3 tarjetas */
 function scrollGrid(direction){
   const grid = document.getElementById('gridMosaicos');
   if(!grid) return;
@@ -371,7 +372,7 @@ function scrollGrid(direction){
   grid.scrollBy({ left, behavior: 'smooth' });
 }
 
-/* Permitir teclas ← → para desplazar cuando el grid tiene foco */
+/* Teclas ← → para desplazar cuando el grid tiene foco */
 document.addEventListener('keydown', (e) => {
   const active = document.activeElement;
   if(active && active.id === 'gridMosaicos'){
@@ -578,7 +579,7 @@ function updateDashboard(){
   animateCount('kpiPreventivos', cPreventivos);
   animateCount('kpiUrgentesTotal', cUrgentes);
 
-  // actualizar clases de KPI (por si quieres destacar visualmente)
+  // clases KPI (visual)
   document.getElementById('kpiEnTiempoCard').classList.toggle('en-tiempo', true);
   document.getElementById('kpiPreventivosCard').classList.toggle('preventivo', true);
   document.getElementById('kpiPendientesCard').classList.toggle('pendiente', true);
@@ -601,7 +602,7 @@ function updateDashboard(){
     div.setAttribute('onclick', `abrirModalAsesor('${as.nombre.replace(/'/g,"\\'")}')`);
     div.innerHTML = `
       <div class="card-row">
-        <div style="display:flex; align-items:center; gap:6px;">
+        <div style="display:flex; align-items:center; gap:8px;">
           <span class="semaforo ${semClass}" aria-hidden="true"></span>
           <h4 title="${as.nombre}">${as.nombre}</h4>
         </div>
@@ -648,7 +649,6 @@ function abrirModalAsesor(nombre){
   asesorActivoModal = nombre;
   document.getElementById('modalTitle').innerText = `Auditoría: ${nombre}`;
   const tickets = rawData.filter(x => x.asesor === nombre);
-  document.getElementById('modalSummary').innerText = generarResumenPorAsesor(nombre);
   construirTablaModal(tickets);
   document.getElementById('modalDetalles').classList.add('active');
 }
@@ -661,7 +661,6 @@ function abrirModalPorMetrica(tipo){
   else if(tipo === 'preventivos') tk = rawData.filter(x => x.categoria === 'preventivo');
   else if(tipo === 'urgentes') tk = rawData.filter(x => x.categoria === 'urgente');
   document.getElementById('modalTitle').innerText = tipo === 'totales_global' ? 'Todos los tickets' : `Listado - ${tipo}`;
-  document.getElementById('modalSummary').innerText = generarResumenGeneral(tipo);
   construirTablaModal(tk);
   document.getElementById('modalDetalles').classList.add('active');
 }
@@ -676,7 +675,7 @@ function construirTablaModal(lista){
     return;
   }
   lista.forEach(t => {
-    // map categoria -> pill class + semaforo dot color for classification label
+    // map categoria -> pill class
     let pillClass = 'green';
     if(t.categoria === 'urgente') pillClass = 'red';
     else if(t.categoria === 'preventivo') pillClass = 'yellow';
@@ -699,7 +698,7 @@ function construirTablaModal(lista){
   });
 }
 
-/* resúmenes y WA */
+/* resúmenes y WA (modal solo tabla, pero WA usa el resumen generado) */
 function generarResumenPorAsesor(nombre){
   const tickets = rawData.filter(x => x.asesor === nombre);
   const urg = tickets.filter(t => t.categoria === 'urgente').length;
@@ -719,7 +718,7 @@ function generarResumenPorAsesor(nombre){
   msg += `Porfa, prioricen los URGENTES ahora mismo. 🙏\nConfirmen cuando avancen con los primeros 3. 💪\n\nGracias!`;
   return msg;
 }
-function generarResumenGeneral(tipo){
+function generarResumenGeneral(){
   const resumen = { urg:0, prev:0, pend:0, enTiempo:0, totales: rawData.length };
   const porAsesor = {};
   rawData.forEach(t => {
@@ -746,7 +745,7 @@ function generarResumenGeneral(tipo){
   return msg;
 }
 function enviarWhatsAppDesdeModal(){
-  const texto = asesorActivoModal === 'all' ? generarResumenGeneral('totales_global') : generarResumenPorAsesor(asesorActivoModal);
+  const texto = asesorActivoModal === 'all' ? generarResumenGeneral() : generarResumenPorAsesor(asesorActivoModal);
   const waUrl = `https://wa.me/?text=${encodeURIComponent(texto)}`;
   window.open(waUrl, '_blank');
 }
