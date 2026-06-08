@@ -169,7 +169,6 @@ a:hover { text-decoration: underline; }
         <div class="muted" id="modalSummary">Resumen operativo</div>
       </div>
       <div style="display:flex; gap:8px; align-items:center;">
-        <button class="btn ghost" onclick="copiarReporteDesdeModal()">Copiar Resumen</button>
         <button class="btn" onclick="enviarWhatsAppDesdeModal()">Enviar WA</button>
         <button class="btn ghost" onclick="cerrarModal()">Cerrar</button>
       </div>
@@ -489,7 +488,7 @@ function generarResumenPorAsesor(nombre){
   const pend = tickets.filter(t => t.categoria === 'sin-tocar').length;
   const enTiempo = tickets.filter(t => t.categoria === 'en-tiempo').length;
   const tot = tickets.length;
-  let msg = `Asesor: ${nombre}\nTotal: ${tot}\nEn tiempo: ${enTiempo}\nPendientes s/Tocar: ${pend}\nPreventivos: ${prev}\nUrgentes: ${urg}`;
+  let msg = `👋🏼 Hola: ${nombre} comparto un corte de tus tickets \nTotal: ${tot}\nEn tiempo: ${enTiempo}\nPendientes s/Tocar: ${pend}\nPreventivos: ${prev}\nUrgentes: ${urg}`;
   const topUrg = tickets.filter(t => t.categoria === 'urgente').slice(0,3).map(t => `#${t.ticket}`).join(', ');
   if(topUrg) msg += `\nEjemplos urgentes: ${topUrg}`;
   return msg;
@@ -513,10 +512,13 @@ function generarResumenGeneral(tipo){
   return msg;
 }
 
+/*
 function copiarReporteDesdeModal(){
   const texto = asesorActivoModal === 'all' ? generarResumenGeneral('totales_global') : generarResumenPorAsesor(asesorActivoModal);
   navigator.clipboard.writeText(texto);
-}
+} 
+*/
+  
 function enviarWhatsAppDesdeModal(){
   const texto = asesorActivoModal === 'all' ? generarResumenGeneral('totales_global') : generarResumenPorAsesor(asesorActivoModal);
   window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, '_blank');
