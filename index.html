@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Vento ATC — Muro (3x · Modal solo tabla · Sin scroll vertical)</title>
+<title>Vento ATC — Muro (3x · Modal solo tabla · Scroll vertical)</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -39,8 +39,8 @@ body{
   color:var(--text);
   -webkit-font-smoothing:antialiased;
   -moz-osx-font-smoothing:grayscale;
-  /* quitar scroll vertical de la página */
-  overflow:hidden;
+  /* permitir scroll vertical en la página principal */
+  overflow:auto;
 }
 
 /* Header fixed */
@@ -68,15 +68,15 @@ header h1{ margin:0; font-size:clamp(1rem,1.6vw + 0.4rem,1.1rem); font-weight:80
   box-shadow: 0 8px 20px rgba(35,31,32,0.04);
 }
 
-/* Main area: no vertical scroll on body; this area fills remaining viewport */
+/* Main area: ocupa el espacio restante y permite scroll interno */
 .main-scroll {
   width:100%;
   height:calc(100vh - var(--header-h) - var(--top-h));
-  overflow:hidden; /* quitar scroll vertical */
+  overflow:auto; /* permitir scroll vertical dentro del main */
 }
 
 /* Container */
-.container{ max-width:1280px; margin:0 auto; padding:18px 16px; width:calc(100% - 32px); box-sizing:border-box; height:100%; }
+.container{ max-width:1280px; margin:0 auto; padding:18px 16px; width:calc(100% - 32px); box-sizing:border-box; }
 
 /* KPI grid */
 .kpi-grid{
@@ -265,7 +265,7 @@ button:focus, a:focus { outline: 3px solid rgba(242,143,23,0.18); outline-offset
     </div>
   </div>
 
-  <!-- Main area: no vertical scroll on body; this area fills remaining viewport -->
+  <!-- Main area: permite scroll vertical dentro del main -->
   <div id="mainScroll" class="main-scroll" role="main">
     <div class="container" style="height:100%; display:flex; flex-direction:column;">
       <div class="matrix-title">Seguimiento por Asesor</div>
@@ -279,8 +279,8 @@ button:focus, a:focus { outline: 3px solid rgba(242,143,23,0.18); outline-offset
         <div class="nav-arrow nav-right" id="navRight" title="Desplazar a la derecha" onclick="scrollGrid('right')">›</div>
       </div>
 
-      <!-- espacio inferior fijo -->
-      <div style="height:8px"></div>
+      <!-- espacio inferior para scroll natural -->
+      <div style="height:24px"></div>
     </div>
   </div>
 
@@ -329,7 +329,7 @@ function ajustarLayoutFijo(){
   const topH = top.getBoundingClientRect().height;
   document.documentElement.style.setProperty('--header-h', headerH + 'px');
   document.documentElement.style.setProperty('--top-h', topH + 'px');
-  // main area height already set via CSS calc; no body scroll
+  // main area height already set via CSS calc; permitir scroll interno
   ajustarAnchoTarjetas();
 }
 
@@ -337,19 +337,15 @@ function ajustarLayoutFijo(){
 function ajustarAnchoTarjetas(){
   const grid = document.getElementById('gridMosaicos');
   if(!grid) return;
-  const wrap = grid.parentElement; // .grid-asesores-wrap
   const gap = parseFloat(getComputedStyle(grid).gap) || 12;
-  // ancho disponible dentro del wrap (restar flechas si visibles)
+  const wrap = grid.parentElement;
   const leftArrow = document.querySelector('.nav-left');
   const rightArrow = document.querySelector('.nav-right');
   const arrowSpace = ((leftArrow && leftArrow.offsetWidth) ? (leftArrow.offsetWidth + 12) : 0) + ((rightArrow && rightArrow.offsetWidth) ? (rightArrow.offsetWidth + 12) : 0);
   const wrapWidth = wrap.clientWidth - arrowSpace;
-  // calcular ancho por tarjeta para 3 tarjetas visibles (2 gaps entre ellas)
   const cardWidth = Math.floor((wrapWidth - (gap * 2)) / 3);
-  // aplicar a cada tarjeta
   const cards = grid.querySelectorAll('.card-asesor');
   if(cards.length === 0){
-    // guardar como variable CSS para futuros
     grid.style.setProperty('--computed-card-width', cardWidth + 'px');
     return;
   }
