@@ -3,20 +3,24 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Vento ATC — Muro (Dark Mode, completo)</title>
+<title>Vento ATC — Muro (Colores Institucionales)</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#0B0F14;
-  --panel:#0F1720;
-  --muted:#9AA4B2;
-  --accent:#FF5A00;
-  --accent-2:#2ECC71;
-  --danger:#FF6B6B;
-  --warn:#F6C85F;
-  --glass: rgba(255,255,255,0.03);
-  --shadow-sm: 0 8px 24px rgba(2,6,23,0.6);
-  --shadow-md: 0 18px 60px rgba(2,6,23,0.7);
+  /* Paleta institucional */
+  --white: #FFFFFF;      /* 50% uso */
+  --black: #231F20;      /* 30% uso */
+  --gray:  #616160;      /* 15% uso */
+  --orange:#F28F17;      /* 5% uso */
+
+  /* Accesorios visuales */
+  --bg: #FFFFFF;
+  --card: #FFFFFF;
+  --muted: var(--gray);
+  --accent: var(--orange);
+  --text: var(--black);
+  --shadow-sm: 0 6px 18px rgba(35,31,32,0.06);
+  --shadow-md: 0 12px 30px rgba(35,31,32,0.10);
   --radius:12px;
   --gap:12px;
 }
@@ -24,8 +28,8 @@
 body{
   margin:0;
   font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
-  background:linear-gradient(180deg,#06080a 0%, #0b0f14 100%);
-  color:#E6EEF3;
+  background:linear-gradient(180deg, #FBFBFB 0%, #FFFFFF 100%);
+  color:var(--text);
   -webkit-font-smoothing:antialiased;
   -moz-osx-font-smoothing:grayscale;
   padding-bottom:40px;
@@ -34,13 +38,13 @@ body{
 /* Header */
 header{
   display:flex; align-items:center; justify-content:space-between;
-  padding:18px 28px; background:linear-gradient(90deg, rgba(255,90,0,0.06), rgba(255,90,0,0.02));
-  border-bottom:1px solid rgba(255,255,255,0.03); position:sticky; top:0; z-index:40;
+  padding:18px 28px; background:var(--white);
+  border-bottom:2px solid rgba(35,31,32,0.04); position:sticky; top:0; z-index:40;
 }
 .brand{ display:flex; gap:12px; align-items:center; }
-.logo{ width:44px; height:44px; border-radius:10px; background:linear-gradient(135deg,var(--accent),#ff7a3a);
-  display:flex; align-items:center; justify-content:center; color:#0b0f14; font-weight:900; font-size:18px; box-shadow:var(--shadow-sm); }
-header h1{ margin:0; font-size:1.05rem; font-weight:800; color:#E6EEF3; }
+.logo{ width:44px; height:44px; border-radius:10px; background:var(--orange);
+  display:flex; align-items:center; justify-content:center; color:var(--white); font-weight:900; font-size:18px; box-shadow:var(--shadow-sm); }
+header h1{ margin:0; font-size:1.05rem; font-weight:800; color:var(--black); }
 .header-actions{ display:flex; gap:10px; align-items:center; color:var(--muted); }
 
 /* Layout */
@@ -49,44 +53,44 @@ header h1{ margin:0; font-size:1.05rem; font-weight:800; color:#E6EEF3; }
 
 /* KPI grid */
 .kpi-grid{ display:grid; grid-template-columns:repeat(5,1fr); gap:12px; flex:1; min-width:320px; }
-.kpi{ background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border-radius:10px; padding:12px 14px;
-  box-shadow:var(--shadow-sm); border:1px solid rgba(255,255,255,0.03); transition:transform .12s ease; cursor:pointer; }
+.kpi{ background:var(--card); border-radius:10px; padding:12px 14px;
+  box-shadow:var(--shadow-sm); border:1px solid rgba(35,31,32,0.04); transition:transform .12s ease; cursor:pointer; }
 .kpi:hover{ transform:translateY(-6px); box-shadow:var(--shadow-md); }
 .kpi .label{ font-size:0.72rem; color:var(--muted); font-weight:700; text-transform:uppercase; }
-.kpi .value{ font-size:1.6rem; font-weight:900; letter-spacing:-0.6px; color:#F8FAFC; }
+.kpi .value{ font-size:1.6rem; font-weight:900; letter-spacing:-0.6px; color:var(--black); }
 .kpi .meta{ font-size:0.78rem; color:var(--muted); }
 
 /* Advisors grid */
-.matrix-title{ font-weight:800; margin:18px 0 8px; color:#E6EEF3; }
+.matrix-title{ font-weight:800; margin:18px 0 8px; color:var(--black); }
 .grid-asesores{ display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px; }
-.card-asesor{ background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border-radius:var(--radius);
-  padding:14px; box-shadow:var(--shadow-sm); border:1px solid rgba(255,255,255,0.03); transition:transform .12s ease; cursor:pointer; display:flex; flex-direction:column; gap:10px; }
+.card-asesor{ background:linear-gradient(180deg,#FFFFFF,#FBFBFB); border-radius:var(--radius);
+  padding:14px; box-shadow:var(--shadow-sm); border:1px solid rgba(35,31,32,0.04); transition:transform .12s ease; cursor:pointer; display:flex; flex-direction:column; gap:10px; }
 .card-asesor:hover{ transform:translateY(-6px); box-shadow:var(--shadow-md); }
-.card-asesor h4{ margin:0; font-size:0.95rem; font-weight:800; color:#F8FAFC; }
+.card-asesor h4{ margin:0; font-size:0.95rem; font-weight:800; color:var(--black); }
 .card-row{ display:flex; gap:10px; align-items:center; justify-content:space-between; }
 
 /* metrics */
 .metrics-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
-.metric{ background:rgba(255,255,255,0.02); border-radius:8px; padding:8px; border:1px solid rgba(255,255,255,0.02); }
+.metric{ background:rgba(35,31,32,0.02); border-radius:8px; padding:8px; border:1px solid rgba(35,31,32,0.03); }
 .metric .m-label{ font-size:0.66rem; color:var(--muted); font-weight:800; text-transform:uppercase; }
-.metric .m-value{ font-size:1.05rem; font-weight:900; margin-top:6px; color:#F8FAFC; }
+.metric .m-value{ font-size:1.05rem; font-weight:900; margin-top:6px; color:var(--black); }
 
 /* pills */
 .pill{ display:inline-flex; gap:8px; align-items:center; padding:6px 8px; border-radius:999px; font-weight:800; font-size:0.72rem; }
-.pill.green{ background:rgba(46,204,113,0.08); color:var(--accent-2); border:1px solid rgba(46,204,113,0.12); }
-.pill.red{ background:rgba(255,107,107,0.08); color:var(--danger); border:1px solid rgba(255,107,107,0.12); }
-.pill.yellow{ background:rgba(246,200,95,0.08); color:var(--warn); border:1px solid rgba(246,200,95,0.12); }
+.pill.green{ background:rgba(46,204,113,0.06); color:#1B7A3A; border:1px solid rgba(46,204,113,0.08); }
+.pill.red{ background:rgba(242,143,23,0.06); color:var(--orange); border:1px solid rgba(242,143,23,0.08); } /* using orange as alert accent */
+.pill.yellow{ background:rgba(242,143,23,0.04); color:var(--orange); border:1px solid rgba(242,143,23,0.06); }
 
 /* modal */
-.modal-overlay{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(2,6,23,0.6); z-index:120; }
+.modal-overlay{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.35); z-index:120; }
 .modal-overlay.active{ display:flex; }
-.modal{ width:94%; max-width:1100px; background:linear-gradient(180deg,#0b1116,#0f1720); border-radius:12px; overflow:hidden; box-shadow:0 30px 80px rgba(2,6,23,0.8); color:#E6EEF3; }
-.modal-head{ padding:14px 18px; border-bottom:1px solid rgba(255,255,255,0.03); display:flex; justify-content:space-between; align-items:center; gap:12px; }
+.modal{ width:94%; max-width:1100px; background:var(--white); border-radius:12px; overflow:hidden; box-shadow:0 30px 80px rgba(35,31,32,0.12); color:var(--black); }
+.modal-head{ padding:14px 18px; border-bottom:1px solid rgba(35,31,32,0.04); display:flex; justify-content:space-between; align-items:center; gap:12px; }
 .modal-body{ padding:12px 18px; max-height:62vh; overflow:auto; }
-table{ width:100%; border-collapse:collapse; font-size:0.9rem; color:#E6EEF3; }
-th, td{ padding:10px 12px; text-align:left; border-bottom:1px solid rgba(255,255,255,0.03); }
-th{ background:rgba(255,255,255,0.02); position:sticky; top:0; z-index:2; font-weight:800; color:var(--muted); font-size:0.78rem; text-transform:uppercase; }
-tr:hover td{ background:rgba(255,255,255,0.02); }
+table{ width:100%; border-collapse:collapse; font-size:0.9rem; color:var(--black); }
+th, td{ padding:10px 12px; text-align:left; border-bottom:1px solid rgba(35,31,32,0.04); }
+th{ background:rgba(245,245,245,0.9); position:sticky; top:0; z-index:2; font-weight:800; color:var(--muted); font-size:0.78rem; text-transform:uppercase; }
+tr:hover td{ background:rgba(35,31,32,0.02); }
 
 /* responsive */
 @media (max-width:1100px){ .kpi-grid{ grid-template-columns:repeat(3,1fr); } }
@@ -95,10 +99,10 @@ tr:hover td{ background:rgba(255,255,255,0.02); }
 
 /* helpers */
 .muted{ color:var(--muted); font-size:0.85rem; }
-.btn{ background:var(--accent); color:#0b0f14; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:800; }
-.btn.ghost{ background:transparent; color:var(--muted); border:1px solid rgba(255,255,255,0.03); }
+.btn{ background:var(--orange); color:var(--white); border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:800; }
+.btn.ghost{ background:transparent; color:var(--muted); border:1px solid rgba(35,31,32,0.04); }
 .countup{ transition:all .45s cubic-bezier(.2,.9,.2,1); }
-a { color: #9AD1FF; text-decoration: none; }
+a { color: var(--orange); text-decoration: none; }
 a:hover { text-decoration: underline; }
 </style>
 </head>
@@ -108,7 +112,7 @@ a:hover { text-decoration: underline; }
     <div class="logo">V</div>
     <div>
       <h1>Vento — Muro ATC</h1>
-      <div class="muted" style="font-size:0.82rem">Dark Mode · Vista operativa</div>
+      <div class="muted" style="font-size:0.82rem">Paleta institucional aplicada</div>
     </div>
   </div>
   <div class="header-actions">
@@ -193,7 +197,7 @@ a:hover { text-decoration: underline; }
 
 <script>
 /* -------------------------
-   Config y utilidades
+   Config y utilidades (idénticas a la lógica que validaste)
    ------------------------- */
 const SHEET_ID = '1JBre4cLAbYiOJuYye_FGcsk5U_BIStDoAiCbV-B8WoA';
 const querySQLTickets = encodeURIComponent("SELECT A, B, C, F, G, I, Z");
@@ -205,31 +209,22 @@ let rawData = [];
 let ultimaActualizacionBase = '—';
 let asesorActivoModal = 'all';
 
-/* Parseo robusto de fechas (soporta yyyy-mm-dd y dd/mm/yyyy y con hora) */
 function parsearFechaHoraString(txt){
   if(!txt) return null;
   const s = txt.toString().trim();
-  // Intentar parseo ISO directo
   const isoTry = new Date(s);
   if(!isNaN(isoTry.getTime())) return isoTry;
-
-  // Normalizar separadores y tokens
   const partes = s.split(' ');
   const fechaPart = (partes[0] || '').replace(/\//g,'-');
   const horaPart = partes.slice(1).join(' ') || '00:00';
   const fparts = fechaPart.split('-');
   if(fparts.length !== 3) return null;
-
   let y,m,d;
-  // Detectar si es yyyy-mm-dd
   if(fparts[0].length === 4){
     y = parseInt(fparts[0],10); m = parseInt(fparts[1],10)-1; d = parseInt(fparts[2],10);
   } else {
-    // asumir dd-mm-yyyy
     d = parseInt(fparts[0],10); m = parseInt(fparts[1],10)-1; y = parseInt(fparts[2],10);
   }
-
-  // Manejar hora con AM/PM
   let hh = 0, mm = 0;
   const horaClean = horaPart.replace(/\./g,':').trim();
   const ampm = /am|pm/i.test(horaClean);
@@ -245,7 +240,6 @@ function parsearFechaHoraString(txt){
   }
   return new Date(y, m, d, hh, mm, 0);
 }
-
 function parsearFechaString(txt){
   if(!txt) return null;
   const limpia = txt.toString().trim().split(' ')[0].replace(/\//g, '-');
@@ -256,7 +250,6 @@ function parsearFechaString(txt){
   }
   return null;
 }
-
 function calcularDiasCorridos(fechaInicio, fechaFin){
   if(!fechaInicio || !fechaFin) return 0;
   const inicio = new Date(fechaInicio); inicio.setHours(0,0,0,0);
@@ -269,20 +262,7 @@ function calcularHorasCorridas(fechaInicio, fechaFin){
   return Math.floor(diffMs / (1000 * 60 * 60));
 }
 
-/* -------------------------
-   Clasificación (balanceada)
-   - Pending:
-       horasUltAct < 24  => EN-TIEMPO
-       24 <= horasUltAct < 48 => SIN-TOCAR
-       horasUltAct >= 48 => URGENTE
-       además: si creado >=72h => URGENTE
-   - Open:
-       horasCreacion <=4 => EN-TIEMPO
-       4 <= horasCreacion <24 => PREVENTIVO
-       horasCreacion >=24 => URGENTE
-   - Otros estatus => URGENTE
-   Precedencia: Urgente -> Preventivo -> Sin-tocar -> En-tiempo
-   ------------------------- */
+/* Clasificación (balanceada) */
 function clasificarTicketObj(ticket, ahora = new Date()){
   const creado = parsearFechaHoraString(ticket.fechaCreacionStr) || parsearFechaString(ticket.fechaCreacionStr);
   const ultima = parsearFechaHoraString(ticket.fechaActualizacionStr) || parsearFechaString(ticket.fechaActualizacionStr);
@@ -294,35 +274,18 @@ function clasificarTicketObj(ticket, ahora = new Date()){
   if(!GRUPOS_VALIDOS.includes(grupo)) return { categoria: 'fuera-scope', razon: 'grupo no ATC' };
   if(estatus === 'closed') return { categoria: 'exclude', razon: 'closed' };
 
-  // URGENTE por creación larga (cualquier estatus)
   if(creado && horasDesdeCreacion >= 72) return { categoria: 'urgente', razon: 'creado >= 72h' };
-
-  // URGENTE: open >=24h
   if(estatus === 'open' && horasDesdeCreacion >= 24) return { categoria: 'urgente', razon: 'open >= 24h' };
-
-  // URGENTE: pending sin actualizar >=48h
   if(estatus === 'pending' && horasDesdeUltAct >= 48) return { categoria: 'urgente', razon: 'pending sin actualizar >= 48h' };
-
-  // URGENTE: cualquier otro estatus distinto a open/pending -> urgente
   if(estatus !== 'open' && estatus !== 'pending') return { categoria: 'urgente', razon: `estatus ${ticket.estado} no permitido` };
-
-  // PREVENTIVO: open >=4h y <24h
   if(estatus === 'open' && horasDesdeCreacion >= 4 && horasDesdeCreacion < 24) return { categoria: 'preventivo', razon: 'open >=4h y <24h' };
-
-  // SIN-TOCAR: pending con 24 <= horasDesdeUltAct < 48
   if(estatus === 'pending' && horasDesdeUltAct >= 24 && horasDesdeUltAct < 48) return { categoria: 'sin-tocar', razon: 'pending sin actualizar 24-48h' };
-
-  // EN-TIEMPO: pending tocado hoy OR open <=4h OR catch-all
   if(estatus === 'pending' && horasDesdeUltAct < 24) return { categoria: 'en-tiempo', razon: 'pending tocado <24h' };
   if(estatus === 'open' && horasDesdeCreacion <= 4) return { categoria: 'en-tiempo', razon: 'open <=4h' };
-
-  // CATCH-ALL -> en-tiempo
   return { categoria: 'en-tiempo', razon: 'en-tiempo' };
 }
 
-/* -------------------------
-   Fetch y mapeo de datos
-   ------------------------- */
+/* Fetch y mapeo */
 async function fetchData(){
   try{
     document.getElementById('dbTimestamp').innerText = 'Actualizando...';
@@ -332,7 +295,6 @@ async function fetchData(){
     const rows = jsonTK.table.rows || [];
     const ahora = new Date();
 
-    // Leer Z1 robustamente
     let zVal = '';
     if(rows[0] && rows[0].c && rows[0].c[6]) zVal = (rows[0].c[6].f || rows[0].c[6].v || '').toString().trim();
     if(!zVal){
@@ -376,11 +338,6 @@ async function fetchData(){
         fechaActualizacionStr: fechaActualizacionTxt
       }, ahora);
 
-      // DEBUG fallback: si la cadena de última act contiene la fecha de hoy, forzamos en-tiempo (temporal)
-      // (Descomenta si necesitas diagnosticar problemas de parseo)
-      // const hoyStr = ahora.toISOString().slice(0,10);
-      // if(fechaActualizacionTxt && fechaActualizacionTxt.includes(hoyStr)) cls.categoria = 'en-tiempo';
-
       return {
         ticket: ticketID,
         asesor: nombreAsesor,
@@ -405,9 +362,7 @@ async function fetchData(){
   }
 }
 
-/* -------------------------
-   Actualizar UI: KPIs y tarjetas
-   ------------------------- */
+/* UI update */
 function updateDashboard(){
   let cTotales = 0, cEnTiempo = 0, cPendientesSTocar = 0, cPreventivos = 0, cUrgentes = 0;
   const mapeoAsesores = {};
@@ -423,14 +378,12 @@ function updateDashboard(){
     else if(d.categoria === 'en-tiempo'){ cEnTiempo++; mapeoAsesores[d.asesor].enTiempo++; }
   });
 
-  // animación count-up simple
   animateCount('kpiTotalGlobal', cTotales);
   animateCount('kpiEnTiempo', cEnTiempo);
   animateCount('kpiPendientesSTocar', cPendientesSTocar);
   animateCount('kpiPreventivos', cPreventivos);
   animateCount('kpiUrgentesTotal', cUrgentes);
 
-  // construir tarjetas por asesor
   const grid = document.getElementById('gridMosaicos');
   grid.innerHTML = '';
   const lista = Object.values(mapeoAsesores).sort((a,b) => b.urgentes - a.urgentes || b.pendientes - a.pendientes);
@@ -447,17 +400,16 @@ function updateDashboard(){
       </div>
       <div class="metrics-grid">
         <div class="metric"><div class="m-label">Total</div><div class="m-value">${as.totales}</div></div>
-        <div class="metric"><div class="m-label">En tiempo</div><div class="m-value" style="color:${as.enTiempo>0?'var(--accent-2)':'#F8FAFC'}">${as.enTiempo}</div></div>
-        <div class="metric"><div class="m-label">Pendientes s/Tocar</div><div class="m-value" style="color:${as.pendientes>0?'var(--accent)':'#F8FAFC'}">${as.pendientes}</div></div>
-        <div class="metric"><div class="m-label">Preventivos</div><div class="m-value" style="color:${as.preventivos>0?'var(--warn)':'#F8FAFC'}">${as.preventivos}</div></div>
-        <div class="metric" style="grid-column:span 2;"><div class="m-label">Urgentes</div><div class="m-value" style="color:${as.urgentes>0?'var(--danger)':'#F8FAFC'}">${as.urgentes}</div></div>
+        <div class="metric"><div class="m-label">En tiempo</div><div class="m-value" style="color:${as.enTiempo>0?'#1B7A3A':'var(--black)'}">${as.enTiempo}</div></div>
+        <div class="metric"><div class="m-label">Pendientes s/Tocar</div><div class="m-value" style="color:${as.pendientes>0?'var(--orange)':'var(--black)'}">${as.pendientes}</div></div>
+        <div class="metric"><div class="m-label">Preventivos</div><div class="m-value" style="color:${as.preventivos>0?'var(--orange)':'var(--black)'}">${as.preventivos}</div></div>
+        <div class="metric" style="grid-column:span 2;"><div class="m-label">Urgentes</div><div class="m-value" style="color:${as.urgentes>0?'var(--orange)':'var(--black)'}">${as.urgentes}</div></div>
       </div>
     `;
     grid.appendChild(div);
   });
 }
 
-/* simple count-up animation */
 function animateCount(id, target){
   const el = document.getElementById(id);
   if(!el) return;
@@ -476,9 +428,7 @@ function animateCount(id, target){
   }, stepTime);
 }
 
-/* -------------------------
-   Modal, tablas y resúmenes
-   ------------------------- */
+/* Modal & tablas */
 function abrirModalAsesor(nombre){
   asesorActivoModal = nombre;
   document.getElementById('modalTitle').innerText = `Auditoría: ${nombre}`;
@@ -507,14 +457,14 @@ function construirTablaModal(lista){
   const tbody = document.getElementById('modalTablaCuerpo');
   tbody.innerHTML = '';
   if(lista.length === 0){
-    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:30px; font-weight:800; color:var(--accent-2)">✨ Cero folios en este segmento.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:30px; font-weight:800; color:#1B7A3A">✨ Cero folios en este segmento.</td></tr>`;
     return;
   }
   lista.forEach(t => {
     let badge = '';
     if(t.categoria === 'urgente') badge = `<span class="pill red">URGENTE</span>`;
     else if(t.categoria === 'preventivo') badge = `<span class="pill yellow">PREVENTIVO</span>`;
-    else if(t.categoria === 'sin-tocar') badge = `<span class="pill" style="background:rgba(255,90,0,0.06); color:var(--accent); border:1px solid rgba(255,90,0,0.12)">SIN TOCAR</span>`;
+    else if(t.categoria === 'sin-tocar') badge = `<span class="pill" style="background:rgba(242,143,23,0.06); color:var(--orange); border:1px solid rgba(242,143,23,0.08)">SIN TOCAR</span>`;
     else badge = `<span class="pill green">EN TIEMPO</span>`;
 
     const tr = document.createElement('tr');
@@ -524,14 +474,14 @@ function construirTablaModal(lista){
       <td>${t.estado}</td>
       <td><small>${t.fechaCreacionStr || '-'}</small></td>
       <td><small>${t.fechaActualizacionStr || '-'}</small></td>
-      <td style="font-weight:900; color:${t.diasEdad>=4?'var(--danger)':'#E6EEF3'}">${t.diasEdad} d.</td>
+      <td style="font-weight:900; color:${t.diasEdad>=4?'var(--orange)':'var(--black)'}">${t.diasEdad} d.</td>
       <td>${badge} <div style="font-size:0.72rem; color:var(--muted); margin-top:6px;">${t.razon || ''}</div></td>
     `;
     tbody.appendChild(tr);
   });
 }
 
-/* resumenes */
+/* resúmenes y utilidades */
 function generarResumenPorAsesor(nombre){
   const tickets = rawData.filter(x => x.asesor === nombre);
   const urg = tickets.filter(t => t.categoria === 'urgente').length;
@@ -563,7 +513,6 @@ function generarResumenGeneral(tipo){
   return msg;
 }
 
-/* copiar / wa */
 function copiarReporteDesdeModal(){
   const texto = asesorActivoModal === 'all' ? generarResumenGeneral('totales_global') : generarResumenPorAsesor(asesorActivoModal);
   navigator.clipboard.writeText(texto);
