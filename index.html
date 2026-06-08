@@ -226,28 +226,29 @@ function clasificarTicketObj(ticket, ahora = new Date()){
   if(!GRUPOS_VALIDOS.includes(grupo)) return { categoria: 'fuera-scope', razon: 'grupo no ATC' };
   if(estatus === 'closed') return { categoria: 'exclude', razon: 'closed' };
 
-  // URGENTE por creación larga (cualquier estatus)
+  // 1) Urgente por creación larga (cualquier estatus)
   if(creado && horasDesdeCreacion >= 72) return { categoria: 'urgente', razon: 'creado >= 72h' };
 
-  // URGENTE: open >=24h
+  // 2) Urgente por open viejo
   if(estatus === 'open' && horasDesdeCreacion >= 24) return { categoria: 'urgente', razon: 'open >= 24h' };
 
-  // URGENTE: pending sin actualización >=24h
-  if(estatus === 'pending' && horasDesdeUltAct >= 24) return { categoria: 'urgente', razon: 'pending sin actualizar >= 24h' };
+  // 3) Urgente por pending muy viejo (>=48h)
+  if(estatus === 'pending' && horasDesdeUltAct >= 48) return { categoria: 'urgente', razon: 'pending sin actualizar >= 48h' };
 
-  // URGENTE: cualquier otro estatus distinto a open/pending -> urgente
+  // 4) Otros estatus distintos a open/pending -> urgente
   if(estatus !== 'open' && estatus !== 'pending') return { categoria: 'urgente', razon: `estatus ${ticket.estado} no permitido` };
 
-  // PREVENTIVO: open >=4h y <24h
+  // 5) Preventivo (open entre 4h y <24h)
   if(estatus === 'open' && horasDesdeCreacion >= 4 && horasDesdeCreacion < 24) return { categoria: 'preventivo', razon: 'open >=4h y <24h' };
 
-  // SIN-TOCAR: pending con última actividad dentro de las últimas 24 horas (se considera sin tocar hoy)
-  if(estatus === 'pending' && horasDesdeUltAct < 24) return { categoria: 'sin-tocar', razon: 'pending tocado ayer/no hoy <24h' };
+  // 6) SIN-TOCAR: pending con 24 <= horasDesdeUltAct < 48
+  if(estatus === 'pending' && horasDesdeUltAct >= 24 && horasDesdeUltAct < 48) return { categoria: 'sin-tocar', razon: 'pending sin actualizar 24-48h' };
 
-  // EN-TIEMPO: open <=4h o catch-all
+  // 7) EN-TIEMPO: pending tocado hoy (horasDesdeUltAct < 24) o open <=4h
+  if(estatus === 'pending' && horasDesdeUltAct < 24) return { categoria: 'en-tiempo', razon: 'pending tocado <24h' };
   if(estatus === 'open' && horasDesdeCreacion <= 4) return { categoria: 'en-tiempo', razon: 'open <=4h' };
 
-  // CATCH-ALL -> en-tiempo
+  // 8) Catch-all -> en-tiempo
   return { categoria: 'en-tiempo', razon: 'en-tiempo' };
 }
 
