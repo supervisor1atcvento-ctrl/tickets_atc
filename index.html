@@ -488,7 +488,7 @@ function generarResumenPorAsesor(nombre){
   const pend = tickets.filter(t => t.categoria === 'sin-tocar').length;
   const enTiempo = tickets.filter(t => t.categoria === 'en-tiempo').length;
   const tot = tickets.length;
-  let msg = `👋🏼 Hola: ${nombre} comparto un corte de tus tickets \nTotal: ${tot}\nEn tiempo: ${enTiempo}\nPendientes s/Tocar: ${pend}\nPreventivos: ${prev}\nUrgentes: ${urg}`;
+  const msg = `👋🏼 *Hola, ${nombre}* \n\nTe comparto el corte actual de tus tickets asignados. Por favor, dale prioridad a los casos críticos: \n\n📊 *Resumen:* \n• *Total:* ${tot}\n• *En tiempo:* ${enTiempo}\n• *Pendientes sin tocar:* ${pend}\n\n⚠️ *Atención requerida:* \n• *Preventivos:* ${prev}\n• *Urgentes:* ${urg}\n\n¡Gracias por tu apoyo para mantener el tablero al día! 👊🏼`;
   const topUrg = tickets.filter(t => t.categoria === 'urgente').slice(0,3).map(t => `#${t.ticket}`).join(', ');
   if(topUrg) msg += `\nEjemplos urgentes: ${topUrg}`;
   return msg;
