@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Vento ATC — Muro Ejecutivo (Umbral pending = 24h)</title>
+<title>Vento ATC — Muro Ejecutivo (Pendientes s/Tocar)</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -125,7 +125,7 @@ th{font-size:var(--font-sm); color:var(--muted); text-transform:uppercase;}
       <div class="kpi pendiente" id="kpiPendientesCard" onclick="abrirModalPorMetrica('pendientes_stocar')" role="button" tabindex="0">
         <div class="label">Pendientes s/Tocar</div>
         <div class="value" id="kpiPendientesSTocar">0</div>
-        <div class="meta">Pending sin actualizar</div>
+        <div class="meta">Pending 12–24h (sin-tocar)</div>
       </div>
 
       <div class="kpi preventivo" id="kpiPreventivosCard" onclick="abrirModalPorMetrica('preventivos')" role="button" tabindex="0">
@@ -184,8 +184,9 @@ th{font-size:var(--font-sm); color:var(--muted); text-transform:uppercase;}
 /* ============================
    Configuraciones y umbrales
    ============================ */
-// Umbral configurable: si pending sin tocar >= PENDING_URGENT_HOURS => urgente
-const PENDING_URGENT_HOURS = 24; // horas
+// Umbral configurable: pending entre PENDING_WARNING_MIN_HOURS y PENDING_URGENT_HOURS => sin-tocar
+const PENDING_WARNING_MIN_HOURS = 12; // inicio del rango "sin-tocar"
+const PENDING_URGENT_HOURS = 24; // horas para pasar a urgente
 
 /* Fuentes de datos */
 const SHEET_ID = '1JBre4cLAbYiOJuYye_FGcsk5U_BIStDoAiCbV-B8WoA';
@@ -249,7 +250,7 @@ const utils = {
 };
 
 /* ============================
-   Clasificación de tickets (sin tocar la lógica principal)
+   Clasificación de tickets (actualizada para sin-tocar)
    ============================ */
 function clasificarTicketObj(ticket, ahora = new Date()){
   const creado = utils.parseDateTime(ticket.fechaCreacionStr) || utils.parseDate(ticket.fechaCreacionStr);
@@ -272,13 +273,15 @@ function clasificarTicketObj(ticket, ahora = new Date()){
     if(horasDesdeCreacion <= 4) return { categoria: 'en-tiempo', razon: 'open <=4h' };
   }
 
-  // pending rules (nuevo umbral)
+  // pending rules (ahora con sin-tocar entre PENDING_WARNING_MIN_HOURS y PENDING_URGENT_HOURS)
   if(estatus === 'pending'){
     if(horasDesdeUltAct >= PENDING_URGENT_HOURS){
       return { categoria: 'urgente', razon: `pending sin actualizar >= ${PENDING_URGENT_HOURS}h` };
-    } else {
-      return { categoria: 'en-tiempo', razon: `pending tocado < ${PENDING_URGENT_HOURS}h` };
     }
+    if(horasDesdeUltAct >= PENDING_WARNING_MIN_HOURS && horasDesdeUltAct < PENDING_URGENT_HOURS){
+      return { categoria: 'sin-tocar', razon: `pending sin actualizar ${PENDING_WARNING_MIN_HOURS}-${PENDING_URGENT_HOURS}h` };
+    }
+    return { categoria: 'en-tiempo', razon: `pending tocado < ${PENDING_WARNING_MIN_HOURS}h` };
   }
 
   // fallback
@@ -373,7 +376,7 @@ async function fetchData(){
 }
 
 /* ============================
-   Render del dashboard (con normalización de claves)
+   Render del dashboard (ahora sin-tocar es categoría real)
    ============================ */
 function animateCount(id, target){
   const el = document.getElementById(id);
@@ -407,7 +410,7 @@ function updateDashboard(){
       mapeoAsesores[asesorKey] = {
         nombreDisplay: (d.asesor || 'Sin Asesor').toString().trim(),
         urgentes: 0,
-        pendientes: 0,
+        pendientes: 0,        // sin-tocar
         preventivos: 0,
         totales: 0,
         enTiempo: 0
@@ -416,6 +419,7 @@ function updateDashboard(){
     const asObj = mapeoAsesores[asesorKey];
     asObj.totales++;
 
+    // contar según categoría real (sin-tocar ahora es categoría)
     if(d.categoria === 'urgente'){ cUrgentes++; asObj.urgentes++; }
     else if(d.categoria === 'preventivo'){ cPreventivos++; asObj.preventivos++; }
     else if(d.categoria === 'sin-tocar'){ cPendientesSTocar++; asObj.pendientes++; }
@@ -439,9 +443,6 @@ function updateDashboard(){
   grid.innerHTML = '';
   const lista = Object.values(mapeoAsesores).sort((a,b) => b.urgentes - a.urgentes || b.pendientes - a.pendientes || b.preventivos - a.preventivos);
 
-  // debug: opcional para consola (descomentar si necesitas verificar)
-  // console.log('Asesores detectados:', lista.map(x => x.nombreDisplay));
-
   lista.forEach(as => {
     const displayName = as.nombreDisplay;
     let semClass = 'green';
@@ -455,6 +456,7 @@ function updateDashboard(){
     div.setAttribute('onclick', `abrirModalAsesor('${displayName.replace(/'/g,"\\'")}')`);
     div.setAttribute('role','button');
     div.setAttribute('tabindex','0');
+
     div.innerHTML = `
       <div class="card-row">
         <div style="display:flex; align-items:center; gap:8px;">
