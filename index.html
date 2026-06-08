@@ -3,192 +3,104 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Vento ATC — Muro Ejecutivo</title>
+<title>Vento ATC — Muro Ejecutivo (Umbral pending = 24h)</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  /* Paleta institucional refinada */
-  --white: #FFFFFF;
-  --black: #231F20;
-  --muted: #616160;
-  --accent: #F28F17;
-  --bg: #F7F8FA;
-
-  /* Semáforo */
-  --red: #FF6B6B;
-  --yellow: #F6C85F;
-  --orange: #F28F17;
-  --green: #2ECC71;
-
-  /* Tipografía y tamaños */
-  --font-sm: 0.78rem;
-  --font-md: 0.95rem;
-  --font-lg: 1.25rem;
-
-  /* Sombras y radios */
-  --shadow-card: 0 6px 18px rgba(35,31,32,0.06);
-  --shadow-hover: 0 12px 30px rgba(35,31,32,0.10);
-  --radius: 12px;
-
-  --gap: 12px;
-  --header-h: 64px;
-  --top-h: 160px;
+  --white:#FFFFFF; --black:#231F20; --muted:#616160; --accent:#F28F17; --bg:#F7F8FA;
+  --red:#FF6B6B; --yellow:#F6C85F; --orange:#F28F17; --green:#2ECC71;
+  --font-sm:0.78rem; --font-md:0.95rem; --font-lg:1.25rem;
+  --shadow-card:0 6px 18px rgba(35,31,32,0.06); --shadow-hover:0 12px 30px rgba(35,31,32,0.10);
+  --radius:12px; --gap:12px; --header-h:64px; --top-h:160px;
 }
 
-/* Reset y base */
+/* Reset & base */
 *{box-sizing:border-box}
 html,body{height:100%}
 body{
-  margin:0;
-  font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
-  background:var(--bg);
-  color:var(--black);
-  -webkit-font-smoothing:antialiased;
-  -moz-osx-font-smoothing:grayscale;
-  overflow:auto; /* scroll vertical habilitado */
+  margin:0; font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
+  background:var(--bg); color:var(--black); -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+  overflow:auto;
 }
 
-/* Header fijo */
+/* Header fixed */
 header{
-  position:fixed; top:0; left:0; right:0; z-index:140;
-  height:var(--header-h);
-  display:flex; align-items:center; justify-content:space-between;
-  padding:12px 18px;
-  background:var(--white);
-  border-bottom:1px solid rgba(35,31,32,0.04);
-  box-shadow:var(--shadow-card);
+  position:fixed; top:0; left:0; right:0; z-index:140; height:var(--header-h);
+  display:flex; align-items:center; justify-content:space-between; padding:12px 18px;
+  background:var(--white); border-bottom:1px solid rgba(35,31,32,0.04); box-shadow:var(--shadow-card);
 }
 .brand{display:flex; gap:12px; align-items:center;}
-.logo{
-  width:44px; height:44px; border-radius:10px; background:var(--accent);
-  display:flex; align-items:center; justify-content:center; color:var(--white);
-  font-weight:900; font-size:18px; box-shadow:0 6px 14px rgba(0,0,0,0.06);
-}
+.logo{width:44px; height:44px; border-radius:10px; background:var(--accent); display:flex; align-items:center; justify-content:center; color:var(--white); font-weight:900; font-size:18px; box-shadow:0 6px 14px rgba(0,0,0,0.06);}
 header h1{margin:0; font-size:1.05rem; font-weight:800;}
 .header-actions{display:flex; gap:10px; align-items:center; color:var(--muted);}
 
-/* Top KPIs fijo debajo del header */
-.top-fixed{
-  position:fixed; left:0; right:0; top:var(--header-h); z-index:130;
-  background:linear-gradient(180deg,var(--white), #FBFBFB);
-  border-bottom:1px solid rgba(35,31,32,0.04);
-  box-shadow:0 8px 20px rgba(35,31,32,0.03);
-}
-.kpi-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
-  gap:12px;
-  padding:12px 18px;
-  max-width:1280px;
-  margin:0 auto;
-}
-.kpi{
-  background:var(--white);
-  border-radius:12px;
-  padding:12px;
-  box-shadow:var(--shadow-card);
-  transition:transform .18s ease, box-shadow .18s ease;
-  cursor:pointer;
-  display:flex; flex-direction:column; gap:6px;
-}
-.kpi:hover{ transform:translateY(-6px); box-shadow:var(--shadow-hover); }
-.kpi .label{ font-size:var(--font-sm); color:var(--muted); font-weight:700; text-transform:uppercase; display:flex; align-items:center; gap:8px; }
-.kpi .value{ font-size:var(--font-lg); font-weight:900; }
-.kpi .meta{ font-size:var(--font-sm); color:var(--muted); }
+/* Top KPIs fixed */
+.top-fixed{position:fixed; left:0; right:0; top:var(--header-h); z-index:130; background:linear-gradient(180deg,var(--white), #FBFBFB); border-bottom:1px solid rgba(35,31,32,0.04); box-shadow:0 8px 20px rgba(35,31,32,0.03);}
+.kpi-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; padding:12px 18px; max-width:1280px; margin:0 auto;}
+.kpi{background:var(--white); border-radius:12px; padding:12px; box-shadow:var(--shadow-card); transition:transform .18s ease, box-shadow .18s ease; cursor:pointer; display:flex; flex-direction:column; gap:6px;}
+.kpi:hover{transform:translateY(-6px); box-shadow:var(--shadow-hover);}
+.kpi .label{font-size:var(--font-sm); color:var(--muted); font-weight:700; text-transform:uppercase; display:flex; align-items:center; gap:8px;}
+.kpi .value{font-size:var(--font-lg); font-weight:900;}
+.kpi .meta{font-size:var(--font-sm); color:var(--muted);}
 
-/* KPI color por semáforo */
-.kpi.en-tiempo .value{ color:var(--green); }
-.kpi.preventivo .value{ color:var(--yellow); }
-.kpi.pendiente .value{ color:var(--orange); }
-.kpi.urgente .value{ color:var(--red); }
+/* KPI color mapping */
+.kpi.en-tiempo .value{color:var(--green);} .kpi.preventivo .value{color:var(--yellow);} .kpi.pendiente .value{color:var(--orange);} .kpi.urgente .value{color:var(--red);}
 
-/* Main: contenido con scroll natural */
-.main{
-  max-width:1280px;
-  margin: calc(var(--header-h) + var(--top-h)) auto 48px;
-  padding:18px;
-}
+/* Main content */
+.main{max-width:1280px; margin: calc(var(--header-h) + var(--top-h)) auto 48px; padding:18px;}
+.matrix-title{font-weight:800; margin:6px 0 12px; font-size:1rem;}
 
-/* Título */
-.matrix-title{ font-weight:800; margin:6px 0 12px; font-size:1rem; }
+/* Advisors row */
+.grid-asesores-wrap{position:relative; margin-bottom:18px;}
+.grid-asesores{display:flex; gap:12px; overflow-x:auto; overflow-y:hidden; padding:12px 8px; -webkit-overflow-scrolling:touch; scroll-behavior:smooth;}
+.card-asesor{flex:0 0 33.333%; max-width:33.333%; background:var(--white); border-radius:12px; padding:16px; box-shadow:var(--shadow-card); transition:transform .18s ease; display:flex; flex-direction:column; gap:12px; min-height:220px;}
+.card-asesor:hover{transform:translateY(-6px); box-shadow:var(--shadow-hover);}
+.card-row{display:flex; align-items:center; justify-content:space-between; gap:8px;}
+.card-row h4{margin:0; font-size:1rem; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.semaforo{width:12px; height:12px; border-radius:50%; display:inline-block; margin-right:8px; box-shadow:0 2px 6px rgba(0,0,0,0.06);}
+.semaforo.red{background:var(--red);} .semaforo.yellow{background:var(--yellow);} .semaforo.orange{background:var(--orange);} .semaforo.green{background:var(--green);}
 
-/* Grid asesores: fila horizontal desplazable */
-.grid-asesores-wrap{ position:relative; margin-bottom:18px; }
-.grid-asesores{
-  display:flex; gap:12px; overflow-x:auto; overflow-y:hidden;
-  padding:12px 8px; -webkit-overflow-scrolling:touch; scroll-behavior:smooth;
-}
-.card-asesor{
-  flex:0 0 33.333%; /* fallback; JS ajusta a px para 3 visibles */
-  max-width: 33.333%;
-  background:var(--white); border-radius:12px; padding:16px;
-  box-shadow:var(--shadow-card); transition:transform .18s ease;
-  display:flex; flex-direction:column; gap:12px; min-height:220px;
-}
-.card-asesor:hover{ transform:translateY(-6px); box-shadow:var(--shadow-hover); }
-.card-row{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
-.card-row h4{ margin:0; font-size:1rem; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+/* metrics */
+.metrics-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:10px; flex:1;}
+.metric{background:#F3F4F6; border-radius:8px; padding:10px; display:flex; flex-direction:column; justify-content:center;}
+.metric .m-label{font-size:var(--font-sm); color:var(--muted); font-weight:700; text-transform:uppercase;}
+.metric .m-value{font-size:1.05rem; font-weight:900; margin-top:6px;}
 
-/* Semáforo visual */
-.semaforo{ width:12px; height:12px; border-radius:50%; display:inline-block; margin-right:8px; box-shadow:0 2px 6px rgba(0,0,0,0.06); }
-.semaforo.red{ background:var(--red); }
-.semaforo.yellow{ background:var(--yellow); }
-.semaforo.orange{ background:var(--orange); }
-.semaforo.green{ background:var(--green); }
+/* nav arrows */
+.nav-arrow{position:absolute; top:50%; transform:translateY(-50%); width:44px; height:44px; border-radius:10px; display:flex; align-items:center; justify-content:center; background:rgba(35,31,32,0.06); cursor:pointer; z-index:20;}
+.nav-left{left:6px;} .nav-right{right:6px;}
 
-/* Métricas dentro de la tarjeta */
-.metrics-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px; flex:1; }
-.metric{ background:#F3F4F6; border-radius:8px; padding:10px; display:flex; flex-direction:column; justify-content:center; }
-.metric .m-label{ font-size:var(--font-sm); color:var(--muted); font-weight:700; text-transform:uppercase; }
-.metric .m-value{ font-size:1.05rem; font-weight:900; margin-top:6px; }
+/* Modal */
+.modal-overlay{position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.42); backdrop-filter:blur(6px); z-index:160; padding:16px;}
+.modal-overlay.active{display:flex;}
+.modal{width:100%; max-width:980px; background:var(--white); border-radius:12px; box-shadow:var(--shadow-hover); max-height:86vh; display:flex; flex-direction:column; overflow:hidden;}
+.modal-head{padding:12px 16px; border-bottom:1px solid rgba(35,31,32,0.04); display:flex; justify-content:space-between; align-items:center; gap:12px;}
+.modal-body{padding:12px 16px; overflow:auto; -webkit-overflow-scrolling:touch;}
+.table-wrap{width:100%; overflow:auto;}
+table{width:100%; border-collapse:collapse; font-size:var(--font-md); min-width:720px;}
+th,td{padding:10px 12px; border-bottom:1px solid rgba(35,31,32,0.04); text-align:left; vertical-align:middle;}
+th{font-size:var(--font-sm); color:var(--muted); text-transform:uppercase;}
+.pill{padding:6px 8px; border-radius:8px; font-weight:800; display:inline-block;}
+.pill.red{background:rgba(255,107,107,0.08); color:var(--red); border:1px solid rgba(255,107,107,0.12);}
+.pill.yellow{background:rgba(246,200,95,0.08); color:var(--yellow); border:1px solid rgba(246,200,95,0.12);}
+.pill.orange{background:rgba(242,143,23,0.06); color:var(--orange); border:1px solid rgba(242,143,23,0.08);}
+.pill.green{background:rgba(46,204,113,0.06); color:var(--green); border:1px solid rgba(46,204,113,0.08);}
 
-/* Flechas de navegación (opcionales) */
-.nav-arrow{ position:absolute; top:50%; transform:translateY(-50%); width:44px; height:44px; border-radius:10px; display:flex; align-items:center; justify-content:center; background:rgba(35,31,32,0.06); cursor:pointer; z-index:20; }
-.nav-left{ left:6px; }
-.nav-right{ right:6px; }
+/* buttons */
+.btn{background:var(--accent); color:var(--white); border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:800;}
+.btn.ghost{background:transparent; color:var(--muted); border:1px solid rgba(35,31,32,0.06);}
 
-/* Modal (solo tabla + WA) */
-.modal-overlay{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.42); backdrop-filter:blur(6px); z-index:160; padding:16px; }
-.modal-overlay.active{ display:flex; }
-.modal{ width:100%; max-width:980px; background:var(--white); border-radius:12px; box-shadow:var(--shadow-hover); max-height:86vh; display:flex; flex-direction:column; overflow:hidden; }
-.modal-head{ padding:12px 16px; border-bottom:1px solid rgba(35,31,32,0.04); display:flex; justify-content:space-between; align-items:center; gap:12px; }
-.modal-body{ padding:12px 16px; overflow:auto; -webkit-overflow-scrolling:touch; }
-.table-wrap{ width:100%; overflow:auto; }
-table{ width:100%; border-collapse:collapse; font-size:var(--font-md); min-width:720px; }
-th,td{ padding:10px 12px; border-bottom:1px solid rgba(35,31,32,0.04); text-align:left; vertical-align:middle; }
-th{ font-size:var(--font-sm); color:var(--muted); text-transform:uppercase; }
-
-/* Badges clasificación (semáforo) */
-.pill{ padding:6px 8px; border-radius:8px; font-weight:800; display:inline-block; }
-.pill.red{ background:rgba(255,107,107,0.08); color:var(--red); border:1px solid rgba(255,107,107,0.12); }
-.pill.yellow{ background:rgba(246,200,95,0.08); color:var(--yellow); border:1px solid rgba(246,200,95,0.12); }
-.pill.orange{ background:rgba(242,143,23,0.06); color:var(--orange); border:1px solid rgba(242,143,23,0.08); }
-.pill.green{ background:rgba(46,204,113,0.06); color:var(--green); border:1px solid rgba(46,204,113,0.08); }
-
-/* Botones */
-.btn{ background:var(--accent); color:var(--white); border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:800; }
-.btn.ghost{ background:transparent; color:var(--muted); border:1px solid rgba(35,31,32,0.06); }
-
-/* Responsive */
-@media (max-width:1000px){
-  .card-asesor{ flex:0 0 300px; max-width:300px; }
-}
-@media (max-width:700px){
-  .kpi-grid{ grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); }
-  .card-asesor{ flex:0 0 260px; max-width:260px; min-height:180px; }
-  .nav-arrow{ display:none; }
-  table{ min-width:600px; font-size:0.9rem; }
-}
+/* responsive */
+@media (max-width:1000px){ .card-asesor{flex:0 0 300px; max-width:300px;} }
+@media (max-width:700px){ .kpi-grid{grid-template-columns:repeat(auto-fit,minmax(120px,1fr));} .card-asesor{flex:0 0 260px; max-width:260px; min-height:180px;} .nav-arrow{display:none;} table{min-width:600px; font-size:0.9rem;} }
 </style>
 </head>
 <body>
-  <!-- Header -->
   <header id="appHeader">
     <div class="brand">
       <div class="logo">V</div>
       <h1>Vento — Muro ATC</h1>
     </div>
-
     <div class="header-actions">
       <div id="dbTimestamp" style="font-size:0.9rem; color:var(--muted)">Última actualización: —</div>
       <button class="btn ghost" onclick="fetchData()" aria-label="Refrescar datos">Refrescar</button>
@@ -196,7 +108,6 @@ th{ font-size:var(--font-sm); color:var(--muted); text-transform:uppercase; }
     </div>
   </header>
 
-  <!-- KPIs fijos -->
   <div id="topArea" class="top-fixed" role="region" aria-label="Indicadores principales">
     <div class="kpi-grid" id="kpiGrid">
       <div class="kpi" id="kpiTotal" onclick="abrirModalPorMetrica('totales_global')" role="button" tabindex="0">
@@ -214,7 +125,7 @@ th{ font-size:var(--font-sm); color:var(--muted); text-transform:uppercase; }
       <div class="kpi pendiente" id="kpiPendientesCard" onclick="abrirModalPorMetrica('pendientes_stocar')" role="button" tabindex="0">
         <div class="label">Pendientes s/Tocar</div>
         <div class="value" id="kpiPendientesSTocar">0</div>
-        <div class="meta">Pending 24–48h</div>
+        <div class="meta">Pending sin actualizar</div>
       </div>
 
       <div class="kpi preventivo" id="kpiPreventivosCard" onclick="abrirModalPorMetrica('preventivos')" role="button" tabindex="0">
@@ -226,12 +137,11 @@ th{ font-size:var(--font-sm); color:var(--muted); text-transform:uppercase; }
       <div class="kpi urgente" id="kpiUrgentesCard" onclick="abrirModalPorMetrica('urgentes')" role="button" tabindex="0">
         <div class="label">Urgentes</div>
         <div class="value" id="kpiUrgentesTotal">0</div>
-        <div class="meta">Open ≥24h, Pending ≥48h, creado ≥72h</div>
+        <div class="meta">Open ≥24h, Pending ≥24h, creado ≥72h</div>
       </div>
     </div>
   </div>
 
-  <!-- Contenido principal -->
   <main class="main" id="mainContent" role="main">
     <div class="matrix-title">Seguimiento por Asesor</div>
 
@@ -243,35 +153,24 @@ th{ font-size:var(--font-sm); color:var(--muted); text-transform:uppercase; }
       <div class="nav-arrow nav-right" id="navRight" title="Desplazar a la derecha" onclick="scrollGrid('right')" aria-hidden="true">›</div>
     </div>
 
-    <!-- espacio extra para scroll natural -->
     <div style="height:24px"></div>
   </main>
 
-  <!-- Modal (solo tabla + WA) -->
   <div class="modal-overlay" id="modalDetalles" onclick="cerrarModalExterno(event)">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
       <div class="modal-head">
-        <div>
-          <h3 id="modalTitle" style="margin:0; font-size:1rem;">Desglose</h3>
-        </div>
+        <div><h3 id="modalTitle" style="margin:0; font-size:1rem;">Desglose</h3></div>
         <div style="display:flex; gap:8px; align-items:center;">
           <button class="btn" onclick="enviarWhatsAppDesdeModal()" aria-label="Enviar resumen por WhatsApp">📲 Enviar por WA</button>
           <button class="btn ghost" onclick="cerrarModal()" aria-label="Cerrar modal">Cerrar</button>
         </div>
       </div>
-
       <div class="modal-body">
         <div class="table-wrap">
           <table aria-describedby="modalTitle">
             <thead>
               <tr>
-                <th>Asesor</th>
-                <th>ID</th>
-                <th>Estatus</th>
-                <th>Creación</th>
-                <th>Última Act.</th>
-                <th>Edad</th>
-                <th>Clasificación</th>
+                <th>Asesor</th><th>ID</th><th>Estatus</th><th>Creación</th><th>Última Act.</th><th>Edad</th><th>Clasificación</th>
               </tr>
             </thead>
             <tbody id="modalTablaCuerpo"></tbody>
@@ -283,8 +182,12 @@ th{ font-size:var(--font-sm); color:var(--muted); text-transform:uppercase; }
 
 <script>
 /* ============================
-   Config y utilidades
+   Configuraciones y umbrales
    ============================ */
+// Umbral configurable: si pending sin tocar >= PENDING_URGENT_HOURS => urgente
+const PENDING_URGENT_HOURS = 24; // horas
+
+/* Fuentes de datos */
 const SHEET_ID = '1JBre4cLAbYiOJuYye_FGcsk5U_BIStDoAiCbV-B8WoA';
 const querySQLTickets = encodeURIComponent("SELECT A, B, C, F, G, I, Z");
 const URL_TICKETS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Tickets_BD&tq=${querySQLTickets}`;
@@ -295,7 +198,9 @@ let rawData = [];
 let ultimaActualizacionBase = '—';
 let asesorActivoModal = 'all';
 
-/* Parseo de fechas robusto */
+/* ============================
+   Utilidades de fecha y parseo
+   ============================ */
 const utils = {
   parseDateTime(txt){
     if(!txt) return null;
@@ -338,35 +243,49 @@ const utils = {
   },
   hoursBetween(a,b){
     if(!a||!b) return 0;
-    return Math.floor((new Date(b)).getTime() - (new Date(a)).getTime()) / (1000*60*60);
+    return Math.floor(((new Date(b)).getTime() - (new Date(a)).getTime()) / (1000*60*60));
   }
 };
 
-/* Clasificación de tickets */
+/* ============================
+   Clasificación de tickets (con nuevo umbral)
+   ============================ */
 function clasificarTicketObj(ticket, ahora = new Date()){
   const creado = utils.parseDateTime(ticket.fechaCreacionStr) || utils.parseDate(ticket.fechaCreacionStr);
   const ultima = utils.parseDateTime(ticket.fechaActualizacionStr) || utils.parseDate(ticket.fechaActualizacionStr);
-  const horasDesdeCreacion = creado ? Math.floor((ahora.getTime() - creado.getTime())/(1000*60*60)) : Infinity;
-  const horasDesdeUltAct = ultima ? Math.floor((ahora.getTime() - ultima.getTime())/(1000*60*60)) : Infinity;
+  const horasDesdeCreacion = creado ? utils.hoursBetween(creado, ahora) : Infinity;
+  const horasDesdeUltAct = ultima ? utils.hoursBetween(ultima, ahora) : Infinity;
   const estatus = (ticket.estado || '').toString().trim().toLowerCase();
   const grupo = (ticket.grupo || '').toString().trim();
 
   if(!GRUPOS_VALIDOS.includes(grupo)) return { categoria: 'fuera-scope', razon: 'grupo no ATC' };
   if(estatus === 'closed') return { categoria: 'exclude', razon: 'closed' };
 
+  // prioridad: creado >=72h -> urgente
   if(creado && horasDesdeCreacion >= 72) return { categoria: 'urgente', razon: 'creado >= 72h' };
-  if(estatus === 'open' && horasDesdeCreacion >= 24) return { categoria: 'urgente', razon: 'open >= 24h' };
-  if(estatus === 'pending' && horasDesdeUltAct >= 48) return { categoria: 'urgente', razon: 'pending sin actualizar >= 48h' };
-  if(estatus !== 'open' && estatus !== 'pending') return { categoria: 'urgente', razon: `estatus ${ticket.estado} no permitido` };
-  if(estatus === 'open' && horasDesdeCreacion >= 4 && horasDesdeCreacion < 24) return { categoria: 'preventivo', razon: 'open 4-24h' };
-  if(estatus === 'pending' && horasDesdeUltAct >= 24 && horasDesdeUltAct < 48) return { categoria: 'sin-tocar', razon: 'pending 24-48h' };
-  if(estatus === 'pending' && horasDesdeUltAct < 24) return { categoria: 'en-tiempo', razon: 'pending <24h' };
-  if(estatus === 'open' && horasDesdeCreacion <= 4) return { categoria: 'en-tiempo', razon: 'open <=4h' };
+
+  // open rules
+  if(estatus === 'open'){
+    if(horasDesdeCreacion >= 24) return { categoria: 'urgente', razon: 'open >= 24h' };
+    if(horasDesdeCreacion >= 4 && horasDesdeCreacion < 24) return { categoria: 'preventivo', razon: 'open 4-24h' };
+    if(horasDesdeCreacion <= 4) return { categoria: 'en-tiempo', razon: 'open <=4h' };
+  }
+
+  // pending rules (nuevo umbral)
+  if(estatus === 'pending'){
+    if(horasDesdeUltAct >= PENDING_URGENT_HOURS){
+      return { categoria: 'urgente', razon: `pending sin actualizar >= ${PENDING_URGENT_HOURS}h` };
+    } else {
+      return { categoria: 'en-tiempo', razon: `pending tocado < ${PENDING_URGENT_HOURS}h` };
+    }
+  }
+
+  // fallback
   return { categoria: 'en-tiempo', razon: 'en-tiempo' };
 }
 
 /* ============================
-   Fetch y mapeo
+   Fetch y mapeo de datos
    ============================ */
 async function fetchData(){
   try{
@@ -407,9 +326,9 @@ async function fetchData(){
       const fechaCreacionObjFull = utils.parseDateTime(fechaCreacionTxt) || utils.parseDate(fechaCreacionTxt);
       const fechaActObjFull = utils.parseDateTime(fechaActualizacionTxt) || utils.parseDate(fechaActualizacionTxt);
 
-      const horasEdad = fechaCreacionObjFull ? Math.floor((ahora.getTime() - fechaCreacionObjFull.getTime())/(1000*60*60)) : 0;
+      const horasEdad = fechaCreacionObjFull ? utils.hoursBetween(fechaCreacionObjFull, ahora) : 0;
       const diasEdad = fechaCreacionObjFull ? utils.daysBetween(fechaCreacionObjFull, ahora) : 0;
-      const horasUltAct = fechaActObjFull ? Math.floor((ahora.getTime() - fechaActObjFull.getTime())/(1000*60*60)) : null;
+      const horasUltAct = fechaActObjFull ? utils.hoursBetween(fechaActObjFull, ahora) : null;
       const diasUltAct = fechaActObjFull ? utils.daysBetween(fechaActObjFull, ahora) : null;
 
       const cls = clasificarTicketObj({
@@ -437,7 +356,6 @@ async function fetchData(){
 
     updateDashboard();
     document.getElementById('dbTimestamp').innerText = `Última actualización: ${ultimaActualizacionBase}`;
-    // reajustar anchos de tarjetas
     setTimeout(ajustarAnchoTarjetas, 80);
   } catch(e){
     console.error(e);
@@ -446,12 +364,12 @@ async function fetchData(){
 }
 
 /* ============================
-   Render y UI
+   Render del dashboard
    ============================ */
-function animateCount(el, target){
-  const element = document.getElementById(el);
-  if(!element) return;
-  const start = parseInt(element.innerText.replace(/\D/g,'')) || 0;
+function animateCount(id, target){
+  const el = document.getElementById(id);
+  if(!el) return;
+  const start = parseInt(el.innerText.replace(/\D/g,'')) || 0;
   const duration = 600;
   const stepTime = 30;
   const steps = Math.ceil(duration / stepTime);
@@ -461,8 +379,8 @@ function animateCount(el, target){
   const t = setInterval(()=> {
     i++;
     current = Math.round(start + delta * i);
-    element.innerText = current;
-    if(i >= steps){ clearInterval(t); element.innerText = target; }
+    el.innerText = current;
+    if(i >= steps){ clearInterval(t); el.innerText = target; }
   }, stepTime);
 }
 
@@ -479,6 +397,9 @@ function updateDashboard(){
     else if(d.categoria === 'preventivo'){ cPreventivos++; mapeoAsesores[d.asesor].preventivos++; }
     else if(d.categoria === 'sin-tocar'){ cPendientesSTocar++; mapeoAsesores[d.asesor].pendientes++; }
     else if(d.categoria === 'en-tiempo'){ cEnTiempo++; mapeoAsesores[d.asesor].enTiempo++; }
+    else {
+      // si la lógica devolvió otra categoría (ej. 'fuera-scope'), no contar en KPIs
+    }
   });
 
   animateCount('kpiTotalGlobal', cTotales);
@@ -493,10 +414,10 @@ function updateDashboard(){
   document.getElementById('kpiPendientesCard').classList.add('pendiente');
   document.getElementById('kpiUrgentesCard').classList.add('urgente');
 
-  // render tarjetas
+  // construir tarjetas
   const grid = document.getElementById('gridMosaicos');
   grid.innerHTML = '';
-  const lista = Object.values(mapeoAsesores).sort((a,b) => b.urgentes - a.urgentes || b.pendientes - a.pendientes);
+  const lista = Object.values(mapeoAsesores).sort((a,b) => b.urgentes - a.urgentes || b.pendientes - a.pendientes || b.preventivos - a.preventivos);
   lista.forEach(as => {
     let semClass = 'green';
     let pillClass = 'green';
@@ -528,12 +449,11 @@ function updateDashboard(){
     grid.appendChild(div);
   });
 
-  // ajustar ancho de tarjetas para mostrar exactamente 3 por vista
   setTimeout(ajustarAnchoTarjetas, 40);
 }
 
 /* ============================
-   Ajustes layout y scroll horizontal
+   Ajustes de ancho y scroll horizontal
    ============================ */
 function ajustarAnchoTarjetas(){
   const grid = document.getElementById('gridMosaicos');
@@ -568,7 +488,7 @@ function scrollGrid(direction){
   grid.scrollBy({ left, behavior: 'smooth' });
 }
 
-/* Teclas ← → para desplazar cuando el grid tiene foco */
+/* teclado para scroll */
 document.addEventListener('keydown', (e) => {
   const active = document.activeElement;
   if(active && active.id === 'gridMosaicos'){
@@ -577,7 +497,7 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-/* Ajustar layout al cargar y redimensionar */
+/* layout init */
 function ajustarLayoutFijo(){
   const header = document.getElementById('appHeader');
   const top = document.getElementById('topArea');
@@ -585,7 +505,6 @@ function ajustarLayoutFijo(){
   const topH = top ? top.getBoundingClientRect().height : 160;
   document.documentElement.style.setProperty('--header-h', headerH + 'px');
   document.documentElement.style.setProperty('--top-h', topH + 'px');
-  // main margin-top se calcula en CSS; solo ajustar anchos de tarjetas
   ajustarAnchoTarjetas();
 }
 window.addEventListener('load', () => {
