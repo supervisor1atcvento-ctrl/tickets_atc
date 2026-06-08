@@ -7,139 +7,82 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
 <style>
 :root{
---vento-orange:#FF5A00;
---vento-black:#0F0F11;
---vento-bg:#F0F2F5;
---vento-white:#FFFFFF;
---vento-dark-gray:#2D2D30;
---vento-red:#E53935;
---vento-green:#43A047;
---vento-urgent:#FB8C00;
---vento-yellow:#FBC02D;
-/* Reemplazamos el morado por un azul compatible */
---vento-blue:#1976D2;
---shadow-sm:0 2px 8px rgba(0,0,0,0.04);
---shadow-md:0 8px 16px rgba(0,0,0,0.08);
+  --vento-orange:#FF5A00;
+  --vento-black:#0F0F11;
+  --vento-bg:#F0F2F5;
+  --vento-white:#FFFFFF;
+  --vento-dark-gray:#2D2D30;
+  --vento-red:#E53935;
+  --vento-green:#43A047;
+  --vento-urgent:#FB8C00;
+  --vento-yellow:#FBC02D;
+  --vento-teal:#00897B; /* reemplazo del morado por teal */
+  --shadow-sm:0 2px 8px rgba(0,0,0,0.04);
+  --shadow-md:0 8px 16px rgba(0,0,0,0.08);
 }
 *{box-sizing:border-box}body{
-font-family:'Inter',sans-serif;
-margin:0;
-background:var(--vento-bg);
-color:var(--vento-black);
--webkit-font-smoothing:antialiased;
-}header{
-background:rgba(15,15,17,0.95);
-color:var(--vento-white);
-padding:10px 3%;
-display:flex;
-align-items:center;
-justify-content:space-between;
-border-bottom:2px solid var(--vento-orange);
-position:sticky;
-top:0;
-z-index:1000;
-}header h1{
-margin:0;
-font-weight:900;
-font-size:1.05rem;
-display:flex;
-gap:8px;
-align-items:center;
-}.header-badge{
-background:var(--vento-orange);
-padding:4px 10px;
-border-radius:14px;
-font-weight:700;
-font-size:0.65rem;
-}.container{
-width:95%;
-max-width:1100px;
-margin:14px auto;
-}.control-bar{
-background:var(--vento-white);
-padding:10px 14px;
-border-radius:10px;
-box-shadow:var(--shadow-sm);
-border-left:3px solid var(--vento-orange);
-font-weight:600;
-color:var(--vento-dark-gray);
-margin-bottom:16px;
-font-size:0.88rem;
-display:flex;
-justify-content:space-between;
-align-items:center;
-}.db-timestamp {
-font-size:0.8rem;
-color:var(--vento-orange);
-font-weight:800;
-}.kpi-container{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
-gap:12px;
-margin-bottom:18px;
-}.kpi-card{
-background:var(--vento-white);
-padding:10px;
-border-radius:10px;
-box-shadow:var(--shadow-sm);
-text-align:center;
-border:1px solid rgba(0,0,0,0.03);
-cursor:pointer;
-transition:transform .18s ease, box-shadow .18s ease;
-}.kpi-card:hover{ transform:translateY(-4px); box-shadow:var(--shadow-md); }.kpi-card h3{
-margin:0;
-font-size:0.68rem;
-color:#666;
-text-transform:uppercase;
-font-weight:800;}.kpi-card p{
-margin:8px 0 0;
-font-size:1.6rem;
-font-weight:900;
-}.matrix-title{
-font-weight:800;
-text-transform:uppercase;
-font-size:0.88rem;
-margin:12px 0;
-}.heatmap-grid{
-display:grid;
-grid-template-columns:repeat(auto-fill,minmax(230px,1fr));
-gap:12px;
-margin-bottom:28px;
-}.mosaico-asesor{
-background:var(--vento-white);
-border-radius:10px;
-padding:12px;
-box-shadow:var(--shadow-sm);
-cursor:pointer;
-transition:transform .15s ease;
-overflow:hidden;
-}.mosaico-asesor:hover{ transform:translateY(-3px); box-shadow:var(--shadow-md); }.mosaico-asesor h4{
-margin:0 0 10px 0;
-font-size:0.88rem;
-font-weight:800;
-color:var(--vento-dark-gray);
-text-transform:uppercase;
-border-bottom: 1px solid #f0f0f0;
-padding-bottom: 4px;
-}.mosaico-metrics{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:6px;
-}.metric-sub{
-background:rgba(255,255,255,0.9);
-padding:5px 6px;
-border-radius:6px;
-border:1px solid rgba(0,0,0,0.04);
-}.metric-sub span{ display:block; font-size:0.56rem; text-transform:uppercase; color:#666; font-weight:800; }.metric-sub strong{ display:block; font-size:0.95rem; font-weight:900; margin-top:2px; }.mosaico-red{ border-top:4px solid var(--vento-red); background:linear-gradient(to bottom,var(--vento-white),#fff0f0); }.mosaico-yellow{ border-top:4px solid var(--vento-yellow); background:linear-gradient(to bottom,var(--vento-white),#fffaf0); }.mosaico-green{ border-top:4px solid var(--vento-green); background:linear-gradient(to bottom,var(--vento-white),#f0fff4); }.modal-overlay{
-position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
-background:rgba(15,15,17,0.55); backdrop-filter:blur(8px); z-index:2000; opacity:0; pointer-events:none; transition:opacity .25s ease;
-}.modal-overlay.active{ opacity:1; pointer-events:auto; }.modal-window{
-width:92%; max-width:980px; max-height:82vh; background:var(--vento-white); border-radius:12px; overflow:hidden;
-display:flex; flex-direction:column; transform:translateY(-10px) scale(.98); transition:all .25s ease;
-}.modal-overlay.active .modal-window{ transform:translateY(0) scale(1); }.modal-header{ padding:12px 16px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; }.modal-header h4{ margin:0; font-size:0.95rem; font-weight:900; text-transform:uppercase; }.modal-actions{ display:flex; gap:8px; align-items:center; }.btn{ border:none; padding:6px 10px; border-radius:8px; cursor:pointer; font-weight:800; font-size:0.78rem; }.btn-close{ background:#E8E8E8; color:var(--vento-dark-gray); }.btn-copy{ background:var(--vento-orange); color:#fff; }.btn-wa{ background:#25D366; color:#fff; }.modal-body{ padding:0; overflow:auto; background:var(--vento-bg); }table{ width:100%; border-collapse:collapse; background:var(--vento-white); font-size:0.88rem; }th{ background:#F8F9FA; padding:10px 12px; text-align:left; border-bottom:1px solid #EDEDED; position:sticky; top:0; z-index:5; font-weight:800; }td{ padding:10px 12px; border-bottom:1px solid #F5F5F5; color:#444; vertical-align:middle; }.badge{ padding:5px 8px; border-radius:6px; font-weight:800; font-size:0.68rem; text-transform:uppercase; display:inline-block; }.badge-sla{ background:#FFF3E0; color:var(--vento-orange); }.badge-pend{ background:#E3F2FD; color:var(--vento-blue); }.badge-open{ background:#E8F5E9; color:var(--vento-green); }#loading{
-position:fixed; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
-background:var(--vento-black); color:#fff; z-index:3000; font-weight:800; font-size:1rem;
-}.spinner{ width:44px; height:44px; border:4px solid rgba(255,255,255,0.08); border-top:4px solid var(--vento-orange); border-radius:50%; animation:spin 1s linear infinite; margin-bottom:12px; }@keyframes spin{ to{ transform:rotate(360deg); } }
+  font-family:'Inter',sans-serif;
+  margin:0;
+  background:var(--vento-bg);
+  color:var(--vento-black);
+  -webkit-font-smoothing:antialiased;
+}
+header{
+  background:rgba(15,15,17,0.95);
+  color:var(--vento-white);
+  padding:10px 3%;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  border-bottom:2px solid var(--vento-orange);
+  position:sticky;
+  top:0;
+  z-index:1000;
+}
+header h1{ margin:0; font-weight:900; font-size:1.05rem; display:flex; gap:8px; align-items:center; }
+.header-badge{ background:var(--vento-orange); padding:4px 10px; border-radius:14px; font-weight:700; font-size:0.65rem; }
+.container{ width:95%; max-width:1100px; margin:14px auto; }
+.control-bar{ background:var(--vento-white); padding:10px 14px; border-radius:10px; box-shadow:var(--shadow-sm); border-left:3px solid var(--vento-orange); font-weight:600; color:var(--vento-dark-gray); margin-bottom:16px; font-size:0.88rem; display:flex; justify-content:space-between; align-items:center; }
+.db-timestamp { font-size:0.8rem; color:var(--vento-orange); font-weight:800; }
+.kpi-container{ display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; margin-bottom:18px; }
+.kpi-card{ background:var(--vento-white); padding:10px; border-radius:10px; box-shadow:var(--shadow-sm); text-align:center; border:1px solid rgba(0,0,0,0.03); cursor:pointer; transition:transform .18s ease, box-shadow .18s ease; }
+.kpi-card:hover{ transform:translateY(-4px); box-shadow:var(--shadow-md); }
+.kpi-card h3{ margin:0; font-size:0.68rem; color:#666; text-transform:uppercase; font-weight:800; }
+.kpi-card p{ margin:8px 0 0; font-size:1.6rem; font-weight:900; }
+.matrix-title{ font-weight:800; text-transform:uppercase; font-size:0.88rem; margin:12px 0; }
+.heatmap-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:12px; margin-bottom:28px; }
+.mosaico-asesor{ background:var(--vento-white); border-radius:10px; padding:12px; box-shadow:var(--shadow-sm); cursor:pointer; transition:transform .15s ease; overflow:hidden; }
+.mosaico-asesor:hover{ transform:translateY(-3px); box-shadow:var(--shadow-md); }
+.mosaico-asesor h4{ margin:0 0 10px 0; font-size:0.88rem; font-weight:800; color:var(--vento-dark-gray); text-transform:uppercase; border-bottom: 1px solid #f0f0f0; padding-bottom: 4px; }
+.mosaico-metrics{ display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+.metric-sub{ background:rgba(255,255,255,0.9); padding:5px 6px; border-radius:6px; border:1px solid rgba(0,0,0,0.04); }
+.metric-sub span{ display:block; font-size:0.56rem; text-transform:uppercase; color:#666; font-weight:800; }
+.metric-sub strong{ display:block; font-size:0.95rem; font-weight:900; margin-top:2px; }
+.mosaico-red{ border-top:4px solid var(--vento-red); background:linear-gradient(to bottom,var(--vento-white),#fff0f0); }
+.mosaico-yellow{ border-top:4px solid var(--vento-yellow); background:linear-gradient(to bottom,var(--vento-white),#fffaf0); }
+.mosaico-green{ border-top:4px solid var(--vento-green); background:linear-gradient(to bottom,var(--vento-white),#f0fff4); }
+.modal-overlay{ position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(15,15,17,0.55); backdrop-filter:blur(8px); z-index:2000; opacity:0; pointer-events:none; transition:opacity .25s ease; }
+.modal-overlay.active{ opacity:1; pointer-events:auto; }
+.modal-window{ width:92%; max-width:980px; max-height:82vh; background:var(--vento-white); border-radius:12px; overflow:hidden; display:flex; flex-direction:column; transform:translateY(-10px) scale(.98); transition:all .25s ease; }
+.modal-overlay.active .modal-window{ transform:translateY(0) scale(1); }
+.modal-header{ padding:12px 16px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; }
+.modal-header h4{ margin:0; font-size:0.95rem; font-weight:900; text-transform:uppercase; }
+.modal-actions{ display:flex; gap:8px; align-items:center; }
+.btn{ border:none; padding:6px 10px; border-radius:8px; cursor:pointer; font-weight:800; font-size:0.78rem; }
+.btn-close{ background:#E8E8E8; color:var(--vento-dark-gray); }
+.btn-copy{ background:var(--vento-orange); color:#fff; }
+.btn-wa{ background:#25D366; color:#fff; }
+.modal-body{ padding:0; overflow:auto; background:var(--vento-bg); }
+table{ width:100%; border-collapse:collapse; background:var(--vento-white); font-size:0.88rem; }
+th{ background:#F8F9FA; padding:10px 12px; text-align:left; border-bottom:1px solid #EDEDED; position:sticky; top:0; z-index:5; font-weight:800; }
+td{ padding:10px 12px; border-bottom:1px solid #F5F5F5; color:#444; vertical-align:middle; }
+.badge{ padding:5px 8px; border-radius:6px; font-weight:800; font-size:0.68rem; text-transform:uppercase; display:inline-block; }
+.badge-sla{ background:#FFF3E0; color:var(--vento-orange); }
+.badge-pend{ background:#E3F2F2; color:var(--vento-teal); } /* teal para pendientes */
+.badge-open{ background:#E8F5E9; color:var(--vento-green); }
+#loading{ position:fixed; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; background:var(--vento-black); color:#fff; z-index:3000; font-weight:800; font-size:1rem; }
+.spinner{ width:44px; height:44px; border:4px solid rgba(255,255,255,0.08); border-top:4px solid var(--vento-orange); border-radius:50%; animation:spin 1s linear infinite; margin-bottom:12px; }
+@keyframes spin{ to{ transform:rotate(360deg); } }
 </style>
 </head>
 <body>
@@ -165,7 +108,7 @@ background:var(--vento-black); color:#fff; z-index:3000; font-weight:800; font-s
 
     <div class="kpi-card" onclick="abrirModalPorMetrica('pendientes_stocar')">
       <h3>Pendientes s/Tocar</h3>
-      <p id="kpiPendientesSTocar" style="color:var(--vento-blue);">0</p>
+      <p id="kpiPendientesSTocar" style="color:var(--vento-teal);">0</p>
     </div>
 
     <div class="kpi-card" onclick="abrirModalPorMetrica('sla_4d')">
@@ -228,15 +171,15 @@ let asesorActivoModal = "all";
 let ultimaActualizacionBase = "No disponible";
 const TICKET_BASE_URL = 'https://ayuda.vento.com/a/tickets/';
 
-// --- Utilidades fecha/hora ---
+// Utilidades fecha/hora
 function parsearFechaHoraString(txt){
   if(!txt) return null;
   const partes = txt.trim().split(' ');
   const fecha = (partes[0] || '').replace(/\//g,'-');
   const hora = partes[1] || '00:00';
   const fparts = fecha.split('-');
-  let d, m, y;
   if(fparts.length !== 3) return null;
+  let d,m,y;
   if(fparts[0].length === 4){
     y = parseInt(fparts[0],10); m = parseInt(fparts[1],10)-1; d = parseInt(fparts[2],10);
   } else {
@@ -275,7 +218,7 @@ function calcularHorasCorridas(fechaInicio, fechaFin){
   return Math.floor(diffMs / (1000 * 60 * 60));
 }
 
-// --- Fetch y mapeo de datos (mejor lectura de Z1) ---
+// Fetch y mapeo de datos (lectura robusta de Z1 y filtro closed reestablecido)
 async function fetchData(){
   try{
     const resTickets = await fetch(URL_TICKETS);
@@ -284,21 +227,26 @@ async function fetchData(){
     const rows = jsonTK.table.rows || [];
     const hoySinHora = new Date(); hoySinHora.setHours(0,0,0,0);
 
-    // Intentar leer Z1 directamente (fila 0, columna 6)
+    // Lectura robusta de Z1:
+    // 1) Intentar fila 0, columna 6
+    // 2) Si no existe, buscar la primera celda no vacía en columna 6
+    // 3) Si no, intentar leer jsonTK.table.cols[6].label o jsonTK.table.cols[6].pattern
+    let zVal = '';
     if (rows[0] && rows[0].c && rows[0].c[6]) {
-      ultimaActualizacionBase = (rows[0].c[6].f || rows[0].c[6].v || '').toString().trim() || ultimaActualizacionBase;
-    } else {
-      // Fallback: búsqueda robusta en todas las filas (mantener compatibilidad)
+      zVal = (rows[0].c[6].f || rows[0].c[6].v || '').toString().trim();
+    }
+    if(!zVal){
       for (let i = 0; i < rows.length; i++) {
         if (rows[i] && rows[i].c && rows[i].c[6]) {
-          let valorZ = (rows[i].c[6].f || rows[i].c[6].v || '').toString().trim();
-          if (valorZ.toLowerCase().includes('actualizado') || valorZ.length > 0) {
-            ultimaActualizacionBase = valorZ;
-            break;
-          }
+          const v = (rows[i].c[6].f || rows[i].c[6].v || '').toString().trim();
+          if (v) { zVal = v; break; }
         }
       }
     }
+    if(!zVal && jsonTK.table.cols && jsonTK.table.cols[6]) {
+      zVal = (jsonTK.table.cols[6].label || jsonTK.table.cols[6].pattern || '').toString().trim();
+    }
+    if(zVal) ultimaActualizacionBase = zVal;
 
     rawData = rows.map(row => {
       if(!row || !row.c) return null;
@@ -309,7 +257,9 @@ async function fetchData(){
       const fechaActualizacionTxt = row.c[4] && row.c[4].f ? row.c[4].f : (row.c[4] ? row.c[4].v.toString() : '');
       const estatusTxt = row.c[5] ? (row.c[5].f || row.c[5].v || 'Open').toString().trim() : 'Open';
 
+      // Re-aplicar filtro para excluir closed
       if(!ticketID || ticketID.toLowerCase() === 'ticket id') return null;
+      if(estatusTxt.toLowerCase() === 'closed') return null;
       if(tipoATC !== 'AMERICAN PISTON (ATC)' && tipoATC !== 'ATC') return null;
 
       const fechaCreacionObjFull = parsearFechaHoraString(fechaCreacionTxt) || parsearFechaString(fechaCreacionTxt);
@@ -322,15 +272,14 @@ async function fetchData(){
       const esOpen = estatusTxt.toLowerCase() === 'open';
       const tocadoHoy = (diasUltimaAct === 0);
 
-      // NUEVA CLASIFICACIÓN DE ALERTA OPERATIVA:
-      // ahora usamos >=4 para SLA crítico
+      // Clasificación operativa con SLA >=4 días como urgente (independiente de estatus)
       let subClase = 'preventivo';
       if (diasEdad >= 4) {
-        subClase = 'urgente-sla'; // >=4 días (Crítico directo)
+        subClase = 'urgente-sla';
       } else if (!esOpen && !tocadoHoy) {
-        subClase = 'pendiente-stocar'; // Estatus que no es open y no se tocó hoy
+        subClase = 'pendiente-stocar';
       } else if (esOpen && diasUltimaAct >= 2) {
-        subClase = 'urgente-stocar'; // Abiertos abandonados más de 48 horas
+        subClase = 'urgente-stocar';
       }
 
       return {
@@ -355,7 +304,7 @@ async function fetchData(){
   }
 }
 
-// --- Actualización del dashboard con regla SLA >=4 y conteo urgente unificado ---
+// Actualización del dashboard (SLA >=4 cuenta como urgente, evitar doble conteo)
 function updateDashboard(){
   let cTotales = 0, cPendientesSTocar = 0, cSla4D = 0, cPreventivos = 0, cUrgentes = 0;
   const mapeoAsesores = {};
@@ -373,7 +322,7 @@ function updateDashboard(){
       cSla4D++;
       cUrgentes++;
       mapeoAsesores[d.asesor].urgentes++;
-      return; // ya clasificado como urgente, evitar doble conteo
+      return;
     }
 
     // Urgente por abandono (abierto sin tocar >=2 días)
@@ -396,8 +345,6 @@ function updateDashboard(){
       mapeoAsesores[d.asesor].preventivos++;
       return;
     }
-
-    // Si no cumple ninguna regla anterior, no sumar a preventivos ni pendientes
   });
 
   document.getElementById('kpiTotalGlobal').innerText = cTotales;
@@ -416,7 +363,7 @@ function updateDashboard(){
     let claseColor = "mosaico-green";
     if (as.urgentes > 0) claseColor = "mosaico-red";
     else if (as.pendientes > 0) claseColor = "mosaico-yellow";
-    else if (as.preventivos > 0) claseColor = "mosaico-yellow"; // preventivos amarillos
+    else if (as.preventivos > 0) claseColor = "mosaico-yellow";
 
     const nodo = document.createElement('div');
     nodo.className = `mosaico-asesor ${claseColor}`;
@@ -432,9 +379,9 @@ function updateDashboard(){
           <span>Urgentes</span>
           <strong style="color:${as.urgentes > 0 ? 'var(--vento-red)' : '#444'}">${as.urgentes}</strong>
         </div>
-        <div class="metric-sub" style="border-left:3px solid var(--vento-blue);">
+        <div class="metric-sub" style="border-left:3px solid var(--vento-teal);">
           <span>No Tocados</span>
-          <strong style="color:${as.pendientes > 0 ? 'var(--vento-blue)' : '#444'}">${as.pendientes}</strong>
+          <strong style="color:${as.pendientes > 0 ? 'var(--vento-teal)' : '#444'}">${as.pendientes}</strong>
         </div>
       </div>
     `;
@@ -442,7 +389,7 @@ function updateDashboard(){
   });
 }
 
-// --- Abrir modal por asesor con alerta resumen ---
+// Abrir modal por asesor con alerta resumen
 function abrirModalAsesor(nombre){
   asesorActivoModal = nombre;
   document.getElementById('modalTitle').innerText = `Auditoría: ${nombre}`;
@@ -452,20 +399,19 @@ function abrirModalAsesor(nombre){
   const tkFiltrados = rawData.filter(x => x.asesor === nombre);
   tkFiltrados.sort((a,b) => b.diasEdad - a.diasEdad);
 
-  // Resumen rápido por alerta
   const resumen = { urg:0, pend:0, prev:0 };
   rawData.filter(x => x.asesor === nombre).forEach(d => {
     if (d.diasEdad >= 4) resumen.urg++;
     else if (d.subClase === 'pendiente-stocar') resumen.pend++;
     else if (d.subClase === 'preventivo' && d.horasEdad >= 4) resumen.prev++;
   });
-  alert(`Asesor: ${nombre}\n🔴 Urgentes (>=4d): ${resumen.urg}\n🟣 No tocados: ${resumen.pend}\n🟡 Preventivos (>=4h): ${resumen.prev}`);
+  alert(`Asesor: ${nombre}\n🔴 Urgentes (>=4d): ${resumen.urg}\n🟢 No tocados: ${resumen.pend}\n🟡 Preventivos (>=4h): ${resumen.prev}`);
 
   construirTablaModal(tkFiltrados);
   mostrarModal();
 }
 
-// --- Abrir modal por KPI/segmento y mostrar alerta top asesores ---
+// Abrir modal por KPI/segmento y mostrar alerta top asesores
 function abrirModalPorMetrica(tipo){
   asesorActivoModal = "all";
   document.getElementById('btnModalCopy').style.display = 'none';
@@ -493,7 +439,6 @@ function abrirModalPorMetrica(tipo){
   document.getElementById('modalTitle').innerText = titulo;
   tkFiltrados.sort((a,b) => b.diasEdad - a.diasEdad);
 
-  // Alerta top 5 asesores por rezagos (urgentes + pendientes + preventivos válidos)
   if (['totales_global','pendientes_stocar','sla_4d','preventivos','urgentes'].includes(tipo)) {
     const asesoresArray = Object.values(
       rawData.reduce((acc, d) => {
@@ -516,7 +461,7 @@ function abrirModalPorMetrica(tipo){
   mostrarModal();
 }
 
-// --- Construir tabla modal con orden por prioridad ---
+// Construir tabla modal con orden por prioridad
 function construirTablaModal(listaTickets){
   const tablaCuerpo = document.getElementById('modalTablaCuerpo');
   tablaCuerpo.innerHTML = '';
@@ -526,7 +471,6 @@ function construirTablaModal(listaTickets){
     return;
   }
 
-  // Prioridad: urgente -> 1, preventivo -> 2, pendiente-stocar (Al día) -> 3
   const prioridad = p => {
     if(p.diasEdad >= 4) return 1;
     if(p.subClase === 'urgente-stocar') return 1;
@@ -548,7 +492,6 @@ function construirTablaModal(listaTickets){
     } else if (t.subClase === 'urgente-stocar') {
       badgeHtml = `<span class="badge" style="background:var(--vento-urgent); color:#fff;">🟠 ABIERTO ABANDONADO</span>`;
     } else {
-      // Preventivo -> amarillo
       badgeHtml = `<span class="badge" style="background:var(--vento-yellow); color:#000;">🟡 PREVENTIVO</span>`;
     }
 
@@ -572,7 +515,7 @@ function mostrarModal(){ document.getElementById('modalDetalles').classList.add(
 function cerrarModal(){ document.getElementById('modalDetalles').classList.remove('active'); }
 function cerrarModalExterno(event){ if(event.target.id === 'modalDetalles') cerrarModal(); }
 
-// --- Copiar y enviar WA desde modal (respeta regla de preventivos >=4h) ---
+// Copiar y enviar WA desde modal (respeta regla de preventivos >=4h)
 function copiarReporteDesdeModal(){
   if(asesorActivoModal === "all") return;
   let urg = [], pend = [], prev = [];
