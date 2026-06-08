@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Vento ATC - Muro ATC (Por Asesor, lógica única)</title>
+<title>Vento ATC - Muro ATC (Umbrales pending 24/48h, tarjetas por asesor)</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -81,7 +81,7 @@ td{ padding:10px 12px; border-bottom:1px solid #F5F5F5; color:#444; vertical-ali
 
 <div class="container">
   <div class="control-bar" id="barInstruction">
-    <span>📊 Vista exclusiva y por asesor. Precedencia: Urgente → Preventivo → Sin tocar → En tiempo.</span>
+    <span>📊 Reglas: pending → Sin‑tocar (≥24h), pending → Urgente (≥48h). Precedencia: Urgente → Preventivo → Sin‑tocar → En tiempo.</span>
     <div style="display:flex; gap:10px; align-items:center;">
       <span class="db-timestamp" id="dbTimestamp">Buscando fecha Z1...</span>
       <span id="validationMsg" class="validation" style="display:none;">Discrepancia en suma de categorías</span>
@@ -206,10 +206,15 @@ function calcularHorasCorridas(fechaInicio, fechaFin){
 }
 
 /* CLASIFICACIÓN EXCLUSIVA (precedencia final)
+   Reglas para pending:
+     - Sin-tocar: horasDesdeUltAct >= 24 (alerta)
+     - Urgente: horasDesdeUltAct >= 48 (escalado)
+     - Urgente también si pending creado >=72h (fallback)
+   Precedencia:
    1) Urgente
    2) Preventivo
-   3) Sin tocar (pending tocado ayer, no hoy)
-   4) En tiempo (pending tocado hoy OR open <=4h OR resto)
+   3) Sin-tocar
+   4) En-tiempo (catch-all)
 */
 function clasificarTicketObj(ticket, ahora = new Date()){
   const creado = parsearFechaHoraString(ticket.fechaCreacionStr) || parsearFechaString(ticket.fechaCreacionStr);
@@ -226,7 +231,10 @@ function clasificarTicketObj(ticket, ahora = new Date()){
   // URGENTE: open >=24h
   if(estatus === 'open' && horasDesdeCreacion >= 24) return { categoria: 'urgente', razon: 'open >= 24h' };
 
-  // URGENTE: pending creado >=72h (más de 3 días desde creación)
+  // URGENTE: pending sin tocar >=48h (escalado)
+  if(estatus === 'pending' && horasDesdeUltAct >= 48) return { categoria: 'urgente', razon: 'pending sin tocar >=48h' };
+
+  // URGENTE: pending creado >=72h (fallback)
   if(estatus === 'pending' && horasDesdeCreacion >= 72) return { categoria: 'urgente', razon: 'pending creado >= 72h' };
 
   // URGENTE: cualquier otro estatus distinto a open/pending -> urgente
@@ -235,8 +243,8 @@ function clasificarTicketObj(ticket, ahora = new Date()){
   // PREVENTIVO: open >=4h y <24h
   if(estatus === 'open' && horasDesdeCreacion >= 4 && horasDesdeCreacion < 24) return { categoria: 'preventivo', razon: 'open >=4h y <24h' };
 
-  // SIN TOCAR: pending tocado ayer pero no hoy (última actividad fue ayer y no hay toque hoy)
-  if(estatus === 'pending' && diasDesdeUltAct === 1 && horasDesdeUltAct >= 24) return { categoria: 'sin-tocar', razon: 'pending tocado ayer, no hoy' };
+  // SIN TOCAR: pending sin tocar >=24h y <48h (alerta)
+  if(estatus === 'pending' && horasDesdeUltAct >= 24 && horasDesdeUltAct < 48) return { categoria: 'sin-tocar', razon: 'pending sin tocar >=24h y <48h' };
 
   // EN TIEMPO: pending tocado hoy OR open <=4h OR resto (catch-all)
   if(estatus === 'pending' && horasDesdeUltAct < 24) return { categoria: 'en-tiempo', razon: 'pending tocado hoy' };
@@ -332,7 +340,7 @@ function updateDashboard(){
 
   rawData.forEach(d => {
     cTotales++;
-    if(!mapeoAsesores[d.asesor]) mapeoAsesores[d.asesor] = { nombre: d.asesor, urgentes:0, pendientes:0, preventivos:0, totales:0, notTouchedToday:0, enTiempo:0 };
+    if(!mapeoAsesores[d.asesor]) mapeoAsesores[d.asesor] = { nombre: d.asesor, urgentes:0, pendientes:0, preventivos:0, totales:0, enTiempo:0 };
     mapeoAsesores[d.asesor].totales++;
 
     // Categorías exclusivas
@@ -350,11 +358,6 @@ function updateDashboard(){
       mapeoAsesores[d.asesor].enTiempo++;
     } else {
       cAlDia++;
-    }
-
-    // No tocó hoy (cualquier estatus) -> horasUltAct >= 24
-    if(d.horasUltAct !== null && d.horasUltAct >= 24){
-      mapeoAsesores[d.asesor].notTouchedToday++;
     }
   });
 
@@ -413,10 +416,6 @@ function updateDashboard(){
           <span>Urgentes</span>
           <strong style="color:${as.urgentes>0?'var(--vento-red)':'#444'}">${as.urgentes}</strong>
         </div>
-        <div class="metric-sub" style="grid-column: span 2;">
-          <span>No tocó hoy (todos estatus)</span>
-          <strong style="color:${as.notTouchedToday>0?'var(--vento-orange)':'#444'}">${as.notTouchedToday}</strong>
-        </div>
       </div>
     `;
     gridMosaicos.appendChild(nodo);
@@ -430,10 +429,9 @@ function generarResumenPorAsesor(nombre){
   const prev = tickets.filter(t => t.categoria === 'preventivo').length;
   const pend = tickets.filter(t => t.categoria === 'sin-tocar').length;
   const enTiempo = tickets.filter(t => t.categoria === 'en-tiempo').length;
-  const notTouched = tickets.filter(t => t.horasUltAct !== null && t.horasUltAct >= 24).length;
   const tot = tickets.length;
 
-  let msg = `Asesor: ${nombre}\nTotal: ${tot}\nEn tiempo: ${enTiempo}\nPendientes s/Tocar: ${pend}\nPreventivos: ${prev}\nUrgentes: ${urg}\nNo tocó hoy: ${notTouched}`;
+  let msg = `Asesor: ${nombre}\nTotal: ${tot}\nEn tiempo: ${enTiempo}\nPendientes s/Tocar: ${pend}\nPreventivos: ${prev}\nUrgentes: ${urg}`;
   const topUrg = tickets.filter(t => t.categoria === 'urgente').slice(0,3).map(t => `#${t.ticket}`).join(', ');
   if(topUrg) msg += `\nEjemplos urgentes: ${topUrg}`;
   return msg;
@@ -506,13 +504,13 @@ function abrirModalPorMetrica(tipo){
     titulo = "Tickets En Tiempo (pending tocado hoy, open <=4h, resto)";
     tkFiltrados = rawData.filter(x => x.categoria === 'en-tiempo');
   } else if(tipo === 'pendientes_stocar'){
-    titulo = "Estatus Pending - No tocados hoy / Seguimiento diario";
+    titulo = "Estatus Pending - No tocados hoy / Seguimiento diario (>=24h <48h)";
     tkFiltrados = rawData.filter(x => x.categoria === 'sin-tocar');
   } else if(tipo === 'preventivos'){
     titulo = "Tickets Preventivos (open >=4h y <24h)";
     tkFiltrados = rawData.filter(x => x.categoria === 'preventivo');
   } else if(tipo === 'urgentes'){
-    titulo = "Total Casos Urgentes (open >=24h, pending creado >=72h, otros estatus)";
+    titulo = "Total Casos Urgentes (open >=24h, pending sin tocar >=48h, otros estatus)";
     tkFiltrados = rawData.filter(x => x.categoria === 'urgente');
   }
 
@@ -539,7 +537,7 @@ function construirTablaModal(listaTickets){
     let badgeHtml = '';
     if(t.categoria === 'urgente') badgeHtml = `<span class="badge badge-urg">🔴 URGENTE</span>`;
     else if(t.categoria === 'preventivo') badgeHtml = `<span class="badge badge-prev">🟡 PREVENTIVO</span>`;
-    else if(t.categoria === 'sin-tocar') badgeHtml = `<span class="badge badge-pend">🟦 SIN TOCAR (ayer)</span>`;
+    else if(t.categoria === 'sin-tocar') badgeHtml = `<span class="badge badge-pend">🟦 SIN TOCAR (24-48h)</span>`;
     else badgeHtml = `<span class="badge badge-en">🟢 EN TIEMPO</span>`;
 
     const tr = document.createElement('tr');
@@ -584,7 +582,7 @@ function enviarWhatsAppDesdeModal(){
 
 /* INICIALIZAR */
 fetchData();
-setInterval(fetchData, 900000); // refrescar cada 15 minutos
+setInterval(fetchData, 300000); // refrescar cada 5 minutos
 </script>
 </body>
 </html>
