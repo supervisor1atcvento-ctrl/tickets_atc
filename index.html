@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Vento ATC — Muro (Fijo + Scroll horizontal asesores · Navegación 3x)</title>
+<title>Vento ATC — Muro (3x navegación · Semáforo aplicado)</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -23,6 +23,10 @@
   --header-h:64px;
   --top-h:160px;
   --kpi-min:140px;
+  --semaforo-red: #FF6B6B;
+  --semaforo-yellow: #F6C85F;
+  --semaforo-orange: #F28F17;
+  --semaforo-green: #2ECC71;
 }
 
 /* Reset & base */
@@ -90,6 +94,12 @@ header h1{ margin:0; font-size:clamp(1rem,1.6vw + 0.4rem,1.1rem); font-weight:80
 .kpi .value{ font-size:clamp(1.1rem,2.6vw + 0.2rem,1.6rem); font-weight:900; letter-spacing:-0.6px; color:var(--black); }
 .kpi .meta{ font-size:0.74rem; color:var(--muted); margin-top:6px; }
 
+/* KPI color mapping (semáforo aplicado) */
+.kpi.en-tiempo .value{ color: var(--semaforo-green); }
+.kpi.preventivo .value{ color: var(--semaforo-yellow); }
+.kpi.pendiente .value{ color: var(--semaforo-orange); }
+.kpi.urgente .value{ color: var(--semaforo-red); }
+
 /* Title above advisors */
 .matrix-title{ font-weight:800; margin:8px 0 8px; color:var(--black); font-size:clamp(0.95rem,1.2vw + 0.2rem,1rem); }
 
@@ -107,9 +117,9 @@ header h1{ margin:0; font-size:clamp(1rem,1.6vw + 0.4rem,1.1rem); font-weight:80
   flex-wrap:nowrap;
 }
 
-/* each card fixed width so horizontal scroll works nicely */
+/* each card width will be set dynamically to show exactly 3 per view */
 .card-asesor{
-  flex:0 0 300px;
+  flex:0 0 300px; /* fallback; JS will override to fit 3 per view */
   background:linear-gradient(180deg,#FFFFFF,#FBFBFB); border-radius:12px;
   padding:12px; box-shadow:var(--shadow-sm); border:1px solid rgba(35,31,32,0.04);
   transition:transform .12s ease; cursor:pointer; display:flex; flex-direction:column; gap:10px; min-height:120px;
@@ -122,10 +132,10 @@ header h1{ margin:0; font-size:clamp(1rem,1.6vw + 0.4rem,1.1rem); font-weight:80
 .semaforo{
   width:12px; height:12px; border-radius:50%; display:inline-block; margin-right:8px; box-shadow:0 2px 6px rgba(0,0,0,0.06);
 }
-.semaforo.red{ background:#FF6B6B; }       /* Rojo - Urgentes */
-.semaforo.yellow{ background:#F6C85F; }    /* Amarillo - Preventivos */
-.semaforo.orange{ background:#F28F17; }    /* Naranja - Pendientes s/Tocar */
-.semaforo.green{ background:#2ECC71; }     /* Verde - En tiempo */
+.semaforo.red{ background:var(--semaforo-red); }       /* Rojo - Urgentes */
+.semaforo.yellow{ background:var(--semaforo-yellow); } /* Amarillo - Preventivos */
+.semaforo.orange{ background:var(--semaforo-orange); } /* Naranja - Pendientes s/Tocar */
+.semaforo.green{ background:var(--semaforo-green); }   /* Verde - En tiempo */
 
 /* metrics inside card */
 .metrics-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
@@ -141,7 +151,7 @@ header h1{ margin:0; font-size:clamp(1rem,1.6vw + 0.4rem,1.1rem); font-weight:80
   width:44px; height:44px; border-radius:10px;
   display:flex; align-items:center; justify-content:center;
   background:rgba(35,31,32,0.06); border:1px solid rgba(35,31,32,0.06);
-  cursor:pointer; z-index:20;
+  cursor:pointer; z-index:20; font-size:22px; color:var(--black);
 }
 .nav-arrow:hover{ background:rgba(35,31,32,0.10); }
 .nav-left{ left:6px; }
@@ -167,6 +177,12 @@ header h1{ margin:0; font-size:clamp(1rem,1.6vw + 0.4rem,1.1rem); font-weight:80
 table{ width:100%; border-collapse:collapse; font-size:0.86rem; color:var(--black); min-width:640px; }
 th, td{ padding:8px 10px; text-align:left; border-bottom:1px solid rgba(35,31,32,0.04); vertical-align:middle; }
 th{ font-size:0.72rem; color:var(--muted); text-transform:uppercase; }
+
+/* classification badge colors (use semáforo) */
+.pill.red{ background:rgba(255,107,107,0.08); color:var(--semaforo-red); border:1px solid rgba(255,107,107,0.12); }
+.pill.yellow{ background:rgba(246,200,95,0.08); color:var(--semaforo-yellow); border:1px solid rgba(246,200,95,0.12); }
+.pill.orange{ background:rgba(242,143,23,0.06); color:var(--semaforo-orange); border:1px solid rgba(242,143,23,0.08); }
+.pill.green{ background:rgba(46,204,113,0.06); color:var(--semaforo-green); border:1px solid rgba(46,204,113,0.08); }
 
 /* responsive adjustments */
 @media (max-width:900px){
@@ -215,31 +231,31 @@ button:focus, a:focus { outline: 3px solid rgba(242,143,23,0.18); outline-offset
       </div>
 
       <div class="kpi-grid" id="kpiGrid">
-        <div class="kpi" onclick="abrirModalPorMetrica('totales_global')">
+        <div class="kpi" id="kpiTotal" onclick="abrirModalPorMetrica('totales_global')">
           <div class="label">Tickets Totales</div>
           <div class="value countup" id="kpiTotalGlobal">0</div>
           <div class="meta muted">Bandeja activa</div>
         </div>
 
-        <div class="kpi" onclick="abrirModalPorMetrica('en_tiempo')">
+        <div class="kpi en-tiempo" id="kpiEnTiempoCard" onclick="abrirModalPorMetrica('en_tiempo')">
           <div class="label">En Tiempo</div>
           <div class="value countup" id="kpiEnTiempo">0</div>
           <div class="meta muted">Pending tocados hoy + Open ≤4h</div>
         </div>
 
-        <div class="kpi" onclick="abrirModalPorMetrica('pendientes_stocar')">
+        <div class="kpi pendiente" id="kpiPendientesCard" onclick="abrirModalPorMetrica('pendientes_stocar')">
           <div class="label">Pendientes s/Tocar</div>
           <div class="value countup" id="kpiPendientesSTocar">0</div>
           <div class="meta muted">Pending 24–48h</div>
         </div>
 
-        <div class="kpi" onclick="abrirModalPorMetrica('preventivos')">
+        <div class="kpi preventivo" id="kpiPreventivosCard" onclick="abrirModalPorMetrica('preventivos')">
           <div class="label">Preventivos</div>
           <div class="value countup" id="kpiPreventivos">0</div>
           <div class="meta muted">Open 4–24h</div>
         </div>
 
-        <div class="kpi" onclick="abrirModalPorMetrica('urgentes')">
+        <div class="kpi urgente" id="kpiUrgentesCard" onclick="abrirModalPorMetrica('urgentes')">
           <div class="label">Urgentes</div>
           <div class="value countup" id="kpiUrgentesTotal">0</div>
           <div class="meta muted">Open ≥24h, Pending ≥48h, creado ≥72h</div>
@@ -255,15 +271,11 @@ button:focus, a:focus { outline: 3px solid rgba(242,143,23,0.18); outline-offset
 
       <!-- Advisors row: horizontal scroll with nav arrows -->
       <div class="grid-asesores-wrap" style="margin-bottom:18px;">
-        <div class="nav-arrow nav-left" id="navLeft" title="Desplazar a la izquierda" onclick="scrollGrid('left')">
-          ‹
-        </div>
+        <div class="nav-arrow nav-left" id="navLeft" title="Desplazar a la izquierda" onclick="scrollGrid('left')">‹</div>
 
         <div class="grid-asesores" id="gridMosaicos" aria-live="polite" tabindex="0" role="region" aria-label="Tarjetas de asesores, desplázalas horizontalmente"></div>
 
-        <div class="nav-arrow nav-right" id="navRight" title="Desplazar a la derecha" onclick="scrollGrid('right')">
-          ›
-        </div>
+        <div class="nav-arrow nav-right" id="navRight" title="Desplazar a la derecha" onclick="scrollGrid('right')">›</div>
       </div>
 
       <!-- espacio extra para que el scroll no tape el footer -->
@@ -308,7 +320,7 @@ button:focus, a:focus { outline: 3px solid rgba(242,143,23,0.18); outline-offset
 
 <script>
 /* -------------------------
-   Layout fijo + ajuste dinámico
+   Ajustes de layout fijo + ancho de tarjetas para mostrar 3 por vista
    ------------------------- */
 function ajustarLayoutFijo(){
   const header = document.getElementById('appHeader');
@@ -321,25 +333,37 @@ function ajustarLayoutFijo(){
   document.documentElement.style.setProperty('--top-h', topH + 'px');
   main.style.paddingTop = (headerH + topH) + 'px';
   top.style.top = headerH + 'px';
+  ajustarAnchoTarjetas(); // recalcular ancho de tarjetas cuando cambie layout
 }
-window.addEventListener('load', () => {
-  ajustarLayoutFijo();
-  const grid = document.getElementById('gridMosaicos');
-  if(grid) grid.setAttribute('tabindex','0');
-});
-window.addEventListener('resize', ajustarLayoutFijo);
 
-/* -------------------------
-   Scroll horizontal por 3 tarjetas
-   ------------------------- */
+/* Ajusta el ancho de cada tarjeta para que quepan exactamente 3 en la vista del contenedor */
+function ajustarAnchoTarjetas(){
+  const grid = document.getElementById('gridMosaicos');
+  if(!grid) return;
+  const wrap = grid.parentElement; // .grid-asesores-wrap
+  const gap = parseFloat(getComputedStyle(grid).gap) || 12;
+  // ancho disponible dentro del wrap (restar flechas si visibles)
+  const wrapWidth = wrap.clientWidth -  (document.querySelector('.nav-left') ?  (document.querySelector('.nav-left').offsetWidth + 12) : 0) - (document.querySelector('.nav-right') ? (document.querySelector('.nav-right').offsetWidth + 12) : 0);
+  // calcular ancho por tarjeta para 3 tarjetas visibles (2 gaps entre ellas)
+  const cardWidth = Math.floor((wrapWidth - (gap * 2)) / 3);
+  // aplicar a cada tarjeta (si no hay tarjetas aún, aplicarlo como fallback para futuros)
+  const cards = grid.querySelectorAll('.card-asesor');
+  if(cards.length === 0){
+    // setear variable CSS fallback para cuando se creen
+    grid.style.setProperty('--computed-card-width', cardWidth + 'px');
+    return;
+  }
+  cards.forEach(c => {
+    c.style.flex = `0 0 ${cardWidth}px`;
+  });
+}
+
+/* Scroll horizontal por 3 tarjetas (usa el ancho calculado) */
 function scrollGrid(direction){
   const grid = document.getElementById('gridMosaicos');
   if(!grid) return;
   const card = grid.querySelector('.card-asesor');
-  if(!card){
-    // si no hay tarjetas, nada que hacer
-    return;
-  }
+  if(!card) return;
   const gap = parseFloat(getComputedStyle(grid).gap) || 12;
   const cardWidth = card.getBoundingClientRect().width;
   const scrollAmount = Math.round((cardWidth + gap) * 3); // 3 tarjetas
@@ -354,6 +378,16 @@ document.addEventListener('keydown', (e) => {
     if(e.key === 'ArrowRight') { e.preventDefault(); scrollGrid('right'); }
     if(e.key === 'ArrowLeft') { e.preventDefault(); scrollGrid('left'); }
   }
+});
+
+/* Reajustar al cargar y redimensionar */
+window.addEventListener('load', () => {
+  ajustarLayoutFijo();
+  const grid = document.getElementById('gridMosaicos');
+  if(grid) grid.setAttribute('tabindex','0');
+});
+window.addEventListener('resize', () => {
+  ajustarLayoutFijo();
 });
 
 /* -------------------------
@@ -521,7 +555,7 @@ async function fetchData(){
   }
 }
 
-/* updateDashboard: render KPIs and horizontal cards with semaforo */
+/* updateDashboard: render KPIs and horizontal cards with semáforo applied to cards and badges */
 function updateDashboard(){
   let cTotales = 0, cEnTiempo = 0, cPendientesSTocar = 0, cPreventivos = 0, cUrgentes = 0;
   const mapeoAsesores = {};
@@ -537,21 +571,31 @@ function updateDashboard(){
     else if(d.categoria === 'en-tiempo'){ cEnTiempo++; mapeoAsesores[d.asesor].enTiempo++; }
   });
 
+  // actualizar KPIs
   animateCount('kpiTotalGlobal', cTotales);
   animateCount('kpiEnTiempo', cEnTiempo);
   animateCount('kpiPendientesSTocar', cPendientesSTocar);
   animateCount('kpiPreventivos', cPreventivos);
   animateCount('kpiUrgentesTotal', cUrgentes);
 
+  // actualizar clases de KPI (por si quieres destacar visualmente)
+  document.getElementById('kpiEnTiempoCard').classList.toggle('en-tiempo', true);
+  document.getElementById('kpiPreventivosCard').classList.toggle('preventivo', true);
+  document.getElementById('kpiPendientesCard').classList.toggle('pendiente', true);
+  document.getElementById('kpiUrgentesCard').classList.toggle('urgente', true);
+
+  // construir tarjetas por asesor (fila horizontal)
   const grid = document.getElementById('gridMosaicos');
   grid.innerHTML = '';
   const lista = Object.values(mapeoAsesores).sort((a,b) => b.urgentes - a.urgentes || b.pendientes - a.pendientes);
   lista.forEach(as => {
     // determinar color semaforo por precedencia: Urgente -> Preventivo -> Sin-tocar -> En-tiempo
     let semClass = 'green';
-    if(as.urgentes > 0) semClass = 'red';
-    else if(as.preventivos > 0) semClass = 'yellow';
-    else if(as.pendientes > 0) semClass = 'orange';
+    let pillClass = 'green';
+    if(as.urgentes > 0){ semClass = 'red'; pillClass = 'red'; }
+    else if(as.preventivos > 0){ semClass = 'yellow'; pillClass = 'yellow'; }
+    else if(as.pendientes > 0){ semClass = 'orange'; pillClass = 'orange'; }
+
     const div = document.createElement('div');
     div.className = 'card-asesor';
     div.setAttribute('onclick', `abrirModalAsesor('${as.nombre.replace(/'/g,"\\'")}')`);
@@ -561,20 +605,23 @@ function updateDashboard(){
           <span class="semaforo ${semClass}" aria-hidden="true"></span>
           <h4 title="${as.nombre}">${as.nombre}</h4>
         </div>
-        <div class="pill ${as.urgentes>0 ? 'red' : (as.pendientes>0 ? 'orange' : (as.preventivos>0 ? 'yellow' : 'green'))}">
+        <div class="pill ${pillClass}">
           ${as.urgentes>0 ? 'Atención' : (as.pendientes>0 ? 'Seguimiento' : (as.preventivos>0 ? 'Preventivo' : 'OK'))}
         </div>
       </div>
       <div class="metrics-grid">
         <div class="metric"><div class="m-label">Total</div><div class="m-value">${as.totales}</div></div>
-        <div class="metric"><div class="m-label">En tiempo</div><div class="m-value" style="color:${as.enTiempo>0?'#1B7A3A':'var(--black)'}">${as.enTiempo}</div></div>
-        <div class="metric"><div class="m-label">Pendientes s/Tocar</div><div class="m-value" style="color:${as.pendientes>0?'var(--orange)':'var(--black)'}">${as.pendientes}</div></div>
-        <div class="metric"><div class="m-label">Preventivos</div><div class="m-value" style="color:${as.preventivos>0?'var(--orange)':'var(--black)'}">${as.preventivos}</div></div>
-        <div class="metric" style="grid-column:span 2;"><div class="m-label">Urgentes</div><div class="m-value" style="color:${as.urgentes>0?'var(--orange)':'var(--black)'}">${as.urgentes}</div></div>
+        <div class="metric"><div class="m-label">En tiempo</div><div class="m-value" style="color:${as.enTiempo>0?'var(--semaforo-green)':'var(--black)'}">${as.enTiempo}</div></div>
+        <div class="metric"><div class="m-label">Pendientes s/Tocar</div><div class="m-value" style="color:${as.pendientes>0?'var(--semaforo-orange)':'var(--black)'}">${as.pendientes}</div></div>
+        <div class="metric"><div class="m-label">Preventivos</div><div class="m-value" style="color:${as.preventivos>0?'var(--semaforo-yellow)':'var(--black)'}">${as.preventivos}</div></div>
+        <div class="metric" style="grid-column:span 2;"><div class="m-label">Urgentes</div><div class="m-value" style="color:${as.urgentes>0?'var(--semaforo-red)':'var(--black)'}">${as.urgentes}</div></div>
       </div>
     `;
     grid.appendChild(div);
   });
+
+  // after cards are added, set their width so exactly 3 are visible
+  setTimeout(ajustarAnchoTarjetas, 40);
 }
 
 /* animateCount */
@@ -596,7 +643,7 @@ function animateCount(id, target){
   }, stepTime);
 }
 
-/* Modal & tablas */
+/* Modal & tablas: aplicar semáforo en etiquetas de clasificación */
 function abrirModalAsesor(nombre){
   asesorActivoModal = nombre;
   document.getElementById('modalTitle').innerText = `Auditoría: ${nombre}`;
@@ -625,15 +672,18 @@ function construirTablaModal(lista){
   const tbody = document.getElementById('modalTablaCuerpo');
   tbody.innerHTML = '';
   if(lista.length === 0){
-    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:30px; font-weight:800; color:#1B7A3A">✨ Cero folios en este segmento.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:30px; font-weight:800; color:var(--semaforo-green)">✨ Cero folios en este segmento.</td></tr>`;
     return;
   }
   lista.forEach(t => {
-    let badge = '';
-    if(t.categoria === 'urgente') badge = `<span class="pill red">URGENTE</span>`;
-    else if(t.categoria === 'preventivo') badge = `<span class="pill yellow">PREVENTIVO</span>`;
-    else if(t.categoria === 'sin-tocar') badge = `<span class="pill" style="background:rgba(242,143,23,0.06); color:var(--orange); border:1px solid rgba(242,143,23,0.08)">SIN TOCAR</span>`;
-    else badge = `<span class="pill green">EN TIEMPO</span>`;
+    // map categoria -> pill class + semaforo dot color for classification label
+    let pillClass = 'green';
+    if(t.categoria === 'urgente') pillClass = 'red';
+    else if(t.categoria === 'preventivo') pillClass = 'yellow';
+    else if(t.categoria === 'sin-tocar') pillClass = 'orange';
+    else if(t.categoria === 'en-tiempo') pillClass = 'green';
+
+    let badge = `<span class="pill ${pillClass}">${t.categoria.toUpperCase()}</span>`;
 
     const tr = document.createElement('tr');
     tr.innerHTML = `
@@ -642,7 +692,7 @@ function construirTablaModal(lista){
       <td>${t.estado}</td>
       <td><small>${t.fechaCreacionStr || '-'}</small></td>
       <td><small>${t.fechaActualizacionStr || '-'}</small></td>
-      <td style="font-weight:900; color:${t.diasEdad>=4?'var(--orange)':'var(--black)'}">${t.diasEdad} d.</td>
+      <td style="font-weight:900; color:${t.diasEdad>=4?'var(--semaforo-orange)':'var(--black)'}">${t.diasEdad} d.</td>
       <td>${badge} <div style="font-size:0.72rem; color:var(--muted); margin-top:6px;">${t.razon || ''}</div></td>
     `;
     tbody.appendChild(tr);
