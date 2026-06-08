@@ -55,10 +55,10 @@ header h1{ margin:0; font-weight:900; font-size:1.05rem; display:flex; gap:8px; 
 .mosaico-asesor{ background:var(--vento-white); border-radius:10px; padding:12px; box-shadow:var(--shadow-sm); cursor:pointer; transition:transform .15s ease; overflow:hidden; }
 .mosaico-asesor:hover{ transform:translateY(-3px); box-shadow:var(--shadow-md); }
 .mosaico-asesor h4{ margin:0 0 10px 0; font-size:0.88rem; font-weight:800; color:var(--vento-dark-gray); text-transform:uppercase; border-bottom: 1px solid #f0f0f0; padding-bottom: 4px; }
-.mosaico-metrics{ display:grid; grid-template-columns:1fr 1fr; gap:6px; }
-.metric-sub{ background:rgba(255,255,255,0.9); padding:5px 6px; border-radius:6px; border:1px solid rgba(0,0,0,0.04); }
-.metric-sub span{ display:block; font-size:0.56rem; text-transform:uppercase; color:#666; font-weight:800; }
-.metric-sub strong{ display:block; font-size:0.95rem; font-weight:900; margin-top:2px; }
+.mosaico-metrics{ display:grid; grid-template-columns:repeat(2,1fr); gap:6px; }
+.metric-sub{ background:rgba(255,255,255,0.9); padding:6px 8px; border-radius:6px; border:1px solid rgba(0,0,0,0.04); }
+.metric-sub span{ display:block; font-size:0.62rem; text-transform:uppercase; color:#666; font-weight:800; }
+.metric-sub strong{ display:block; font-size:1rem; font-weight:900; margin-top:4px; }
 .mosaico-red{ border-top:4px solid var(--vento-red); background:linear-gradient(to bottom,var(--vento-white),#fff0f0); }
 .mosaico-yellow{ border-top:4px solid var(--vento-yellow); background:linear-gradient(to bottom,var(--vento-white),#fffaf0); }
 .mosaico-green{ border-top:4px solid var(--vento-green); background:linear-gradient(to bottom,var(--vento-white),#f0fff4); }
@@ -101,7 +101,7 @@ td{ padding:10px 12px; border-bottom:1px solid #F5F5F5; color:#444; vertical-ali
 
 <div class="container">
   <div class="control-bar" id="barInstruction">
-    <span>📊 Reglas operativas: bandeja 72h, open 4h/24h, pending toque diario, otros -> urgente.</span>
+    <span>📊 Reglas operativas: open 4h/24h, pending seguimiento diario, otros -> urgente.</span>
     <span class="db-timestamp" id="dbTimestamp">Buscando fecha Z1...</span>
   </div>
 
@@ -114,11 +114,6 @@ td{ padding:10px 12px; border-bottom:1px solid #F5F5F5; color:#444; vertical-ali
     <div class="kpi-card" onclick="abrirModalPorMetrica('pendientes_stocar')">
       <h3>Pendientes s/Tocar</h3>
       <p id="kpiPendientesSTocar" style="color:var(--vento-teal);">0</p>
-    </div>
-
-    <div class="kpi-card" onclick="abrirModalPorMetrica('sla_72h')">
-      <h3>Bandeja 72h (SLA)</h3>
-      <p id="kpiSLA72H" style="color:var(--vento-red);">0</p>
     </div>
 
     <div class="kpi-card" onclick="abrirModalPorMetrica('preventivos')">
@@ -142,8 +137,8 @@ td{ padding:10px 12px; border-bottom:1px solid #F5F5F5; color:#444; vertical-ali
       <div class="modal-header-top">
         <h4 id="modalTitle">Desglose de Tickets</h4>
         <div class="modal-actions">
-          <button class="btn btn-copy" id="btnModalCopy" onclick="copiarReporteDesdeModal()">Copiar Reporte</button>
-          <button class="btn btn-wa" id="btnModalWA" onclick="enviarWhatsAppDesdeModal()">Enviar WA</button>
+          <button class="btn btn-copy" id="btnModalCopy" onclick="copiarReporteDesdeModal()">Copiar Resumen</button>
+          <button class="btn btn-wa" id="btnModalWA" onclick="enviarWhatsAppDesdeModal()">Enviar Resumen WA</button>
           <button class="btn btn-close" onclick="cerrarModal()">Cerrar</button>
         </div>
       </div>
@@ -248,14 +243,14 @@ function clasificarTicketObj(ticket, ahora = new Date()){
   if(!GRUPOS_VALIDOS.includes(grupo)) return { categoria: 'fuera-scope', razon: 'grupo no ATC' };
   if(estatus === 'closed') return { categoria: 'exclude', razon: 'closed' };
 
-  if(horasDesdeCreacion >= 72) return { categoria: 'urgente', razon: 'edad >= 72h (bandeja)' };
-
+  // Open rules
   if(estatus === 'open'){
     if(horasDesdeCreacion >= 24) return { categoria: 'urgente', razon: 'open >= 24h' };
     if(horasDesdeCreacion >= 4) return { categoria: 'preventivo', razon: 'open >= 4h' };
     return { categoria: 'al-dia', razon: 'open < 4h' };
   }
 
+  // Pending rules: we treat "not touched today" as horasUltAct >= 24
   if(estatus === 'pending'){
     const tocadoHoy = horasDesdeUltAct < 24;
     if(!tocadoHoy && diasDesdeUltAct === 1) return { categoria: 'preventivo', razon: 'pending no tocado hoy (última act ayer)' };
@@ -263,6 +258,7 @@ function clasificarTicketObj(ticket, ahora = new Date()){
     return { categoria: 'al-dia', razon: 'pending tocado hoy' };
   }
 
+  // Other statuses -> urgent
   return { categoria: 'urgente', razon: `estatus ${ticket.estado} no permitido` };
 }
 
@@ -278,6 +274,7 @@ async function fetchData(){
     const ahora = new Date();
     const hoySinHora = new Date(); hoySinHora.setHours(0,0,0,0);
 
+    // Leer Z1 robustamente
     let zVal = '';
     if(rows[0] && rows[0].c && rows[0].c[6]) zVal = (rows[0].c[6].f || rows[0].c[6].v || '').toString().trim();
     if(!zVal){
@@ -349,38 +346,48 @@ async function fetchData(){
    ACTUALIZAR DASHBOARD
    ------------------------- */
 function updateDashboard(){
-  let cTotales = 0, cPendientesSTocar = 0, cSla72h = 0, cPreventivos = 0, cUrgentes = 0;
+  let cTotales = 0, cPendientesSTocar = 0, cPreventivos = 0, cUrgentes = 0;
   const mapeoAsesores = {};
   document.getElementById('dbTimestamp').innerText = `${ultimaActualizacionBase}`;
 
   rawData.forEach(d => {
     cTotales++;
-    if(!mapeoAsesores[d.asesor]) mapeoAsesores[d.asesor] = { nombre: d.asesor, urgentes:0, pendientes:0, preventivos:0, totales:0 };
+    if(!mapeoAsesores[d.asesor]) mapeoAsesores[d.asesor] = { nombre: d.asesor, urgentes:0, pendientes:0, preventivos:0, totales:0, notTouchedToday:0 };
     mapeoAsesores[d.asesor].totales++;
 
+    // Urgentes
     if(d.categoria === 'urgente'){
       cUrgentes++;
       mapeoAsesores[d.asesor].urgentes++;
-      if(d.razon && d.razon.includes('72h')) cSla72h++;
-    } else if(d.categoria === 'preventivo'){
+    }
+
+    // Preventivos
+    if(d.categoria === 'preventivo'){
       cPreventivos++;
       mapeoAsesores[d.asesor].preventivos++;
     }
 
-    if(d.estado.toLowerCase() === 'pending' && d.categoria !== 'urgente'){
+    // Pendientes no tocados hoy: consideramos not touched today = horasUltAct >= 24
+    if(d.estado.toLowerCase() === 'pending' && (d.horasUltAct === null || d.horasUltAct >= 24) && d.categoria !== 'urgente'){
       cPendientesSTocar++;
       mapeoAsesores[d.asesor].pendientes++;
+    }
+
+    // Tickets not touched today (any status) -> horasUltAct >= 24
+    if(d.horasUltAct !== null && d.horasUltAct >= 24){
+      mapeoAsesores[d.asesor].notTouchedToday++;
     }
   });
 
   document.getElementById('kpiTotalGlobal').innerText = cTotales;
   document.getElementById('kpiPendientesSTocar').innerText = cPendientesSTocar;
-  document.getElementById('kpiSLA72H').innerText = cSla72h;
   document.getElementById('kpiPreventivos').innerText = cPreventivos;
   document.getElementById('kpiUrgentesTotal').innerText = cUrgentes;
 
+  // Construir mosaicos por asesor con los nuevos contadores visibles
   const listaAsesores = Object.values(mapeoAsesores);
   listaAsesores.sort((a,b) => b.urgentes - a.urgentes || b.pendientes - a.pendientes);
+
   const gridMosaicos = document.getElementById('gridMosaicos');
   gridMosaicos.innerHTML = '';
 
@@ -396,17 +403,21 @@ function updateDashboard(){
     nodo.innerHTML = `
       <h4>${as.nombre}</h4>
       <div class="mosaico-metrics">
-        <div class="metric-sub" style="grid-column: span 2; background:#fdfdfd; border-bottom:1px dashed #ddd;">
-          <span>Tickets Asignados</span>
-          <strong style="color:var(--vento-black); font-size:1.1rem;">${as.totales}</strong>
+        <div class="metric-sub">
+          <span>Total</span>
+          <strong>${as.totales}</strong>
         </div>
-        <div class="metric-sub" style="border-left:3px solid var(--vento-red);">
+        <div class="metric-sub">
           <span>Urgentes</span>
-          <strong style="color:${as.urgentes > 0 ? 'var(--vento-red)' : '#444'}">${as.urgentes}</strong>
+          <strong style="color:${as.urgentes>0?'var(--vento-red)':'#444'}">${as.urgentes}</strong>
         </div>
-        <div class="metric-sub" style="border-left:3px solid var(--vento-teal);">
-          <span>No Tocados</span>
-          <strong style="color:${as.pendientes > 0 ? 'var(--vento-teal)' : '#444'}">${as.pendientes}</strong>
+        <div class="metric-sub">
+          <span>Pendientes s/Tocar</span>
+          <strong style="color:${as.pendientes>0?'var(--vento-teal)':'#444'}">${as.pendientes}</strong>
+        </div>
+        <div class="metric-sub">
+          <span>No tocó hoy</span>
+          <strong style="color:${as.notTouchedToday>0?'var(--vento-urgent)':'#444'}">${as.notTouchedToday}</strong>
         </div>
       </div>
     `;
@@ -415,34 +426,32 @@ function updateDashboard(){
 }
 
 /* -------------------------
-   RESÚMENES (sin alertas)
+   RESÚMENES Y MODALES
    ------------------------- */
 function generarResumenPorAsesor(nombre){
   const tickets = rawData.filter(x => x.asesor === nombre);
   const urg = tickets.filter(t => t.categoria === 'urgente').length;
   const prev = tickets.filter(t => t.categoria === 'preventivo').length;
-  const pend = tickets.filter(t => t.estado.toLowerCase() === 'pending' && t.categoria !== 'urgente').length;
+  const pend = tickets.filter(t => t.estado.toLowerCase() === 'pending' && (t.horasUltAct === null || t.horasUltAct >= 24) && t.categoria !== 'urgente').length;
+  const notTouched = tickets.filter(t => t.horasUltAct !== null && t.horasUltAct >= 24).length;
   const aldia = tickets.filter(t => t.categoria === 'al-dia').length;
 
-  let msg = `Asesor: ${nombre}\nUrgentes: ${urg}\nPreventivos: ${prev}\nPendientes (seguimiento): ${pend}\nAl día: ${aldia}`;
-  // añadir top tickets por urgencia/preventivo (solo conteo, no listar todos)
+  let msg = `Asesor: ${nombre}\nUrgentes: ${urg}\nPreventivos: ${prev}\nPendientes s/Tocar: ${pend}\nNo tocó hoy (todos estatus): ${notTouched}\nAl día: ${aldia}`;
   const topUrg = tickets.filter(t => t.categoria === 'urgente').slice(0,3).map(t => `#${t.ticket}`).join(', ');
   if(topUrg) msg += `\nEjemplos urgentes: ${topUrg}`;
   return msg;
 }
 
 function generarResumenGeneral(tipo){
-  // tipo: 'totales_global','pendientes_stocar','sla_72h','preventivos','urgentes'
   const resumen = { urg:0, prev:0, pend:0, totales: rawData.length };
   const porAsesor = {};
   rawData.forEach(t => {
     if(!porAsesor[t.asesor]) porAsesor[t.asesor] = { urg:0, prev:0, pend:0 };
     if(t.categoria === 'urgente'){ resumen.urg++; porAsesor[t.asesor].urg++; }
     else if(t.categoria === 'preventivo'){ resumen.prev++; porAsesor[t.asesor].prev++; }
-    else if(t.estado.toLowerCase() === 'pending' && t.categoria !== 'urgente'){ resumen.pend++; porAsesor[t.asesor].pend++; }
+    else if(t.estado.toLowerCase() === 'pending' && (t.horasUltAct === null || t.horasUltAct >= 24) && t.categoria !== 'urgente'){ resumen.pend++; porAsesor[t.asesor].pend++; }
   });
 
-  // Top asesores que necesitan atención (ordenados por urgentes, luego preventivos)
   const asesoresArray = Object.keys(porAsesor).map(name => ({ nombre: name, urg: porAsesor[name].urg, prev: porAsesor[name].prev, pend: porAsesor[name].pend }));
   asesoresArray.sort((a,b) => b.urg - a.urg || b.prev - a.prev || b.pend - a.pend);
   const top = asesoresArray.slice(0,5).filter(x => x.urg > 0 || x.prev > 0 || x.pend > 0);
@@ -450,12 +459,11 @@ function generarResumenGeneral(tipo){
   let titulo = '';
   if(tipo === 'totales_global') titulo = 'Resumen general - Todos los tickets';
   else if(tipo === 'pendientes_stocar') titulo = 'Resumen - Pendientes (seguimiento diario)';
-  else if(tipo === 'sla_72h') titulo = 'Resumen - Bandeja 72h (SLA)';
   else if(tipo === 'preventivos') titulo = 'Resumen - Preventivos';
   else if(tipo === 'urgentes') titulo = 'Resumen - Urgentes';
   else titulo = 'Resumen operativo';
 
-  let msg = `${titulo}\nTotal tickets en bandeja: ${resumen.totales}\nUrgentes: ${resumen.urg}\nPreventivos: ${resumen.prev}\nPendientes (seguimiento): ${resumen.pend}\n\nAsesores con más rezagos:\n`;
+  let msg = `${titulo}\nTotal tickets en bandeja: ${resumen.totales}\nUrgentes: ${resumen.urg}\nPreventivos: ${resumen.prev}\nPendientes s/Tocar: ${resumen.pend}\n\nAsesores con más rezagos:\n`;
   if(top.length === 0) msg += 'Ninguno en este momento.';
   else msg += top.map(a => `${a.nombre}: U=${a.urg} P=${a.prev} Pend=${a.pend}`).join('\n');
 
@@ -471,7 +479,8 @@ function abrirModalAsesor(nombre){
   document.getElementById('btnModalCopy').style.display = 'inline-block';
   document.getElementById('btnModalWA').style.display = 'inline-block';
 
-  const tkFiltrados = rawData.filter(x => x.asesor === nombre);
+  // Mostrar tickets del asesor; excluir de la vista los pending que ya fueron tocados hoy (horasUltAct < 24)
+  const tkFiltrados = rawData.filter(x => x.asesor === nombre && !(x.estado.toLowerCase() === 'pending' && x.horasUltAct !== null && x.horasUltAct < 24));
   tkFiltrados.sort((a,b) => {
     const prioridad = p => { if(p.categoria === 'urgente') return 1; if(p.categoria === 'preventivo') return 2; return 3; };
     const pa = prioridad(a), pb = prioridad(b);
@@ -495,18 +504,16 @@ function abrirModalPorMetrica(tipo){
 
   if(tipo === 'totales_global'){
     titulo = "Todos los Tickets Activos en Muro (excluye closed)";
-    tkFiltrados = [...rawData];
+    // Excluir pending tocados hoy: pending && horasUltAct < 24
+    tkFiltrados = rawData.filter(x => !(x.estado.toLowerCase() === 'pending' && x.horasUltAct !== null && x.horasUltAct < 24));
   } else if(tipo === 'pendientes_stocar'){
     titulo = "Estatus Pending - No tocados hoy / Seguimiento diario";
-    tkFiltrados = rawData.filter(x => x.estado.toLowerCase() === 'pending' && x.categoria !== 'urgente');
-  } else if(tipo === 'sla_72h'){
-    titulo = "Bandeja 72h - Tickets que superan 72 horas";
-    tkFiltrados = rawData.filter(x => x.horasEdad >= 72);
+    tkFiltrados = rawData.filter(x => x.estado.toLowerCase() === 'pending' && (x.horasUltAct === null || x.horasUltAct >= 24) && x.categoria !== 'urgente');
   } else if(tipo === 'preventivos'){
     titulo = "Tickets Preventivos (open >=4h o pending no tocado hoy)";
     tkFiltrados = rawData.filter(x => x.categoria === 'preventivo');
   } else if(tipo === 'urgentes'){
-    titulo = "Total Casos Urgentes (SLA 72h, open >=24h, pending sin tocar >=24h, otros estatus)";
+    titulo = "Total Casos Urgentes (open >=24h, pending sin tocar >=24h, otros estatus)";
     tkFiltrados = rawData.filter(x => x.categoria === 'urgente');
   }
 
@@ -569,20 +576,16 @@ function cerrarModal(){ document.getElementById('modalDetalles').classList.remov
 function cerrarModalExterno(event){ if(event.target.id === 'modalDetalles') cerrarModal(); }
 
 /* -------------------------
-   COPIAR / WHATSAPP (envío de resumen, no lista completa)
+   COPIAR / WHATSAPP (resumenes, no listas completas)
    ------------------------- */
 function copiarReporteDesdeModal(){
   let mensaje = '';
   if(asesorActivoModal === "all"){
-    // tomar el resumen mostrado en modalSummary
     mensaje = document.getElementById('modalSummary').innerText || generarResumenGeneral('totales_global');
   } else {
     mensaje = generarResumenPorAsesor(asesorActivoModal);
   }
-  navigator.clipboard.writeText(mensaje).then(()=> {
-    // Mensaje discreto en consola; no alertas en UI
-    console.log('Resumen copiado al portapapeles.');
-  });
+  navigator.clipboard.writeText(mensaje).then(()=> console.log('Resumen copiado al portapapeles.'));
 }
 
 function enviarWhatsAppDesdeModal(){
