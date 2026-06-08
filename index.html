@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Vento ATC - Muro ATC (Clasificación Exclusiva)</title>
+<title>Vento ATC - Muro ATC (Exclusivo por Asesor)</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -14,7 +14,6 @@
   --vento-dark-gray:#2D2D30;
   --vento-red:#E53935;
   --vento-green:#43A047;
-  --vento-urgent:#FB8C00;
   --vento-yellow:#FBC02D;
   --vento-teal:#00897B;
   --shadow-sm:0 2px 8px rgba(0,0,0,0.04);
@@ -25,34 +24,32 @@ body{ font-family:'Inter',sans-serif; margin:0; background:var(--vento-bg); colo
 header{ background:rgba(15,15,17,0.95); color:var(--vento-white); padding:10px 3%; display:flex; align-items:center; justify-content:space-between; border-bottom:2px solid var(--vento-orange); position:sticky; top:0; z-index:1000; }
 header h1{ margin:0; font-weight:900; font-size:1.05rem; display:flex; gap:8px; align-items:center; }
 .header-badge{ background:var(--vento-orange); padding:4px 10px; border-radius:14px; font-weight:700; font-size:0.65rem; }
-.container{ width:95%; max-width:1100px; margin:14px auto; }
-.control-bar{ background:var(--vento-white); padding:10px 14px; border-radius:10px; box-shadow:var(--shadow-sm); border-left:3px solid var(--vento-orange); font-weight:600; color:var(--vento-dark-gray); margin-bottom:16px; font-size:0.88rem; display:flex; justify-content:space-between; align-items:center; }
+.container{ width:95%; max-width:1200px; margin:14px auto; }
+.control-bar{ background:var(--vento-white); padding:10px 14px; border-radius:10px; box-shadow:var(--shadow-sm); border-left:3px solid var(--vento-orange); font-weight:600; color:var(--vento-dark-gray); margin-bottom:16px; font-size:0.88rem; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
 .db-timestamp { font-size:0.8rem; color:var(--vento-orange); font-weight:800; }
+.validation { font-size:0.85rem; padding:6px 10px; border-radius:8px; background:#fff7f7; color:var(--vento-red); border:1px solid rgba(229,57,53,0.12); display:inline-block; }
 .kpi-container{ display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; margin-bottom:18px; }
 .kpi-card{ background:var(--vento-white); padding:10px; border-radius:10px; box-shadow:var(--shadow-sm); text-align:center; border:1px solid rgba(0,0,0,0.03); cursor:pointer; transition:transform .18s ease, box-shadow .18s ease; }
 .kpi-card:hover{ transform:translateY(-4px); box-shadow:var(--shadow-md); }
 .kpi-card h3{ margin:0; font-size:0.68rem; color:#666; text-transform:uppercase; font-weight:800; }
 .kpi-card p{ margin:8px 0 0; font-size:1.6rem; font-weight:900; }
 .matrix-title{ font-weight:800; text-transform:uppercase; font-size:0.88rem; margin:12px 0; }
-.heatmap-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:12px; margin-bottom:28px; }
+.heatmap-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px; margin-bottom:28px; }
 .mosaico-asesor{ background:var(--vento-white); border-radius:10px; padding:12px; box-shadow:var(--shadow-sm); cursor:pointer; transition:transform .15s ease; overflow:hidden; }
 .mosaico-asesor:hover{ transform:translateY(-3px); box-shadow:var(--shadow-md); }
-.mosaico-asesor h4{ margin:0 0 10px 0; font-size:0.88rem; font-weight:800; color:var(--vento-dark-gray); text-transform:uppercase; border-bottom: 1px solid #f0f0f0; padding-bottom: 4px; }
-.mosaico-metrics{ display:grid; grid-template-columns:repeat(2,1fr); gap:6px; }
-.metric-sub{ background:rgba(255,255,255,0.9); padding:6px 8px; border-radius:6px; border:1px solid rgba(0,0,0,0.04); }
+.mosaico-asesor h4{ margin:0 0 10px 0; font-size:0.88rem; font-weight:800; color:var(--vento-dark-gray); text-transform:uppercase; border-bottom: 1px solid #f0f0f0; padding-bottom: 6px; }
+.mosaico-metrics{ display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
+.metric-sub{ background:rgba(255,255,255,0.95); padding:8px 10px; border-radius:8px; border:1px solid rgba(0,0,0,0.04); }
 .metric-sub span{ display:block; font-size:0.62rem; text-transform:uppercase; color:#666; font-weight:800; }
-.metric-sub strong{ display:block; font-size:1rem; font-weight:900; margin-top:4px; }
-.mosaico-red{ border-top:4px solid var(--vento-red); background:linear-gradient(to bottom,var(--vento-white),#fff0f0); }
-.mosaico-yellow{ border-top:4px solid var(--vento-yellow); background:linear-gradient(to bottom,var(--vento-white),#fffaf0); }
-.mosaico-green{ border-top:4px solid var(--vento-green); background:linear-gradient(to bottom,var(--vento-white),#f0fff4); }
-.modal-overlay{ position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(15,15,17,0.55); backdrop-filter:blur(8px); z-index:2000; opacity:0; pointer-events:none; transition:opacity .25s ease; }
+.metric-sub strong{ display:block; font-size:1.05rem; font-weight:900; margin-top:6px; }
+.modal-overlay{ position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(15,15,17,0.55); backdrop-filter:blur(6px); z-index:2000; opacity:0; pointer-events:none; transition:opacity .18s ease; }
 .modal-overlay.active{ opacity:1; pointer-events:auto; }
-.modal-window{ width:92%; max-width:980px; max-height:82vh; background:var(--vento-white); border-radius:12px; overflow:hidden; display:flex; flex-direction:column; transform:translateY(-10px) scale(.98); transition:all .25s ease; }
+.modal-window{ width:94%; max-width:1100px; max-height:86vh; background:var(--vento-white); border-radius:12px; overflow:hidden; display:flex; flex-direction:column; transform:translateY(-8px) scale(.98); transition:all .18s ease; }
 .modal-overlay.active .modal-window{ transform:translateY(0) scale(1); }
 .modal-header{ padding:12px 16px; display:flex; flex-direction:column; gap:8px; border-bottom:1px solid #eee; }
-.modal-header-top{ display:flex; justify-content:space-between; align-items:center; }
+.modal-header-top{ display:flex; justify-content:space-between; align-items:center; gap:12px; }
 .modal-header h4{ margin:0; font-size:0.95rem; font-weight:900; text-transform:uppercase; }
-.modal-summary{ font-size:0.9rem; color:#444; background:#fbfbfb; padding:8px 10px; border-radius:8px; border:1px solid #eee; max-height:72px; overflow:auto; }
+.modal-summary{ font-size:0.9rem; color:#444; background:#fbfbfb; padding:8px 10px; border-radius:8px; border:1px solid #eee; max-height:84px; overflow:auto; }
 .modal-actions{ display:flex; gap:8px; align-items:center; }
 .btn{ border:none; padding:6px 10px; border-radius:8px; cursor:pointer; font-weight:800; font-size:0.78rem; }
 .btn-close{ background:#E8E8E8; color:var(--vento-dark-gray); }
@@ -64,7 +61,9 @@ th{ background:#F8F9FA; padding:10px 12px; text-align:left; border-bottom:1px so
 td{ padding:10px 12px; border-bottom:1px solid #F5F5F5; color:#444; vertical-align:middle; }
 .badge{ padding:5px 8px; border-radius:6px; font-weight:800; font-size:0.68rem; text-transform:uppercase; display:inline-block; }
 .badge-pend{ background:#E3F2F2; color:var(--vento-teal); }
-.badge-open{ background:#E8F5E9; color:var(--vento-green); }
+.badge-en{ background:#E8F5E9; color:var(--vento-green); }
+.badge-prev{ background:var(--vento-yellow); color:#000; }
+.badge-urg{ background:var(--vento-red); color:#fff; }
 #loading{ position:fixed; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; background:var(--vento-black); color:#fff; z-index:3000; font-weight:800; font-size:1rem; }
 .spinner{ width:44px; height:44px; border:4px solid rgba(255,255,255,0.08); border-top:4px solid var(--vento-orange); border-radius:50%; animation:spin 1s linear infinite; margin-bottom:12px; }
 @keyframes spin{ to{ transform:rotate(360deg); } }
@@ -83,8 +82,11 @@ td{ padding:10px 12px; border-bottom:1px solid #F5F5F5; color:#444; vertical-ali
 
 <div class="container">
   <div class="control-bar" id="barInstruction">
-    <span>📊 Reglas: exclusivas y con precedencia. Tickets Totales, En tiempo, Sin tocar, Preventivos, Urgentes.</span>
-    <span class="db-timestamp" id="dbTimestamp">Buscando fecha Z1...</span>
+    <span>📊 Vista exclusiva y por asesor. Precedencia: Urgente → Preventivo → Sin tocar → En tiempo.</span>
+    <div style="display:flex; gap:10px; align-items:center;">
+      <span class="db-timestamp" id="dbTimestamp">Buscando fecha Z1...</span>
+      <span id="validationMsg" class="validation" style="display:none;">Discrepancia en suma de categorías</span>
+    </div>
   </div>
 
   <div class="kpi-container">
@@ -114,7 +116,7 @@ td{ padding:10px 12px; border-bottom:1px solid #F5F5F5; color:#444; vertical-ali
     </div>
   </div>
 
-  <div class="matrix-title">Mapeo de Atención por Asesor (Prioridad Operativa)</div>
+  <div class="matrix-title">Mapeo de Atención por Asesor (clic para ver detalle)</div>
   <div class="heatmap-grid" id="gridMosaicos"></div>
 </div>
 
@@ -204,20 +206,17 @@ function calcularHorasCorridas(fechaInicio, fechaFin){
   return Math.floor(diffMs / (1000 * 60 * 60));
 }
 
-/* CLASIFICACIÓN EXCLUSIVA
-   Precedencia (evaluar en este orden):
+/* CLASIFICACIÓN EXCLUSIVA (precedencia final)
    1) Urgente
    2) Preventivo
    3) Sin tocar (pending tocado ayer, no hoy)
-   4) En tiempo (pending tocado hoy OR open <=4h)
-   5) Al día (resto)
+   4) En tiempo (pending tocado hoy OR open <=4h OR resto)
 */
 function clasificarTicketObj(ticket, ahora = new Date()){
   const creado = parsearFechaHoraString(ticket.fechaCreacionStr) || parsearFechaString(ticket.fechaCreacionStr);
   const ultima = parsearFechaHoraString(ticket.fechaActualizacionStr) || parsearFechaString(ticket.fechaActualizacionStr);
   const horasDesdeCreacion = creado ? calcularHorasCorridas(creado, ahora) : Infinity;
   const horasDesdeUltAct = ultima ? calcularHorasCorridas(ultima, ahora) : Infinity;
-  const diasDesdeCreacion = creado ? calcularDiasCorridos(creado, ahora) : Infinity;
   const diasDesdeUltAct = ultima ? calcularDiasCorridos(ultima, ahora) : Infinity;
   const estatus = (ticket.estado || '').toString().trim().toLowerCase();
   const grupo = (ticket.grupo || '').toString().trim();
@@ -228,7 +227,7 @@ function clasificarTicketObj(ticket, ahora = new Date()){
   // URGENTE: open >=24h
   if(estatus === 'open' && horasDesdeCreacion >= 24) return { categoria: 'urgente', razon: 'open >= 24h' };
 
-  // URGENTE: pending con más de 3 días desde creación (>=72h)
+  // URGENTE: pending creado >=72h (más de 3 días desde creación)
   if(estatus === 'pending' && horasDesdeCreacion >= 72) return { categoria: 'urgente', razon: 'pending creado >= 72h' };
 
   // URGENTE: cualquier otro estatus distinto a open/pending -> urgente
@@ -237,16 +236,15 @@ function clasificarTicketObj(ticket, ahora = new Date()){
   // PREVENTIVO: open >=4h y <24h
   if(estatus === 'open' && horasDesdeCreacion >= 4 && horasDesdeCreacion < 24) return { categoria: 'preventivo', razon: 'open >=4h y <24h' };
 
-  // SIN TOCAR: pending tocado ayer pero no hoy
-  // condición: estatus pending, última actividad corresponde a ayer (diasDesdeUltAct === 1) AND no toque hoy (horasDesdeUltAct >=24)
+  // SIN TOCAR: pending tocado ayer pero no hoy (última actividad fue ayer y no hay toque hoy)
   if(estatus === 'pending' && diasDesdeUltAct === 1 && horasDesdeUltAct >= 24) return { categoria: 'sin-tocar', razon: 'pending tocado ayer, no hoy' };
 
-  // EN TIEMPO: pending tocado hoy OR open creado <=4h
+  // EN TIEMPO: pending tocado hoy OR open <=4h OR resto (catch-all)
   if(estatus === 'pending' && horasDesdeUltAct < 24) return { categoria: 'en-tiempo', razon: 'pending tocado hoy' };
   if(estatus === 'open' && horasDesdeCreacion <= 4) return { categoria: 'en-tiempo', razon: 'open <=4h' };
 
-  // AL DÍA: resto (no urgente, no preventivo, no sin-tocar, no en-tiempo)
-  return { categoria: 'al-dia', razon: 'al-dia' };
+  // CATCH-ALL -> en-tiempo
+  return { categoria: 'en-tiempo', razon: 'en-tiempo' };
 }
 
 /* FETCH Y MAPEO */
@@ -329,7 +327,7 @@ async function fetchData(){
 
 /* ACTUALIZAR DASHBOARD */
 function updateDashboard(){
-  let cTotales = 0, cEnTiempo = 0, cPendientesSTocar = 0, cPreventivos = 0, cUrgentes = 0;
+  let cTotales = 0, cEnTiempo = 0, cPendientesSTocar = 0, cPreventivos = 0, cUrgentes = 0, cAlDia = 0;
   const mapeoAsesores = {};
   document.getElementById('dbTimestamp').innerText = `${ultimaActualizacionBase}`;
 
@@ -338,7 +336,7 @@ function updateDashboard(){
     if(!mapeoAsesores[d.asesor]) mapeoAsesores[d.asesor] = { nombre: d.asesor, urgentes:0, pendientes:0, preventivos:0, totales:0, notTouchedToday:0, enTiempo:0 };
     mapeoAsesores[d.asesor].totales++;
 
-    // Categorías exclusivas (ya calculadas en d.categoria)
+    // Categorías exclusivas
     if(d.categoria === 'urgente'){
       cUrgentes++;
       mapeoAsesores[d.asesor].urgentes++;
@@ -351,6 +349,9 @@ function updateDashboard(){
     } else if(d.categoria === 'en-tiempo'){
       cEnTiempo++;
       mapeoAsesores[d.asesor].enTiempo++;
+    } else {
+      // no debería ocurrir, pero por seguridad
+      cAlDia++;
     }
 
     // No tocó hoy (cualquier estatus) -> horasUltAct >= 24
@@ -359,13 +360,23 @@ function updateDashboard(){
     }
   });
 
+  // Validación suma categorías
+  const sumaCategorias = cEnTiempo + cPendientesSTocar + cPreventivos + cUrgentes + cAlDia;
+  const validationEl = document.getElementById('validationMsg');
+  if(sumaCategorias !== cTotales){
+    validationEl.style.display = 'inline-block';
+    validationEl.innerText = `Discrepancia: suma categorías = ${sumaCategorias} / Total = ${cTotales}`;
+  } else {
+    validationEl.style.display = 'none';
+  }
+
   document.getElementById('kpiTotalGlobal').innerText = cTotales;
   document.getElementById('kpiEnTiempo').innerText = cEnTiempo;
   document.getElementById('kpiPendientesSTocar').innerText = cPendientesSTocar;
   document.getElementById('kpiPreventivos').innerText = cPreventivos;
   document.getElementById('kpiUrgentesTotal').innerText = cUrgentes;
 
-  // Construir mosaicos por asesor
+  // Construir mosaicos por asesor (cada tarjeta muestra los mismos KPIs filtrados por asesor)
   const listaAsesores = Object.values(mapeoAsesores);
   listaAsesores.sort((a,b) => b.urgentes - a.urgentes || b.pendientes - a.pendientes);
 
@@ -389,16 +400,24 @@ function updateDashboard(){
           <strong>${as.totales}</strong>
         </div>
         <div class="metric-sub">
-          <span>Urgentes</span>
-          <strong style="color:${as.urgentes>0?'var(--vento-red)':'#444'}">${as.urgentes}</strong>
+          <span>En tiempo</span>
+          <strong style="color:${as.enTiempo>0?'var(--vento-green)':'#444'}">${as.enTiempo}</strong>
         </div>
         <div class="metric-sub">
           <span>Pendientes s/Tocar</span>
           <strong style="color:${as.pendientes>0?'var(--vento-teal)':'#444'}">${as.pendientes}</strong>
         </div>
         <div class="metric-sub">
-          <span>No tocó hoy</span>
-          <strong style="color:${as.notTouchedToday>0?'var(--vento-urgent)':'#444'}">${as.notTouchedToday}</strong>
+          <span>Preventivos</span>
+          <strong style="color:${as.preventivos>0?'var(--vento-yellow)':'#444'}">${as.preventivos}</strong>
+        </div>
+        <div class="metric-sub" style="grid-column: span 2;">
+          <span>Urgentes</span>
+          <strong style="color:${as.urgentes>0?'var(--vento-red)':'#444'}">${as.urgentes}</strong>
+        </div>
+        <div class="metric-sub" style="grid-column: span 2;">
+          <span>No tocó hoy (todos estatus)</span>
+          <strong style="color:${as.notTouchedToday>0?'var(--vento-orange)':'#444'}">${as.notTouchedToday}</strong>
         </div>
       </div>
     `;
@@ -414,9 +433,9 @@ function generarResumenPorAsesor(nombre){
   const pend = tickets.filter(t => t.categoria === 'sin-tocar').length;
   const enTiempo = tickets.filter(t => t.categoria === 'en-tiempo').length;
   const notTouched = tickets.filter(t => t.horasUltAct !== null && t.horasUltAct >= 24).length;
-  const aldia = tickets.filter(t => t.categoria === 'al-dia').length;
+  const tot = tickets.length;
 
-  let msg = `Asesor: ${nombre}\nUrgentes: ${urg}\nPreventivos: ${prev}\nPendientes s/Tocar: ${pend}\nEn tiempo: ${enTiempo}\nNo tocó hoy: ${notTouched}\nAl día: ${aldia}`;
+  let msg = `Asesor: ${nombre}\nTotal: ${tot}\nEn tiempo: ${enTiempo}\nPendientes s/Tocar: ${pend}\nPreventivos: ${prev}\nUrgentes: ${urg}\nNo tocó hoy: ${notTouched}`;
   const topUrg = tickets.filter(t => t.categoria === 'urgente').slice(0,3).map(t => `#${t.ticket}`).join(', ');
   if(topUrg) msg += `\nEjemplos urgentes: ${topUrg}`;
   return msg;
@@ -459,7 +478,7 @@ function abrirModalAsesor(nombre){
   document.getElementById('btnModalCopy').style.display = 'inline-block';
   document.getElementById('btnModalWA').style.display = 'inline-block';
 
-  // Mostrar tickets del asesor; excluir pending tocados hoy (horasUltAct < 24)
+  // Mostrar tickets del asesor; excluir pending tocados hoy (horasUltAct < 24) de la vista de pendientes
   const tkFiltrados = rawData.filter(x => x.asesor === nombre && !(x.estado.toLowerCase() === 'pending' && x.horasUltAct !== null && x.horasUltAct < 24));
   tkFiltrados.sort((a,b) => {
     const prioridad = p => { if(p.categoria === 'urgente') return 1; if(p.categoria === 'preventivo') return 2; if(p.categoria === 'sin-tocar') return 3; if(p.categoria === 'en-tiempo') return 4; return 5; };
@@ -486,7 +505,7 @@ function abrirModalPorMetrica(tipo){
     titulo = "Todos los Tickets Activos en Muro (excluye closed)";
     tkFiltrados = [...rawData];
   } else if(tipo === 'en_tiempo'){
-    titulo = "Tickets En Tiempo (pending tocado hoy, open <=4h)";
+    titulo = "Tickets En Tiempo (pending tocado hoy, open <=4h, resto)";
     tkFiltrados = rawData.filter(x => x.categoria === 'en-tiempo');
   } else if(tipo === 'pendientes_stocar'){
     titulo = "Estatus Pending - No tocados hoy / Seguimiento diario";
@@ -520,11 +539,10 @@ function construirTablaModal(listaTickets){
 
   listaTickets.forEach(t => {
     let badgeHtml = '';
-    if(t.categoria === 'urgente') badgeHtml = `<span class="badge" style="background:var(--vento-red); color:#fff;">🔴 URGENTE</span>`;
-    else if(t.categoria === 'preventivo') badgeHtml = `<span class="badge" style="background:var(--vento-yellow); color:#000;">🟡 PREVENTIVO</span>`;
+    if(t.categoria === 'urgente') badgeHtml = `<span class="badge badge-urg">🔴 URGENTE</span>`;
+    else if(t.categoria === 'preventivo') badgeHtml = `<span class="badge badge-prev">🟡 PREVENTIVO</span>`;
     else if(t.categoria === 'sin-tocar') badgeHtml = `<span class="badge badge-pend">🟦 SIN TOCAR (ayer)</span>`;
-    else if(t.categoria === 'en-tiempo') badgeHtml = `<span class="badge badge-open">🟢 EN TIEMPO</span>`;
-    else badgeHtml = `<span class="badge" style="background:#EEE; color:#444;">ℹ️ AL DÍA</span>`;
+    else badgeHtml = `<span class="badge badge-en">🟢 EN TIEMPO</span>`;
 
     const tr = document.createElement('tr');
     tr.innerHTML = `
