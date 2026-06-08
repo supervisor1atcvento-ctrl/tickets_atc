@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Vento ATC - Muro ATC (Exclusivo por Asesor)</title>
+<title>Vento ATC - Muro ATC (Por Asesor, lógica única)</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -22,7 +22,6 @@
 *{box-sizing:border-box}
 body{ font-family:'Inter',sans-serif; margin:0; background:var(--vento-bg); color:var(--vento-black); -webkit-font-smoothing:antialiased; }
 header{ background:rgba(15,15,17,0.95); color:var(--vento-white); padding:10px 3%; display:flex; align-items:center; justify-content:space-between; border-bottom:2px solid var(--vento-orange); position:sticky; top:0; z-index:1000; }
-header h1{ margin:0; font-weight:900; font-size:1.05rem; display:flex; gap:8px; align-items:center; }
 .header-badge{ background:var(--vento-orange); padding:4px 10px; border-radius:14px; font-weight:700; font-size:0.65rem; }
 .container{ width:95%; max-width:1200px; margin:14px auto; }
 .control-bar{ background:var(--vento-white); padding:10px 14px; border-radius:10px; box-shadow:var(--shadow-sm); border-left:3px solid var(--vento-orange); font-weight:600; color:var(--vento-dark-gray); margin-bottom:16px; font-size:0.88rem; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
@@ -350,7 +349,6 @@ function updateDashboard(){
       cEnTiempo++;
       mapeoAsesores[d.asesor].enTiempo++;
     } else {
-      // no debería ocurrir, pero por seguridad
       cAlDia++;
     }
 
