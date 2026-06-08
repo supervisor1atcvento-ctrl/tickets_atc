@@ -269,14 +269,14 @@ function clasificarTicketObj(ticket, ahora = new Date()){
   if(estatus === 'closed') return { categoria: 'exclude', razon: 'closed' };
 
   if(creado && horasDesdeCreacion >= 72) return { categoria: 'urgente' };
-  if(estatus === 'open' && horasDesdeCreacion >= 24) return { categoria: 'urgente', razon: 'open >= 24h' };
-  if(estatus === 'pending' && horasDesdeUltAct >= 48) return { categoria: 'urgente', razon: 'pending sin actualizar >= 48h' };
-  if(estatus !== 'open' && estatus !== 'pending') return { categoria: 'urgente', razon: `estatus ${ticket.estado} no permitido` };
-  if(estatus === 'open' && horasDesdeCreacion >= 4 && horasDesdeCreacion < 24) return { categoria: 'preventivo', razon: 'open >=4h y <24h' };
-  if(estatus === 'pending' && horasDesdeUltAct >= 24 && horasDesdeUltAct < 48) return { categoria: 'sin-tocar', razon: 'pending sin actualizar 24-48h' };
-  if(estatus === 'pending' && horasDesdeUltAct < 24) return { categoria: 'en-tiempo', razon: 'pending tocado <24h' };
-  if(estatus === 'open' && horasDesdeCreacion <= 4) return { categoria: 'en-tiempo', razon: 'open <=4h' };
-  return { categoria: 'en-tiempo', razon: 'en-tiempo' };
+  if(estatus === 'open' && horasDesdeCreacion >= 24) return { categoria: 'urgente' };
+  if(estatus === 'pending' && horasDesdeUltAct >= 48) return { categoria: 'urgente' };
+  if(estatus !== 'open' && estatus !== 'pending') return { categoria: 'urgente'};
+  if(estatus === 'open' && horasDesdeCreacion >= 4 && horasDesdeCreacion < 24) return { categoria: 'preventivo'};
+  if(estatus === 'pending' && horasDesdeUltAct >= 24 && horasDesdeUltAct < 48) return { categoria: 'sin-tocar' };
+  if(estatus === 'pending' && horasDesdeUltAct < 24) return { categoria: 'en-tiempo' };
+  if(estatus === 'open' && horasDesdeCreacion <= 4) return { categoria: 'en-tiempo' };
+  return { categoria: 'en-tiempo' };
 }
 
 /* Fetch y mapeo */
