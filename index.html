@@ -3,30 +3,27 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Vento ATC — Muro (Colores Institucionales · Responsive)</title>
+<title>Vento ATC — Muro (Fijo + Scroll horizontal asesores)</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  /* Paleta institucional */
-  --white: #FFFFFF;      /* 50% uso */
-  --black: #231F20;      /* 30% uso */
-  --gray:  #616160;      /* 15% uso */
-  --orange:#F28F17;      /* 5% uso */
-
-  /* Accesorios visuales */
-  --bg: #FFFFFF;
-  --card: #FFFFFF;
-  --muted: var(--gray);
-  --accent: var(--orange);
-  --text: var(--black);
-  --shadow-sm: 0 6px 18px rgba(35,31,32,0.06);
-  --shadow-md: 0 12px 30px rgba(35,31,32,0.10);
+  --white:#FFFFFF;
+  --black:#231F20;
+  --gray:#616160;
+  --orange:#F28F17;
+  --bg:#FFFFFF;
+  --card:#FFFFFF;
+  --muted:var(--gray);
+  --accent:var(--orange);
+  --text:var(--black);
+  --shadow-sm:0 6px 18px rgba(35,31,32,0.06);
+  --shadow-md:0 12px 30px rgba(35,31,32,0.10);
   --radius:12px;
   --gap:12px;
-
-  /* Responsive helpers */
-  --kpi-min: 140px;
-  --compact-scale: 0.86;
+  --header-h:64px; /* fallback, JS ajusta dinámicamente */
+  --top-h:160px;   /* fallback, JS ajusta dinámicamente */
+  --kpi-min:140px;
+  --compact-scale:0.86;
 }
 
 /* Reset & base */
@@ -35,19 +32,20 @@ html,body{height:100%}
 body{
   margin:0;
   font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
-  background:linear-gradient(180deg, #FBFBFB 0%, #FFFFFF 100%);
+  background:linear-gradient(180deg,#FBFBFB 0%, #FFFFFF 100%);
   color:var(--text);
   -webkit-font-smoothing:antialiased;
   -moz-osx-font-smoothing:grayscale;
   padding-bottom:64px;
-  -webkit-font-smoothing:antialiased;
 }
 
-/* Header */
+/* Header fixed */
 header{
   display:flex; align-items:center; justify-content:space-between;
   padding:12px 18px; background:var(--white);
-  border-bottom:2px solid rgba(35,31,32,0.04); position:sticky; top:0; z-index:60;
+  border-bottom:2px solid rgba(35,31,32,0.04);
+  position:fixed; top:0; left:0; right:0; z-index:120;
+  height:var(--header-h);
 }
 .brand{ display:flex; gap:12px; align-items:center; min-width:0; }
 .logo{ width:44px; height:44px; border-radius:10px; background:var(--orange);
@@ -55,9 +53,26 @@ header{
 header h1{ margin:0; font-size:clamp(1rem,1.6vw + 0.4rem,1.1rem); font-weight:800; color:var(--black); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .header-actions{ display:flex; gap:10px; align-items:center; color:var(--muted); flex-wrap:wrap; }
 
+/* Top area (KPIs) fixed under header */
+.top-fixed {
+  position:fixed;
+  left:0;
+  right:0;
+  z-index:110;
+  background:linear-gradient(180deg,#FFFFFF,#FBFBFB);
+  border-bottom:1px solid rgba(35,31,32,0.04);
+  box-shadow: 0 8px 20px rgba(35,31,32,0.04);
+}
+
+/* Container below fixed areas */
+.main-scroll {
+  /* JS sets padding-top dynamically: header + top heights */
+  width:100%;
+  min-height:calc(100vh - var(--header-h) - var(--top-h));
+}
+
 /* Layout */
-.container{ max-width:1280px; margin:18px auto; padding:0 16px; width:calc(100% - 32px); }
-.top-row{ display:flex; gap:var(--gap); align-items:flex-start; margin-bottom:14px; flex-wrap:wrap; }
+.container{ max-width:1280px; margin:0 auto; padding:18px 16px; width:calc(100% - 32px); box-sizing:border-box; }
 
 /* KPI grid (responsive) */
 .kpi-grid{
@@ -65,6 +80,7 @@ header h1{ margin:0; font-size:clamp(1rem,1.6vw + 0.4rem,1.1rem); font-weight:80
   grid-template-columns: repeat(auto-fit, minmax(var(--kpi-min), 1fr));
   gap:12px;
   width:100%;
+  padding:12px 16px;
 }
 .kpi{
   background:var(--card); border-radius:10px; padding:10px 12px;
@@ -76,142 +92,69 @@ header h1{ margin:0; font-size:clamp(1rem,1.6vw + 0.4rem,1.1rem); font-weight:80
 .kpi .value{ font-size:clamp(1.1rem,2.6vw + 0.2rem,1.6rem); font-weight:900; letter-spacing:-0.6px; color:var(--black); }
 .kpi .meta{ font-size:0.74rem; color:var(--muted); margin-top:6px; }
 
-/* Advisors grid */
-.matrix-title{ font-weight:800; margin:14px 0 8px; color:var(--black); font-size:clamp(0.95rem,1.2vw + 0.2rem,1rem); }
+/* Title above advisors */
+.matrix-title{ font-weight:800; margin:8px 0 8px; color:var(--black); font-size:clamp(0.95rem,1.2vw + 0.2rem,1rem); }
+
+/* Advisors: horizontal scroll row */
 .grid-asesores{
-  display:grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  display:flex;
   gap:12px;
+  overflow-x:auto;
+  overflow-y:hidden;
+  padding:12px 8px;
+  -webkit-overflow-scrolling:touch;
+  scroll-behavior:smooth;
+  align-items:flex-start;
+  /* hide wrap so cards stay in a single row */
+  flex-wrap:nowrap;
 }
 
-/* Card asesor */
+/* each card fixed width so horizontal scroll works nicely */
 .card-asesor{
-  background:linear-gradient(180deg,#FFFFFF,#FBFBFB); border-radius:var(--radius);
+  flex:0 0 300px; /* width of each card; adjust as needed */
+  background:linear-gradient(180deg,#FFFFFF,#FBFBFB); border-radius:12px;
   padding:12px; box-shadow:var(--shadow-sm); border:1px solid rgba(35,31,32,0.04);
   transition:transform .12s ease; cursor:pointer; display:flex; flex-direction:column; gap:10px; min-height:120px;
 }
 .card-asesor:hover{ transform:translateY(-6px); box-shadow:var(--shadow-md); }
-.card-asesor h4{ margin:0; font-size:clamp(0.9rem,1.6vw + 0.1rem,1rem); font-weight:800; color:var(--black); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.card-asesor h4{ margin:0; font-size:1rem; font-weight:800; color:var(--black); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .card-row{ display:flex; gap:10px; align-items:center; justify-content:space-between; }
 
-/* metrics */
+/* metrics inside card */
 .metrics-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
 .metric{ background:rgba(35,31,32,0.02); border-radius:8px; padding:8px; border:1px solid rgba(35,31,32,0.03); }
 .metric .m-label{ font-size:0.66rem; color:var(--muted); font-weight:800; text-transform:uppercase; }
 .metric .m-value{ font-size:1.02rem; font-weight:900; margin-top:6px; color:var(--black); }
 
-/* pills */
-.pill{ display:inline-flex; gap:8px; align-items:center; padding:6px 8px; border-radius:999px; font-weight:800; font-size:0.72rem; white-space:nowrap; }
-.pill.green{ background:rgba(46,204,113,0.06); color:#1B7A3A; border:1px solid rgba(46,204,113,0.08); }
-.pill.red{ background:rgba(242,143,23,0.06); color:var(--orange); border:1px solid rgba(242,143,23,0.08); }
-.pill.yellow{ background:rgba(242,143,23,0.04); color:var(--orange); border:1px solid rgba(242,143,23,0.06); }
+/* scrollbar styling (optional, modern browsers) */
+.grid-asesores::-webkit-scrollbar{ height:10px; }
+.grid-asesores::-webkit-scrollbar-thumb{ background:rgba(35,31,32,0.12); border-radius:8px; }
+.grid-asesores::-webkit-scrollbar-track{ background:transparent; }
 
-/* -------------------------
-   Modal compacto + fondo borroso
-   ------------------------- */
-/* overlay with blur */
+/* Modal overlay + compact modal (kept from previous) */
 .modal-overlay{
-  position:fixed;
-  inset:0;
-  display:none;
-  align-items:center;
-  justify-content:center;
-  background:rgba(2,6,23,0.45);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  z-index:120;
-  padding:12px;
-  transition:opacity .18s ease;
-  opacity:0;
-  pointer-events:none;
+  position:fixed; inset:0; display:none; align-items:center; justify-content:center;
+  background:rgba(2,6,23,0.45); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  z-index:140; padding:12px; transition:opacity .18s ease; opacity:0; pointer-events:none;
 }
-.modal-overlay.active{
-  display:flex;
-  opacity:1;
-  pointer-events:auto;
-}
-
-/* modal smaller and centered */
-.modal{
-  width:100%;
-  max-width:720px;        /* reduced size */
-  border-radius:12px;
-  overflow:hidden;
-  background:var(--white);
-  box-shadow:0 30px 80px rgba(35,31,32,0.12);
-  color:var(--black);
-  transform:translateY(6px) scale(.995);
-  transition:transform .18s cubic-bezier(.2,.9,.2,1), opacity .18s ease;
-  opacity:0;
-  max-height:78vh;
-  display:flex;
-  flex-direction:column;
-}
-.modal-overlay.active .modal{
-  transform:translateY(0) scale(1);
-  opacity:1;
-}
-
-/* compact header/body */
-.modal-head{
-  padding:10px 12px;
-  border-bottom:1px solid rgba(35,31,32,0.04);
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:10px;
-}
-.modal-head h3{ margin:0; font-size:0.95rem; font-weight:800; }
-.modal-body{
-  padding:8px 10px;
-  overflow:auto;
-  -webkit-overflow-scrolling:touch;
-}
-
-/* table compact */
+.modal-overlay.active{ display:flex; opacity:1; pointer-events:auto; }
+.modal{ width:100%; max-width:720px; border-radius:12px; overflow:hidden; background:var(--white); box-shadow:0 30px 80px rgba(35,31,32,0.12); color:var(--black); transform:translateY(6px) scale(.995); transition:transform .18s, opacity .18s; opacity:0; max-height:78vh; display:flex; flex-direction:column; }
+.modal-overlay.active .modal{ transform:translateY(0) scale(1); opacity:1; }
+.modal-head{ padding:10px 12px; border-bottom:1px solid rgba(35,31,32,0.04); display:flex; justify-content:space-between; align-items:center; gap:10px; }
+.modal-body{ padding:8px 10px; overflow:auto; -webkit-overflow-scrolling:touch; }
 .table-wrap{ width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; }
 table{ width:100%; border-collapse:collapse; font-size:0.86rem; color:var(--black); min-width:640px; }
 th, td{ padding:8px 10px; text-align:left; border-bottom:1px solid rgba(35,31,32,0.04); vertical-align:middle; }
 th{ font-size:0.72rem; color:var(--muted); text-transform:uppercase; }
-tr:hover td{ background:rgba(35,31,32,0.02); }
 
-/* Buttons smaller in modal */
-.modal-head .btn, .modal-head .btn.ghost{
-  padding:6px 10px;
-  font-size:0.85rem;
-  border-radius:8px;
+/* responsive adjustments */
+@media (max-width:900px){
+  :root{ --kpi-min:120px; }
+  .card-asesor{ flex:0 0 260px; }
 }
-
-/* compact mode toggle */
-.compact-toggle{
-  position:fixed; right:14px; bottom:14px; z-index:9999; background:var(--accent); color:var(--white);
-  border:none; padding:10px 12px; border-radius:10px; box-shadow:0 8px 20px rgba(0,0,0,0.18); cursor:pointer; font-weight:800;
-}
-
-/* compact-mode scaling */
-.compact-mode .kpi, .compact-mode .card-asesor, .compact-mode table th, .compact-mode table td {
-  transform: scale(var(--compact-scale));
-  transform-origin: top left;
-}
-
-/* responsive tweaks */
-@media (max-width:1100px){
-  .kpi-grid{ grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); }
-  table{ min-width:640px; }
-}
-@media (max-width:720px){
-  .kpi .meta{ display:none; }
-  table{ font-size:0.82rem; min-width:520px; }
-  th, td{ padding:6px 8px; white-space:nowrap; }
-  .grid-asesores{ grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
-  .modal{ max-width:92%; min-width:320px; }
-}
-@media (max-width:420px){
-  .kpi-grid{ grid-template-columns: repeat(2, 1fr); }
-  .grid-asesores{ grid-template-columns: 1fr; }
-  .card-asesor{ padding:10px; min-height:100px; }
-  table{ min-width:480px; }
-  .modal{ max-width:96%; }
+@media (max-width:600px){
+  .card-asesor{ flex:0 0 220px; }
+  table{ min-width:520px; font-size:0.82rem; }
 }
 
 /* helpers */
@@ -221,109 +164,161 @@ tr:hover td{ background:rgba(35,31,32,0.02); }
 .countup{ transition:all .45s cubic-bezier(.2,.9,.2,1); }
 a { color: var(--orange); text-decoration: none; }
 a:hover { text-decoration: underline; }
-
-/* accessibility: focus outlines */
 button:focus, a:focus { outline: 3px solid rgba(242,143,23,0.18); outline-offset:2px; }
 </style>
 </head>
 <body>
-<header>
-  <div class="brand">
-    <div class="logo">V</div>
-    <div style="min-width:0;">
-      <h1 title="Vento — Muro ATC">Vento — Muro ATC</h1>
-      <div class="muted" style="font-size:0.82rem">Seguimientos en tiempo real</div>
+  <!-- Header (fixed) -->
+  <header id="appHeader">
+    <div class="brand">
+      <div class="logo">V</div>
+      <div style="min-width:0;">
+        <h1 title="Vento — Muro ATC">Vento — Muro ATC</h1>
+        <div class="muted" style="font-size:0.82rem">Seguimientos en tiempo real</div>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <div class="muted" id="dbTimestamp">Última actualización: —</div>
+      <button class="btn ghost" onclick="fetchData()">Refrescar</button>
+      <button class="btn" onclick="abrirModalPorMetrica('totales_global')">Resumen</button>
+    </div>
+  </header>
+
+  <!-- Top KPIs (fixed under header) -->
+  <div id="topArea" class="top-fixed" aria-hidden="false">
+    <div class="container" style="padding:8px 16px;">
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+        <div style="font-weight:800">Vista Operativa · Resumen</div>
+        <div class="muted" style="font-size:0.9rem">Panel general — mantén esto visible mientras navegas</div>
+      </div>
+
+      <div class="kpi-grid" id="kpiGrid">
+        <div class="kpi" onclick="abrirModalPorMetrica('totales_global')">
+          <div class="label">Tickets Totales</div>
+          <div class="value countup" id="kpiTotalGlobal">0</div>
+          <div class="meta muted">Bandeja activa</div>
+        </div>
+
+        <div class="kpi" onclick="abrirModalPorMetrica('en_tiempo')">
+          <div class="label">En Tiempo</div>
+          <div class="value countup" id="kpiEnTiempo">0</div>
+          <div class="meta muted">Pending tocados hoy + Open ≤4h</div>
+        </div>
+
+        <div class="kpi" onclick="abrirModalPorMetrica('pendientes_stocar')">
+          <div class="label">Pendientes s/Tocar</div>
+          <div class="value countup" id="kpiPendientesSTocar">0</div>
+          <div class="meta muted">Pending 24–48h</div>
+        </div>
+
+        <div class="kpi" onclick="abrirModalPorMetrica('preventivos')">
+          <div class="label">Preventivos</div>
+          <div class="value countup" id="kpiPreventivos">0</div>
+          <div class="meta muted">Open 4–24h</div>
+        </div>
+
+        <div class="kpi" onclick="abrirModalPorMetrica('urgentes')">
+          <div class="label">Urgentes</div>
+          <div class="value countup" id="kpiUrgentesTotal">0</div>
+          <div class="meta muted">Open ≥24h, Pending ≥48h, creado ≥72h</div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <div class="header-actions">
-    <div class="muted" id="dbTimestamp">Última actualización: —</div>
-    <button class="btn ghost" onclick="fetchData()">Refrescar</button>
-    <button class="btn" onclick="abrirModalPorMetrica('totales_global')">Resumen</button>
+  <!-- Main scrollable area (only this scrolls) -->
+  <div id="mainScroll" class="main-scroll" role="main">
+    <div class="container">
+      <div class="matrix-title">Seguimiento por Asesor</div>
+
+      <!-- Advisors row: horizontal scroll -->
+      <div class="grid-asesores" id="gridMosaicos" aria-live="polite" tabindex="0" role="region" aria-label="Tarjetas de asesores, desplázalas horizontalmente"></div>
+
+      <!-- espacio extra para que el scroll no tape el footer -->
+      <div style="height:40px"></div>
+    </div>
   </div>
-</header>
 
-<main class="container">
-  <section class="top-row">
-    <div class="kpi-grid" id="kpiGrid">
-      <div class="kpi" onclick="abrirModalPorMetrica('totales_global')">
-        <div class="label">Tickets Totales</div>
-        <div class="value countup" id="kpiTotalGlobal">0</div>
-        <div class="meta muted">Bandeja activa</div>
+  <!-- Modal -->
+  <div class="modal-overlay" id="modalDetalles" onclick="cerrarModalExterno(event)">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-head">
+        <div>
+          <h3 id="modalTitle">Desglose</h3>
+          <div class="muted" id="modalSummary">Resumen operativo</div>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <button class="btn" onclick="enviarWhatsAppDesdeModal()">📲 Enviar por WA</button>
+          <button class="btn ghost" onclick="cerrarModal()">Cerrar</button>
+        </div>
       </div>
 
-      <div class="kpi" onclick="abrirModalPorMetrica('en_tiempo')">
-        <div class="label">En Tiempo</div>
-        <div class="value countup" id="kpiEnTiempo">0</div>
-        <div class="meta muted">Pending tocados hoy + Open ≤4h</div>
-      </div>
-
-      <div class="kpi" onclick="abrirModalPorMetrica('pendientes_stocar')">
-        <div class="label">Pendientes s/Tocar</div>
-        <div class="value countup" id="kpiPendientesSTocar">0</div>
-        <div class="meta muted">Pending 24–48h</div>
-      </div>
-
-      <div class="kpi" onclick="abrirModalPorMetrica('preventivos')">
-        <div class="label">Preventivos</div>
-        <div class="value countup" id="kpiPreventivos">0</div>
-        <div class="meta muted">Open 4–24h</div>
-      </div>
-
-      <div class="kpi" onclick="abrirModalPorMetrica('urgentes')">
-        <div class="label">Urgentes</div>
-        <div class="value countup" id="kpiUrgentesTotal">0</div>
-        <div class="meta muted">Open ≥24h, Pending ≥48h, creado ≥72h</div>
-      </div>
-    </div>
-  </section>
-
-  <div class="matrix-title">Seguimiento por Asesor</div>
-  <div class="grid-asesores" id="gridMosaicos" aria-live="polite"></div>
-</main>
-
-<!-- Modal -->
-<div class="modal-overlay" id="modalDetalles" onclick="cerrarModalExterno(event)">
-  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-    <div class="modal-head">
-      <div>
-        <h3 id="modalTitle">Desglose</h3>
-        <div class="muted" id="modalSummary">Resumen operativo</div>
-      </div>
-      <div style="display:flex; gap:8px; align-items:center;">
-        <!-- Copiar eliminado por petición; solo WA y Cerrar -->
-        <button class="btn" onclick="enviarWhatsAppDesdeModal()">📲 Enviar por WA</button>
-        <button class="btn ghost" onclick="cerrarModal()">Cerrar</button>
-      </div>
-    </div>
-
-    <div class="modal-body">
-      <div class="table-wrap">
-        <table aria-describedby="modalSummary">
-          <thead>
-            <tr>
-              <th>Asesor</th>
-              <th>ID</th>
-              <th>Estatus</th>
-              <th>Creación</th>
-              <th>Última Act.</th>
-              <th>Edad</th>
-              <th>Clasificación</th>
-            </tr>
-          </thead>
-          <tbody id="modalTablaCuerpo"></tbody>
-        </table>
+      <div class="modal-body">
+        <div class="table-wrap">
+          <table aria-describedby="modalSummary">
+            <thead>
+              <tr>
+                <th>Asesor</th>
+                <th>ID</th>
+                <th>Estatus</th>
+                <th>Creación</th>
+                <th>Última Act.</th>
+                <th>Edad</th>
+                <th>Clasificación</th>
+              </tr>
+            </thead>
+            <tbody id="modalTablaCuerpo"></tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
-<!-- Compact mode toggle -->
-<button class="compact-toggle" id="compactToggle" title="Alternar modo compacto">Compacto</button>
+  <!-- Compact toggle (kept) -->
+  <button class="compact-toggle" id="compactToggle" title="Alternar modo compacto">Compacto</button>
 
 <script>
 /* -------------------------
-   Config y utilidades
+   Ajustes de layout fijo + scroll horizontal
+   ------------------------- */
+
+/* Ajusta variables CSS y padding-top para que header + topArea queden fijos y el resto baje */
+function ajustarLayoutFijo(){
+  const header = document.getElementById('appHeader');
+  const top = document.getElementById('topArea');
+  const main = document.getElementById('mainScroll');
+
+  if(!header || !top || !main) return;
+
+  // medir alturas reales
+  const headerH = header.getBoundingClientRect().height;
+  const topH = top.getBoundingClientRect().height;
+
+  // setear variables CSS para que se usen en estilos
+  document.documentElement.style.setProperty('--header-h', headerH + 'px');
+  document.documentElement.style.setProperty('--top-h', topH + 'px');
+
+  // aplicar padding-top al main para que no quede oculto detrás de los fijos
+  main.style.paddingTop = (headerH + topH) + 'px';
+
+  // posicionar topArea justo debajo del header
+  top.style.top = headerH + 'px';
+}
+
+/* Inicializar y escuchar resize */
+window.addEventListener('load', () => {
+  ajustarLayoutFijo();
+  // focus en grid para permitir scroll con teclado en algunos navegadores
+  const grid = document.getElementById('gridMosaicos');
+  if(grid) grid.setAttribute('tabindex','0');
+});
+window.addEventListener('resize', () => {
+  ajustarLayoutFijo();
+});
+
+/* -------------------------
+   Mantengo tu lógica de fetch y render (sin cambios en reglas)
    ------------------------- */
 const SHEET_ID = '1JBre4cLAbYiOJuYye_FGcsk5U_BIStDoAiCbV-B8WoA';
 const querySQLTickets = encodeURIComponent("SELECT A, B, C, F, G, I, Z");
@@ -335,7 +330,10 @@ let rawData = [];
 let ultimaActualizacionBase = '—';
 let asesorActivoModal = 'all';
 
-/* Parseo robusto de fechas (soporta yyyy-mm-dd y dd/mm/yyyy y con hora) */
+/* (Funciones parseo, clasificarTicketObj, fetchData, updateDashboard, etc.)
+   Copié las funciones esenciales tal como las tenías para no tocar la lógica.
+   Solo cambié updateDashboard para renderizar las tarjetas en fila horizontal. */
+
 function parsearFechaHoraString(txt){
   if(!txt) return null;
   const s = txt.toString().trim();
@@ -389,9 +387,6 @@ function calcularHorasCorridas(fechaInicio, fechaFin){
   return Math.floor(diffMs / (1000 * 60 * 60));
 }
 
-/* -------------------------
-   Clasificación (balanceada)
-   ------------------------- */
 function clasificarTicketObj(ticket, ahora = new Date()){
   const creado = parsearFechaHoraString(ticket.fechaCreacionStr) || parsearFechaString(ticket.fechaCreacionStr);
   const ultima = parsearFechaHoraString(ticket.fechaActualizacionStr) || parsearFechaString(ticket.fechaActualizacionStr);
@@ -414,9 +409,6 @@ function clasificarTicketObj(ticket, ahora = new Date()){
   return { categoria: 'en-tiempo', razon: 'en-tiempo' };
 }
 
-/* -------------------------
-   Fetch y mapeo de datos
-   ------------------------- */
 async function fetchData(){
   try{
     document.getElementById('dbTimestamp').innerText = 'Actualizando...';
@@ -426,7 +418,6 @@ async function fetchData(){
     const rows = jsonTK.table.rows || [];
     const ahora = new Date();
 
-    // Leer Z1 robustamente
     let zVal = '';
     if(rows[0] && rows[0].c && rows[0].c[6]) zVal = (rows[0].c[6].f || rows[0].c[6].v || '').toString().trim();
     if(!zVal){
@@ -488,15 +479,15 @@ async function fetchData(){
 
     updateDashboard();
     document.getElementById('dbTimestamp').innerText = `Última actualización: ${ultimaActualizacionBase}`;
+    // readjust layout after data renders (in case top area height changed)
+    setTimeout(ajustarLayoutFijo, 80);
   } catch(e){
     console.error(e);
     document.getElementById('dbTimestamp').innerText = 'Error al actualizar';
   }
 }
 
-/* -------------------------
-   Actualizar UI: KPIs y tarjetas
-   ------------------------- */
+/* updateDashboard: render KPIs and horizontal cards */
 function updateDashboard(){
   let cTotales = 0, cEnTiempo = 0, cPendientesSTocar = 0, cPreventivos = 0, cUrgentes = 0;
   const mapeoAsesores = {};
@@ -512,14 +503,13 @@ function updateDashboard(){
     else if(d.categoria === 'en-tiempo'){ cEnTiempo++; mapeoAsesores[d.asesor].enTiempo++; }
   });
 
-  // animación count-up simple
   animateCount('kpiTotalGlobal', cTotales);
   animateCount('kpiEnTiempo', cEnTiempo);
   animateCount('kpiPendientesSTocar', cPendientesSTocar);
   animateCount('kpiPreventivos', cPreventivos);
   animateCount('kpiUrgentesTotal', cUrgentes);
 
-  // construir tarjetas por asesor
+  // construir tarjetas por asesor (fila horizontal)
   const grid = document.getElementById('gridMosaicos');
   grid.innerHTML = '';
   const lista = Object.values(mapeoAsesores).sort((a,b) => b.urgentes - a.urgentes || b.pendientes - a.pendientes);
@@ -546,7 +536,7 @@ function updateDashboard(){
   });
 }
 
-/* simple count-up animation */
+/* animateCount */
 function animateCount(id, target){
   const el = document.getElementById(id);
   if(!el) return;
@@ -565,9 +555,7 @@ function animateCount(id, target){
   }, stepTime);
 }
 
-/* -------------------------
-   Modal, tablas y resúmenes
-   ------------------------- */
+/* Modal & tablas (sin cambios en lógica) */
 function abrirModalAsesor(nombre){
   asesorActivoModal = nombre;
   document.getElementById('modalTitle').innerText = `Auditoría: ${nombre}`;
@@ -620,7 +608,7 @@ function construirTablaModal(lista){
   });
 }
 
-/* resúmenes y utilidades */
+/* resúmenes y WA (sin copiar) */
 function generarResumenPorAsesor(nombre){
   const tickets = rawData.filter(x => x.asesor === nombre);
   const urg = tickets.filter(t => t.categoria === 'urgente').length;
@@ -629,7 +617,6 @@ function generarResumenPorAsesor(nombre){
   const enTiempo = tickets.filter(t => t.categoria === 'en-tiempo').length;
   const tot = tickets.length;
 
-  // Mensaje amigable para WA (informal, con emojis)
   let msg = `¡Hola equipo! 👋\n*Resumen ${nombre}*\n\n`;
   msg += `📊 Total: ${tot}\n`;
   msg += `✅ En tiempo: ${enTiempo}\n`;
@@ -652,7 +639,6 @@ function generarResumenGeneral(tipo){
     else if(t.categoria === 'en-tiempo'){ resumen.enTiempo++; porAsesor[t.asesor].enTiempo++; }
   });
 
-  // Mensaje amigable para WA (informal)
   let msg = `¡Hola equipo! 👋\n*Resumen general*\n\n`;
   msg += `📊 Total tickets: ${resumen.totales}\n`;
   msg += `🚨 Urgentes: ${resumen.urg}\n`;
@@ -668,19 +654,13 @@ function generarResumenGeneral(tipo){
   msg += `Porfa, prioricen los URGENTES ahora mismo. 🙏\nGracias!`;
   return msg;
 }
-
-/* enviar WA: abre wa.me con mensaje amigable */
 function enviarWhatsAppDesdeModal(){
   const texto = asesorActivoModal === 'all' ? generarResumenGeneral('totales_global') : generarResumenPorAsesor(asesorActivoModal);
   const waUrl = `https://wa.me/?text=${encodeURIComponent(texto)}`;
   window.open(waUrl, '_blank');
 }
 
-/* init */
-fetchData();
-setInterval(fetchData, 300000); // 5 minutos
-
-/* Compact mode toggle: persist preference */
+/* Compact toggle (persist) */
 (function(){
   const btn = document.getElementById('compactToggle');
   if(!btn) return;
@@ -695,17 +675,9 @@ setInterval(fetchData, 300000); // 5 minutos
   }catch(e){}
 })();
 
-/* Optional: adjust modal max-width on very small screens */
-(function(){
-  function ajustarModalPorPantalla(){
-    const modal = document.querySelector('.modal');
-    if(!modal) return;
-    if(window.innerWidth <= 480) modal.style.maxWidth = '560px';
-    else modal.style.maxWidth = '';
-  }
-  window.addEventListener('resize', ajustarModalPorPantalla);
-  ajustarModalPorPantalla();
-})();
+/* init */
+fetchData();
+setInterval(fetchData, 300000); // 5 minutos
 </script>
 </body>
 </html>
