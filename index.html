@@ -3,121 +3,103 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Vento ATC — Muro (Corporate Clean)</title>
+<title>Vento ATC — Muro (Dark Mode, completo)</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg:#F6F7F9;
-    --card:#FFFFFF;
-    --muted:#6B7280;
-    --accent:#FF5A00;
-    --accent-2:#2E9A4A;
-    --danger:#E53935;
-    --warn:#FBC02D;
-    --glass: rgba(15,15,17,0.04);
-    --shadow-sm: 0 6px 18px rgba(11,15,20,0.06);
-    --shadow-md: 0 12px 30px rgba(11,15,20,0.08);
-    --radius:12px;
-    --gap:12px;
-  }
-  *{box-sizing:border-box}
-  body{
-    margin:0;
-    font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
-    background:var(--bg);
-    color:#0F1724;
-    -webkit-font-smoothing:antialiased;
-    -moz-osx-font-smoothing:grayscale;
-    padding-bottom:40px;
-  }
+:root{
+  --bg:#0B0F14;
+  --panel:#0F1720;
+  --muted:#9AA4B2;
+  --accent:#FF5A00;
+  --accent-2:#2ECC71;
+  --danger:#FF6B6B;
+  --warn:#F6C85F;
+  --glass: rgba(255,255,255,0.03);
+  --shadow-sm: 0 8px 24px rgba(2,6,23,0.6);
+  --shadow-md: 0 18px 60px rgba(2,6,23,0.7);
+  --radius:12px;
+  --gap:12px;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
+  background:linear-gradient(180deg,#06080a 0%, #0b0f14 100%);
+  color:#E6EEF3;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  padding-bottom:40px;
+}
 
-  header{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    padding:18px 28px;
-    background:linear-gradient(90deg, rgba(255,90,0,0.06), rgba(255,90,0,0.02));
-    border-bottom:1px solid rgba(15,15,17,0.04);
-    position:sticky;
-    top:0;
-    z-index:40;
-  }
-  .brand{
-    display:flex; gap:12px; align-items:center;
-  }
-  .logo{
-    width:44px; height:44px; border-radius:10px; background:linear-gradient(135deg,var(--accent),#ff7a3a);
-    display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:18px;
-    box-shadow:var(--shadow-sm);
-  }
-  header h1{ margin:0; font-size:1.05rem; font-weight:800; letter-spacing:0.2px; }
-  .header-actions{ display:flex; gap:10px; align-items:center; }
+/* Header */
+header{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:18px 28px; background:linear-gradient(90deg, rgba(255,90,0,0.06), rgba(255,90,0,0.02));
+  border-bottom:1px solid rgba(255,255,255,0.03); position:sticky; top:0; z-index:40;
+}
+.brand{ display:flex; gap:12px; align-items:center; }
+.logo{ width:44px; height:44px; border-radius:10px; background:linear-gradient(135deg,var(--accent),#ff7a3a);
+  display:flex; align-items:center; justify-content:center; color:#0b0f14; font-weight:900; font-size:18px; box-shadow:var(--shadow-sm); }
+header h1{ margin:0; font-size:1.05rem; font-weight:800; color:#E6EEF3; }
+.header-actions{ display:flex; gap:10px; align-items:center; color:var(--muted); }
 
-  .container{ max-width:1200px; margin:20px auto; padding:0 18px; }
+/* Layout */
+.container{ max-width:1200px; margin:20px auto; padding:0 18px; }
+.top-row{ display:flex; gap:var(--gap); align-items:flex-start; margin-bottom:18px; flex-wrap:wrap; }
 
-  .top-row{ display:flex; gap:var(--gap); align-items:flex-start; margin-bottom:18px; flex-wrap:wrap; }
+/* KPI grid */
+.kpi-grid{ display:grid; grid-template-columns:repeat(5,1fr); gap:12px; flex:1; min-width:320px; }
+.kpi{ background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border-radius:10px; padding:12px 14px;
+  box-shadow:var(--shadow-sm); border:1px solid rgba(255,255,255,0.03); transition:transform .12s ease; cursor:pointer; }
+.kpi:hover{ transform:translateY(-6px); box-shadow:var(--shadow-md); }
+.kpi .label{ font-size:0.72rem; color:var(--muted); font-weight:700; text-transform:uppercase; }
+.kpi .value{ font-size:1.6rem; font-weight:900; letter-spacing:-0.6px; color:#F8FAFC; }
+.kpi .meta{ font-size:0.78rem; color:var(--muted); }
 
-  /* KPI cards */
-  .kpi-grid{ display:grid; grid-template-columns:repeat(5,1fr); gap:12px; flex:1; min-width:320px; }
-  .kpi{
-    background:var(--card); border-radius:10px; padding:12px 14px; box-shadow:var(--shadow-sm);
-    border:1px solid rgba(15,15,17,0.03); transition:transform .12s ease, box-shadow .12s ease;
-    display:flex; flex-direction:column; gap:6px;
-  }
-  .kpi:hover{ transform:translateY(-6px); box-shadow:var(--shadow-md); }
-  .kpi .label{ font-size:0.72rem; color:var(--muted); font-weight:700; text-transform:uppercase; }
-  .kpi .value{ font-size:1.6rem; font-weight:900; letter-spacing:-0.6px; }
-  .kpi .meta{ font-size:0.78rem; color:var(--muted); display:flex; gap:8px; align-items:center; }
+/* Advisors grid */
+.matrix-title{ font-weight:800; margin:18px 0 8px; color:#E6EEF3; }
+.grid-asesores{ display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px; }
+.card-asesor{ background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border-radius:var(--radius);
+  padding:14px; box-shadow:var(--shadow-sm); border:1px solid rgba(255,255,255,0.03); transition:transform .12s ease; cursor:pointer; display:flex; flex-direction:column; gap:10px; }
+.card-asesor:hover{ transform:translateY(-6px); box-shadow:var(--shadow-md); }
+.card-asesor h4{ margin:0; font-size:0.95rem; font-weight:800; color:#F8FAFC; }
+.card-row{ display:flex; gap:10px; align-items:center; justify-content:space-between; }
 
-  /* Grid of advisors */
-  .matrix-title{ font-weight:800; margin:18px 0 8px; color:#0F1724; }
-  .grid-asesores{ display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px; }
+/* metrics */
+.metrics-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
+.metric{ background:rgba(255,255,255,0.02); border-radius:8px; padding:8px; border:1px solid rgba(255,255,255,0.02); }
+.metric .m-label{ font-size:0.66rem; color:var(--muted); font-weight:800; text-transform:uppercase; }
+.metric .m-value{ font-size:1.05rem; font-weight:900; margin-top:6px; color:#F8FAFC; }
 
-  .card-asesor{
-    background:var(--card); border-radius:var(--radius); padding:14px; box-shadow:var(--shadow-sm);
-    border:1px solid rgba(15,15,17,0.03); transition:transform .12s ease;
-    cursor:pointer; display:flex; flex-direction:column; gap:10px;
-  }
-  .card-asesor:hover{ transform:translateY(-6px); box-shadow:var(--shadow-md); }
-  .card-asesor h4{ margin:0; font-size:0.95rem; font-weight:800; color:#0F1724; }
-  .card-row{ display:flex; gap:10px; align-items:center; justify-content:space-between; }
+/* pills */
+.pill{ display:inline-flex; gap:8px; align-items:center; padding:6px 8px; border-radius:999px; font-weight:800; font-size:0.72rem; }
+.pill.green{ background:rgba(46,204,113,0.08); color:var(--accent-2); border:1px solid rgba(46,204,113,0.12); }
+.pill.red{ background:rgba(255,107,107,0.08); color:var(--danger); border:1px solid rgba(255,107,107,0.12); }
+.pill.yellow{ background:rgba(246,200,95,0.08); color:var(--warn); border:1px solid rgba(246,200,95,0.12); }
 
-  .metrics-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
-  .metric{
-    background:linear-gradient(180deg, rgba(255,255,255,0.98), rgba(250,250,250,0.98));
-    border-radius:8px; padding:8px; border:1px solid rgba(15,15,17,0.03);
-  }
-  .metric .m-label{ font-size:0.66rem; color:var(--muted); font-weight:800; text-transform:uppercase; }
-  .metric .m-value{ font-size:1.05rem; font-weight:900; margin-top:6px; }
+/* modal */
+.modal-overlay{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(2,6,23,0.6); z-index:120; }
+.modal-overlay.active{ display:flex; }
+.modal{ width:94%; max-width:1100px; background:linear-gradient(180deg,#0b1116,#0f1720); border-radius:12px; overflow:hidden; box-shadow:0 30px 80px rgba(2,6,23,0.8); color:#E6EEF3; }
+.modal-head{ padding:14px 18px; border-bottom:1px solid rgba(255,255,255,0.03); display:flex; justify-content:space-between; align-items:center; gap:12px; }
+.modal-body{ padding:12px 18px; max-height:62vh; overflow:auto; }
+table{ width:100%; border-collapse:collapse; font-size:0.9rem; color:#E6EEF3; }
+th, td{ padding:10px 12px; text-align:left; border-bottom:1px solid rgba(255,255,255,0.03); }
+th{ background:rgba(255,255,255,0.02); position:sticky; top:0; z-index:2; font-weight:800; color:var(--muted); font-size:0.78rem; text-transform:uppercase; }
+tr:hover td{ background:rgba(255,255,255,0.02); }
 
-  /* semaforo small */
-  .pill{ display:inline-flex; gap:8px; align-items:center; padding:6px 8px; border-radius:999px; font-weight:800; font-size:0.72rem; }
-  .pill.green{ background:rgba(46,154,74,0.08); color:var(--accent-2); border:1px solid rgba(46,154,74,0.12); }
-  .pill.red{ background:rgba(229,57,53,0.08); color:var(--danger); border:1px solid rgba(229,57,53,0.12); }
-  .pill.yellow{ background:rgba(251,192,45,0.08); color:var(--warn); border:1px solid rgba(251,192,45,0.12); }
+/* responsive */
+@media (max-width:1100px){ .kpi-grid{ grid-template-columns:repeat(3,1fr); } }
+@media (max-width:700px){ .kpi-grid{ grid-template-columns:repeat(2,1fr); } .matrix-title{ font-size:0.9rem } }
+@media (max-width:420px){ .kpi-grid{ grid-template-columns:repeat(1,1fr); } .metrics-grid{ grid-template-columns:repeat(1,1fr); } }
 
-  /* modal */
-  .modal-overlay{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(2,6,23,0.45); z-index:120; }
-  .modal-overlay.active{ display:flex; }
-  .modal{ width:94%; max-width:1100px; background:var(--card); border-radius:12px; overflow:hidden; box-shadow:0 30px 80px rgba(2,6,23,0.4); }
-  .modal-head{ padding:14px 18px; border-bottom:1px solid rgba(15,15,17,0.04); display:flex; justify-content:space-between; align-items:center; gap:12px; }
-  .modal-body{ padding:12px 18px; max-height:62vh; overflow:auto; }
-  table{ width:100%; border-collapse:collapse; font-size:0.9rem; }
-  th, td{ padding:10px 12px; text-align:left; border-bottom:1px solid rgba(15,15,17,0.04); }
-  th{ background:linear-gradient(180deg, rgba(250,250,250,0.9), rgba(245,245,245,0.9)); position:sticky; top:0; z-index:2; font-weight:800; color:var(--muted); font-size:0.78rem; text-transform:uppercase; }
-  tr:hover td{ background:rgba(15,15,17,0.02); }
-
-  /* responsive */
-  @media (max-width:1100px){ .kpi-grid{ grid-template-columns:repeat(3,1fr); } }
-  @media (max-width:700px){ .kpi-grid{ grid-template-columns:repeat(2,1fr); } .matrix-title{ font-size:0.9rem } }
-  @media (max-width:420px){ .kpi-grid{ grid-template-columns:repeat(1,1fr); } .metrics-grid{ grid-template-columns:repeat(1,1fr); } }
-
-  /* small helpers */
-  .muted{ color:var(--muted); font-size:0.85rem; }
-  .btn{ background:var(--accent); color:#fff; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:800; }
-  .btn.ghost{ background:transparent; color:var(--muted); border:1px solid rgba(15,15,17,0.04); }
-  .spark{ height:28px; width:100%; display:block; }
-  .countup{ transition:all .45s cubic-bezier(.2,.9,.2,1); }
+/* helpers */
+.muted{ color:var(--muted); font-size:0.85rem; }
+.btn{ background:var(--accent); color:#0b0f14; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:800; }
+.btn.ghost{ background:transparent; color:var(--muted); border:1px solid rgba(255,255,255,0.03); }
+.countup{ transition:all .45s cubic-bezier(.2,.9,.2,1); }
+a { color: #9AD1FF; text-decoration: none; }
+a:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
@@ -126,7 +108,7 @@
     <div class="logo">V</div>
     <div>
       <h1>Vento — Muro ATC</h1>
-      <div class="muted" style="font-size:0.82rem">Vista operativa · Diseño Corporate Clean</div>
+      <div class="muted" style="font-size:0.82rem">Dark Mode · Vista operativa</div>
     </div>
   </div>
   <div class="header-actions">
@@ -175,7 +157,6 @@
   <div class="grid-asesores" id="gridMosaicos"></div>
 </main>
 
-<!-- Modal -->
 <div class="modal-overlay" id="modalDetalles" onclick="cerrarModalExterno(event)">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <div class="modal-head">
@@ -211,10 +192,9 @@
 </div>
 
 <script>
-/* --- Mantengo tu lógica intacta --- */
-/* Copié la lógica de fetch y clasificación tal como la validaste.
-   Solo cambié selectores y añadí animaciones visuales. */
-
+/* -------------------------
+   Config y utilidades
+   ------------------------- */
 const SHEET_ID = '1JBre4cLAbYiOJuYye_FGcsk5U_BIStDoAiCbV-B8WoA';
 const querySQLTickets = encodeURIComponent("SELECT A, B, C, F, G, I, Z");
 const URL_TICKETS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Tickets_BD&tq=${querySQLTickets}`;
@@ -225,28 +205,50 @@ let rawData = [];
 let ultimaActualizacionBase = '—';
 let asesorActivoModal = 'all';
 
-/* utilidades (idénticas a las tuyas) */
+/* Parseo robusto de fechas (soporta yyyy-mm-dd y dd/mm/yyyy y con hora) */
 function parsearFechaHoraString(txt){
   if(!txt) return null;
-  const partes = txt.trim().split(' ');
-  const fecha = (partes[0] || '').replace(/\//g,'-');
-  const hora = partes[1] || '00:00';
-  const fparts = fecha.split('-');
+  const s = txt.toString().trim();
+  // Intentar parseo ISO directo
+  const isoTry = new Date(s);
+  if(!isNaN(isoTry.getTime())) return isoTry;
+
+  // Normalizar separadores y tokens
+  const partes = s.split(' ');
+  const fechaPart = (partes[0] || '').replace(/\//g,'-');
+  const horaPart = partes.slice(1).join(' ') || '00:00';
+  const fparts = fechaPart.split('-');
   if(fparts.length !== 3) return null;
-  let d,m,y;
+
+  let y,m,d;
+  // Detectar si es yyyy-mm-dd
   if(fparts[0].length === 4){
     y = parseInt(fparts[0],10); m = parseInt(fparts[1],10)-1; d = parseInt(fparts[2],10);
   } else {
+    // asumir dd-mm-yyyy
     d = parseInt(fparts[0],10); m = parseInt(fparts[1],10)-1; y = parseInt(fparts[2],10);
   }
-  const hparts = hora.split(':');
-  const hh = parseInt(hparts[0]||'0',10);
-  const mm = parseInt(hparts[1]||'0',10);
+
+  // Manejar hora con AM/PM
+  let hh = 0, mm = 0;
+  const horaClean = horaPart.replace(/\./g,':').trim();
+  const ampm = /am|pm/i.test(horaClean);
+  const hparts = horaClean.split(':');
+  if(hparts.length >= 1){
+    hh = parseInt(hparts[0].replace(/\D/g,'')) || 0;
+    mm = parseInt((hparts[1]||'0').replace(/\D/g,'')) || 0;
+  }
+  if(ampm){
+    const isPM = /pm/i.test(horaClean);
+    if(isPM && hh < 12) hh += 12;
+    if(!isPM && hh === 12) hh = 0;
+  }
   return new Date(y, m, d, hh, mm, 0);
 }
+
 function parsearFechaString(txt){
   if(!txt) return null;
-  const limpia = txt.trim().split(' ')[0].replace(/\//g, '-');
+  const limpia = txt.toString().trim().split(' ')[0].replace(/\//g, '-');
   const partes = limpia.split('-');
   if(partes.length === 3){
     if(partes[0].length === 4) return new Date(parseInt(partes[0],10), parseInt(partes[1],10)-1, parseInt(partes[2],10));
@@ -254,6 +256,7 @@ function parsearFechaString(txt){
   }
   return null;
 }
+
 function calcularDiasCorridos(fechaInicio, fechaFin){
   if(!fechaInicio || !fechaFin) return 0;
   const inicio = new Date(fechaInicio); inicio.setHours(0,0,0,0);
@@ -266,7 +269,20 @@ function calcularHorasCorridas(fechaInicio, fechaFin){
   return Math.floor(diffMs / (1000 * 60 * 60));
 }
 
-/* Clasificación: usar la versión balanceada que validaste */
+/* -------------------------
+   Clasificación (balanceada)
+   - Pending:
+       horasUltAct < 24  => EN-TIEMPO
+       24 <= horasUltAct < 48 => SIN-TOCAR
+       horasUltAct >= 48 => URGENTE
+       además: si creado >=72h => URGENTE
+   - Open:
+       horasCreacion <=4 => EN-TIEMPO
+       4 <= horasCreacion <24 => PREVENTIVO
+       horasCreacion >=24 => URGENTE
+   - Otros estatus => URGENTE
+   Precedencia: Urgente -> Preventivo -> Sin-tocar -> En-tiempo
+   ------------------------- */
 function clasificarTicketObj(ticket, ahora = new Date()){
   const creado = parsearFechaHoraString(ticket.fechaCreacionStr) || parsearFechaString(ticket.fechaCreacionStr);
   const ultima = parsearFechaHoraString(ticket.fechaActualizacionStr) || parsearFechaString(ticket.fechaActualizacionStr);
@@ -278,18 +294,35 @@ function clasificarTicketObj(ticket, ahora = new Date()){
   if(!GRUPOS_VALIDOS.includes(grupo)) return { categoria: 'fuera-scope', razon: 'grupo no ATC' };
   if(estatus === 'closed') return { categoria: 'exclude', razon: 'closed' };
 
+  // URGENTE por creación larga (cualquier estatus)
   if(creado && horasDesdeCreacion >= 72) return { categoria: 'urgente', razon: 'creado >= 72h' };
+
+  // URGENTE: open >=24h
   if(estatus === 'open' && horasDesdeCreacion >= 24) return { categoria: 'urgente', razon: 'open >= 24h' };
+
+  // URGENTE: pending sin actualizar >=48h
   if(estatus === 'pending' && horasDesdeUltAct >= 48) return { categoria: 'urgente', razon: 'pending sin actualizar >= 48h' };
+
+  // URGENTE: cualquier otro estatus distinto a open/pending -> urgente
   if(estatus !== 'open' && estatus !== 'pending') return { categoria: 'urgente', razon: `estatus ${ticket.estado} no permitido` };
+
+  // PREVENTIVO: open >=4h y <24h
   if(estatus === 'open' && horasDesdeCreacion >= 4 && horasDesdeCreacion < 24) return { categoria: 'preventivo', razon: 'open >=4h y <24h' };
+
+  // SIN-TOCAR: pending con 24 <= horasDesdeUltAct < 48
   if(estatus === 'pending' && horasDesdeUltAct >= 24 && horasDesdeUltAct < 48) return { categoria: 'sin-tocar', razon: 'pending sin actualizar 24-48h' };
+
+  // EN-TIEMPO: pending tocado hoy OR open <=4h OR catch-all
   if(estatus === 'pending' && horasDesdeUltAct < 24) return { categoria: 'en-tiempo', razon: 'pending tocado <24h' };
   if(estatus === 'open' && horasDesdeCreacion <= 4) return { categoria: 'en-tiempo', razon: 'open <=4h' };
+
+  // CATCH-ALL -> en-tiempo
   return { categoria: 'en-tiempo', razon: 'en-tiempo' };
 }
 
-/* Fetch y mapeo (idéntico) */
+/* -------------------------
+   Fetch y mapeo de datos
+   ------------------------- */
 async function fetchData(){
   try{
     document.getElementById('dbTimestamp').innerText = 'Actualizando...';
@@ -343,6 +376,11 @@ async function fetchData(){
         fechaActualizacionStr: fechaActualizacionTxt
       }, ahora);
 
+      // DEBUG fallback: si la cadena de última act contiene la fecha de hoy, forzamos en-tiempo (temporal)
+      // (Descomenta si necesitas diagnosticar problemas de parseo)
+      // const hoyStr = ahora.toISOString().slice(0,10);
+      // if(fechaActualizacionTxt && fechaActualizacionTxt.includes(hoyStr)) cls.categoria = 'en-tiempo';
+
       return {
         ticket: ticketID,
         asesor: nombreAsesor,
@@ -367,7 +405,9 @@ async function fetchData(){
   }
 }
 
-/* updateDashboard: actualiza KPIs y tarjetas (presentación mejorada) */
+/* -------------------------
+   Actualizar UI: KPIs y tarjetas
+   ------------------------- */
 function updateDashboard(){
   let cTotales = 0, cEnTiempo = 0, cPendientesSTocar = 0, cPreventivos = 0, cUrgentes = 0;
   const mapeoAsesores = {};
@@ -407,17 +447,17 @@ function updateDashboard(){
       </div>
       <div class="metrics-grid">
         <div class="metric"><div class="m-label">Total</div><div class="m-value">${as.totales}</div></div>
-        <div class="metric"><div class="m-label">En tiempo</div><div class="m-value" style="color:${as.enTiempo>0?'var(--accent-2)':'#444'}">${as.enTiempo}</div></div>
-        <div class="metric"><div class="m-label">Pendientes s/Tocar</div><div class="m-value" style="color:${as.pendientes>0?'var(--accent)':'#444'}">${as.pendientes}</div></div>
-        <div class="metric"><div class="m-label">Preventivos</div><div class="m-value" style="color:${as.preventivos>0?'var(--warn)':'#444'}">${as.preventivos}</div></div>
-        <div class="metric" style="grid-column:span 2;"><div class="m-label">Urgentes</div><div class="m-value" style="color:${as.urgentes>0?'var(--danger)':'#444'}">${as.urgentes}</div></div>
+        <div class="metric"><div class="m-label">En tiempo</div><div class="m-value" style="color:${as.enTiempo>0?'var(--accent-2)':'#F8FAFC'}">${as.enTiempo}</div></div>
+        <div class="metric"><div class="m-label">Pendientes s/Tocar</div><div class="m-value" style="color:${as.pendientes>0?'var(--accent)':'#F8FAFC'}">${as.pendientes}</div></div>
+        <div class="metric"><div class="m-label">Preventivos</div><div class="m-value" style="color:${as.preventivos>0?'var(--warn)':'#F8FAFC'}">${as.preventivos}</div></div>
+        <div class="metric" style="grid-column:span 2;"><div class="m-label">Urgentes</div><div class="m-value" style="color:${as.urgentes>0?'var(--danger)':'#F8FAFC'}">${as.urgentes}</div></div>
       </div>
     `;
     grid.appendChild(div);
   });
 }
 
-/* helpers UI */
+/* simple count-up animation */
 function animateCount(id, target){
   const el = document.getElementById(id);
   if(!el) return;
@@ -436,7 +476,9 @@ function animateCount(id, target){
   }, stepTime);
 }
 
-/* Modal y tablas (reutilizo tus funciones) */
+/* -------------------------
+   Modal, tablas y resúmenes
+   ------------------------- */
 function abrirModalAsesor(nombre){
   asesorActivoModal = nombre;
   document.getElementById('modalTitle').innerText = `Auditoría: ${nombre}`;
@@ -453,7 +495,7 @@ function abrirModalPorMetrica(tipo){
   else if(tipo === 'pendientes_stocar') tk = rawData.filter(x => x.categoria === 'sin-tocar');
   else if(tipo === 'preventivos') tk = rawData.filter(x => x.categoria === 'preventivo');
   else if(tipo === 'urgentes') tk = rawData.filter(x => x.categoria === 'urgente');
-  document.getElementById('modalTitle').innerText = tipo === 'totales_global' ? 'Todos los tickets' : tipo;
+  document.getElementById('modalTitle').innerText = tipo === 'totales_global' ? 'Todos los tickets' : `Listado - ${tipo}`;
   document.getElementById('modalSummary').innerText = generarResumenGeneral(tipo);
   construirTablaModal(tk);
   document.getElementById('modalDetalles').classList.add('active');
@@ -472,7 +514,7 @@ function construirTablaModal(lista){
     let badge = '';
     if(t.categoria === 'urgente') badge = `<span class="pill red">URGENTE</span>`;
     else if(t.categoria === 'preventivo') badge = `<span class="pill yellow">PREVENTIVO</span>`;
-    else if(t.categoria === 'sin-tocar') badge = `<span class="pill" style="background:rgba(255,90,0,0.06); color:var(--accent)">SIN TOCAR</span>`;
+    else if(t.categoria === 'sin-tocar') badge = `<span class="pill" style="background:rgba(255,90,0,0.06); color:var(--accent); border:1px solid rgba(255,90,0,0.12)">SIN TOCAR</span>`;
     else badge = `<span class="pill green">EN TIEMPO</span>`;
 
     const tr = document.createElement('tr');
@@ -482,14 +524,14 @@ function construirTablaModal(lista){
       <td>${t.estado}</td>
       <td><small>${t.fechaCreacionStr || '-'}</small></td>
       <td><small>${t.fechaActualizacionStr || '-'}</small></td>
-      <td style="font-weight:900; color:${t.diasEdad>=4?'var(--danger)':'#111'}">${t.diasEdad} d.</td>
+      <td style="font-weight:900; color:${t.diasEdad>=4?'var(--danger)':'#E6EEF3'}">${t.diasEdad} d.</td>
       <td>${badge} <div style="font-size:0.72rem; color:var(--muted); margin-top:6px;">${t.razon || ''}</div></td>
     `;
     tbody.appendChild(tr);
   });
 }
 
-/* resumenes (idénticos) */
+/* resumenes */
 function generarResumenPorAsesor(nombre){
   const tickets = rawData.filter(x => x.asesor === nombre);
   const urg = tickets.filter(t => t.categoria === 'urgente').length;
@@ -533,7 +575,7 @@ function enviarWhatsAppDesdeModal(){
 
 /* init */
 fetchData();
-setInterval(fetchData, 300000); // 5 min
+setInterval(fetchData, 300000); // 5 minutos
 </script>
 </body>
 </html>
