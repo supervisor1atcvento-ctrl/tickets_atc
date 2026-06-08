@@ -53,7 +53,7 @@ header h1{margin:0; font-size:1.05rem; font-weight:800;}
 /* Advisors row */
 .grid-asesores-wrap{position:relative; margin-bottom:18px;}
 .grid-asesores{display:flex; gap:12px; overflow-x:auto; overflow-y:hidden; padding:12px 8px; -webkit-overflow-scrolling:touch; scroll-behavior:smooth;}
-.card-asesor{flex:0 0 33.333%; max-width:33.333%; background:var(--white); border-radius:12px; padding:16px; box-shadow:var(--shadow-card); transition:transform .18s ease; display:flex; flex-direction:column; gap:12px; min-height:220px;}
+.card-asesor{box-sizing:border-box; flex:0 0 33.333%; min-width:220px; background:var(--white); border-radius:12px; padding:16px; box-shadow:var(--shadow-card); transition:transform .18s ease; display:flex; flex-direction:column; gap:12px; min-height:220px;}
 .card-asesor:hover{transform:translateY(-6px); box-shadow:var(--shadow-hover);}
 .card-row{display:flex; align-items:center; justify-content:space-between; gap:8px;}
 .card-row h4{margin:0; font-size:1rem; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
@@ -197,6 +197,7 @@ const GRUPOS_VALIDOS = ['ATC','AMERICAN PISTON (ATC)','American Piston (ATC)'];
 let rawData = [];
 let ultimaActualizacionBase = '—';
 let asesorActivoModal = 'all';
+let _fetchLock = false;
 
 /* ============================
    Utilidades de fecha y parseo
@@ -248,7 +249,7 @@ const utils = {
 };
 
 /* ============================
-   Clasificación de tickets (con nuevo umbral)
+   Clasificación de tickets (sin tocar la lógica principal)
    ============================ */
 function clasificarTicketObj(ticket, ahora = new Date()){
   const creado = utils.parseDateTime(ticket.fechaCreacionStr) || utils.parseDate(ticket.fechaCreacionStr);
@@ -285,9 +286,11 @@ function clasificarTicketObj(ticket, ahora = new Date()){
 }
 
 /* ============================
-   Fetch y mapeo de datos
+   Fetch y mapeo de datos (con protecciones)
    ============================ */
 async function fetchData(){
+  if(_fetchLock) return;
+  _fetchLock = true;
   try{
     document.getElementById('dbTimestamp').innerText = 'Actualizando...';
     const res = await fetch(URL_TICKETS);
@@ -314,14 +317,16 @@ async function fetchData(){
       if(!row || !row.c) return null;
       const grupo = row.c[0] ? (row.c[0].f || row.c[0].v || '').toString().trim() : '';
       const ticketID = row.c[1] ? (row.c[1].f || row.c[1].v || '').toString().trim() : '';
-      const nombreAsesor = row.c[2] ? (row.c[2].f || row.c[2].v || '').toString().trim() : 'Sin Asesor';
+      let nombreAsesor = row.c[2] ? (row.c[2].f || row.c[2].v || '').toString().trim() : 'Sin Asesor';
       const fechaCreacionTxt = row.c[3] && row.c[3].f ? row.c[3].f : (row.c[3] ? row.c[3].v.toString() : '');
       const fechaActualizacionTxt = row.c[4] && row.c[4].f ? row.c[4].f : (row.c[4] ? row.c[4].v.toString() : '');
       const estatusTxt = row.c[5] ? (row.c[5].f || row.c[5].v || 'Open').toString().trim() : 'Open';
 
+      // protecciones adicionales
       if(!ticketID || ticketID.toLowerCase() === 'ticket id') return null;
       if(estatusTxt.toLowerCase() === 'closed') return null;
       if(!GRUPOS_VALIDOS.includes(grupo)) return null;
+      if(!nombreAsesor || nombreAsesor.trim() === '') nombreAsesor = 'Sin Asesor';
 
       const fechaCreacionObjFull = utils.parseDateTime(fechaCreacionTxt) || utils.parseDate(fechaCreacionTxt);
       const fechaActObjFull = utils.parseDateTime(fechaActualizacionTxt) || utils.parseDate(fechaActualizacionTxt);
@@ -356,15 +361,19 @@ async function fetchData(){
 
     updateDashboard();
     document.getElementById('dbTimestamp').innerText = `Última actualización: ${ultimaActualizacionBase}`;
-    setTimeout(ajustarAnchoTarjetas, 80);
+
+    // asegurar cálculo de anchos después del paint
+    requestAnimationFrame(() => setTimeout(ajustarAnchoTarjetas, 20));
   } catch(e){
     console.error(e);
     document.getElementById('dbTimestamp').innerText = 'Error al actualizar';
+  } finally {
+    _fetchLock = false;
   }
 }
 
 /* ============================
-   Render del dashboard
+   Render del dashboard (con normalización de claves)
    ============================ */
 function animateCount(id, target){
   const el = document.getElementById(id);
@@ -390,16 +399,27 @@ function updateDashboard(){
 
   rawData.forEach(d => {
     cTotales++;
-    if(!mapeoAsesores[d.asesor]) mapeoAsesores[d.asesor] = { nombre: d.asesor, urgentes:0, pendientes:0, preventivos:0, totales:0, enTiempo:0 };
-    mapeoAsesores[d.asesor].totales++;
 
-    if(d.categoria === 'urgente'){ cUrgentes++; mapeoAsesores[d.asesor].urgentes++; }
-    else if(d.categoria === 'preventivo'){ cPreventivos++; mapeoAsesores[d.asesor].preventivos++; }
-    else if(d.categoria === 'sin-tocar'){ cPendientesSTocar++; mapeoAsesores[d.asesor].pendientes++; }
-    else if(d.categoria === 'en-tiempo'){ cEnTiempo++; mapeoAsesores[d.asesor].enTiempo++; }
-    else {
-      // si la lógica devolvió otra categoría (ej. 'fuera-scope'), no contar en KPIs
+    // Normalizar clave para evitar duplicados por espacios, mayúsculas o caracteres invisibles
+    const asesorKey = (d.asesor || 'Sin Asesor').toString().trim().replace(/\s+/g,' ').toLowerCase();
+
+    if(!mapeoAsesores[asesorKey]) {
+      mapeoAsesores[asesorKey] = {
+        nombreDisplay: (d.asesor || 'Sin Asesor').toString().trim(),
+        urgentes: 0,
+        pendientes: 0,
+        preventivos: 0,
+        totales: 0,
+        enTiempo: 0
+      };
     }
+    const asObj = mapeoAsesores[asesorKey];
+    asObj.totales++;
+
+    if(d.categoria === 'urgente'){ cUrgentes++; asObj.urgentes++; }
+    else if(d.categoria === 'preventivo'){ cPreventivos++; asObj.preventivos++; }
+    else if(d.categoria === 'sin-tocar'){ cPendientesSTocar++; asObj.pendientes++; }
+    else if(d.categoria === 'en-tiempo'){ cEnTiempo++; asObj.enTiempo++; }
   });
 
   animateCount('kpiTotalGlobal', cTotales);
@@ -418,7 +438,12 @@ function updateDashboard(){
   const grid = document.getElementById('gridMosaicos');
   grid.innerHTML = '';
   const lista = Object.values(mapeoAsesores).sort((a,b) => b.urgentes - a.urgentes || b.pendientes - a.pendientes || b.preventivos - a.preventivos);
+
+  // debug: opcional para consola (descomentar si necesitas verificar)
+  // console.log('Asesores detectados:', lista.map(x => x.nombreDisplay));
+
   lista.forEach(as => {
+    const displayName = as.nombreDisplay;
     let semClass = 'green';
     let pillClass = 'green';
     if(as.urgentes > 0){ semClass = 'red'; pillClass = 'red'; }
@@ -427,14 +452,14 @@ function updateDashboard(){
 
     const div = document.createElement('div');
     div.className = 'card-asesor';
-    div.setAttribute('onclick', `abrirModalAsesor('${as.nombre.replace(/'/g,"\\'")}')`);
+    div.setAttribute('onclick', `abrirModalAsesor('${displayName.replace(/'/g,"\\'")}')`);
     div.setAttribute('role','button');
     div.setAttribute('tabindex','0');
     div.innerHTML = `
       <div class="card-row">
         <div style="display:flex; align-items:center; gap:8px;">
           <span class="semaforo ${semClass}" aria-hidden="true"></span>
-          <h4 title="${as.nombre}">${as.nombre}</h4>
+          <h4 title="${displayName}">${displayName}</h4>
         </div>
         <div class="pill ${pillClass}">${as.urgentes>0 ? 'Atención' : (as.pendientes>0 ? 'Seguimiento' : (as.preventivos>0 ? 'Preventivo' : 'OK'))}</div>
       </div>
@@ -449,11 +474,12 @@ function updateDashboard(){
     grid.appendChild(div);
   });
 
-  setTimeout(ajustarAnchoTarjetas, 40);
+  // ajustar anchos después del paint
+  requestAnimationFrame(() => setTimeout(ajustarAnchoTarjetas, 20));
 }
 
 /* ============================
-   Ajustes de ancho y scroll horizontal
+   Ajustes de ancho y scroll horizontal (robusto)
    ============================ */
 function ajustarAnchoTarjetas(){
   const grid = document.getElementById('gridMosaicos');
@@ -463,9 +489,9 @@ function ajustarAnchoTarjetas(){
   const leftArrow = document.querySelector('.nav-left');
   const rightArrow = document.querySelector('.nav-right');
   const arrowSpace = ((leftArrow && leftArrow.offsetWidth) ? (leftArrow.offsetWidth + 12) : 0) + ((rightArrow && rightArrow.offsetWidth) ? (rightArrow.offsetWidth + 12) : 0);
-  const wrapWidth = wrap.clientWidth - arrowSpace;
+  const wrapWidth = Math.max( wrap.clientWidth - arrowSpace, 360 ); // fallback mínimo
   const cardWidth = Math.floor((wrapWidth - (gap * 2)) / 3);
-  const cards = grid.querySelectorAll('.card-asesor');
+  const cards = Array.from(grid.querySelectorAll('.card-asesor')).filter(c => c.offsetParent !== null);
   if(cards.length === 0){
     grid.style.setProperty('--computed-card-width', cardWidth + 'px');
     return;
