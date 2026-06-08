@@ -16,7 +16,7 @@
   --vento-green:#43A047;
   --vento-urgent:#FB8C00;
   --vento-yellow:#FBC02D;
-  --vento-teal:#00897B; /* color elegido para "pendientes / no tocados" */
+  --vento-teal:#00897B;
   --shadow-sm:0 2px 8px rgba(0,0,0,0.04);
   --shadow-md:0 8px 16px rgba(0,0,0,0.08);
 }
@@ -66,8 +66,10 @@ header h1{ margin:0; font-weight:900; font-size:1.05rem; display:flex; gap:8px; 
 .modal-overlay.active{ opacity:1; pointer-events:auto; }
 .modal-window{ width:92%; max-width:980px; max-height:82vh; background:var(--vento-white); border-radius:12px; overflow:hidden; display:flex; flex-direction:column; transform:translateY(-10px) scale(.98); transition:all .25s ease; }
 .modal-overlay.active .modal-window{ transform:translateY(0) scale(1); }
-.modal-header{ padding:12px 16px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; }
+.modal-header{ padding:12px 16px; display:flex; flex-direction:column; gap:8px; border-bottom:1px solid #eee; }
+.modal-header-top{ display:flex; justify-content:space-between; align-items:center; }
 .modal-header h4{ margin:0; font-size:0.95rem; font-weight:900; text-transform:uppercase; }
+.modal-summary{ font-size:0.9rem; color:#444; background:#fbfbfb; padding:8px 10px; border-radius:8px; border:1px solid #eee; max-height:72px; overflow:auto; }
 .modal-actions{ display:flex; gap:8px; align-items:center; }
 .btn{ border:none; padding:6px 10px; border-radius:8px; cursor:pointer; font-weight:800; font-size:0.78rem; }
 .btn-close{ background:#E8E8E8; color:var(--vento-dark-gray); }
@@ -137,12 +139,15 @@ td{ padding:10px 12px; border-bottom:1px solid #F5F5F5; color:#444; vertical-ali
 <div class="modal-overlay" id="modalDetalles" onclick="cerrarModalExterno(event)">
   <div class="modal-window">
     <div class="modal-header">
-      <h4 id="modalTitle">Desglose de Tickets</h4>
-      <div class="modal-actions">
-        <button class="btn btn-copy" id="btnModalCopy" onclick="copiarReporteDesdeModal()">Copiar Reporte</button>
-        <button class="btn btn-wa" id="btnModalWA" onclick="enviarWhatsAppDesdeModal()">Enviar WA</button>
-        <button class="btn btn-close" onclick="cerrarModal()">Cerrar</button>
+      <div class="modal-header-top">
+        <h4 id="modalTitle">Desglose de Tickets</h4>
+        <div class="modal-actions">
+          <button class="btn btn-copy" id="btnModalCopy" onclick="copiarReporteDesdeModal()">Copiar Reporte</button>
+          <button class="btn btn-wa" id="btnModalWA" onclick="enviarWhatsAppDesdeModal()">Enviar WA</button>
+          <button class="btn btn-close" onclick="cerrarModal()">Cerrar</button>
+        </div>
       </div>
+      <div id="modalSummary" class="modal-summary">Resumen operativo aparecerá aquí.</div>
     </div>
     <div class="modal-body">
       <div style="overflow-x:auto;">
@@ -173,7 +178,7 @@ const SHEET_ID = '1JBre4cLAbYiOJuYye_FGcsk5U_BIStDoAiCbV-B8WoA';
 const querySQLTickets = encodeURIComponent("SELECT A, B, C, F, G, I, Z");
 const URL_TICKETS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Tickets_BD&tq=${querySQLTickets}`;
 const TICKET_BASE_URL = 'https://ayuda.vento.com/a/tickets/';
-const GRUPOS_VALIDOS = ['ATC','AMERICAN PISTON (ATC)','American Piston (ATC)']; // grupos a considerar
+const GRUPOS_VALIDOS = ['ATC','AMERICAN PISTON (ATC)','American Piston (ATC)'];
 let rawData = [];
 let asesorActivoModal = "all";
 let ultimaActualizacionBase = "No disponible";
@@ -229,22 +234,8 @@ function calcularHorasCorridas(fechaInicio, fechaFin){
 
 /* -------------------------
    CLASIFICACIÓN SEGÚN REGLAS
-   -------------------------
-   Reglas implementadas (precedencia):
-   1) Bandeja 72h (edad >=72h) -> Urgente (override)
-   2) Open:
-      - horas >=24 -> Urgente
-      - horas >=4  -> Preventivo
-      - else -> Al día
-   3) Pending:
-      - si no se tocó hoy y última actividad fue ayer -> Preventivo
-      - si horas desde última actividad >=24 -> Urgente
-      - else -> Al día
-   4) Otros estatus -> Urgente
-   Excluir siempre estatus 'closed'
-*/
+   ------------------------- */
 function clasificarTicketObj(ticket, ahora = new Date()){
-  // ticket: { grupo, estatus, fechaCreacionStr, fechaActualizacionStr }
   const creado = parsearFechaHoraString(ticket.fechaCreacionStr) || parsearFechaString(ticket.fechaCreacionStr);
   const ultima = parsearFechaHoraString(ticket.fechaActualizacionStr) || parsearFechaString(ticket.fechaActualizacionStr);
   const horasDesdeCreacion = creado ? calcularHorasCorridas(creado, ahora) : Infinity;
@@ -254,34 +245,24 @@ function clasificarTicketObj(ticket, ahora = new Date()){
   const estatus = (ticket.estado || '').toString().trim().toLowerCase();
   const grupo = (ticket.grupo || '').toString().trim();
 
-  // Fuera de scope de grupos
   if(!GRUPOS_VALIDOS.includes(grupo)) return { categoria: 'fuera-scope', razon: 'grupo no ATC' };
-
-  // 0) Excluir closed (no deben aparecer)
   if(estatus === 'closed') return { categoria: 'exclude', razon: 'closed' };
 
-  // 1) Bandeja 72h override
   if(horasDesdeCreacion >= 72) return { categoria: 'urgente', razon: 'edad >= 72h (bandeja)' };
 
-  // 2) Open
   if(estatus === 'open'){
     if(horasDesdeCreacion >= 24) return { categoria: 'urgente', razon: 'open >= 24h' };
     if(horasDesdeCreacion >= 4) return { categoria: 'preventivo', razon: 'open >= 4h' };
     return { categoria: 'al-dia', razon: 'open < 4h' };
   }
 
-  // 3) Pending
   if(estatus === 'pending'){
-    // tocado hoy?
     const tocadoHoy = horasDesdeUltAct < 24;
-    // si no se tocó hoy y la última actividad fue ayer -> preventivo
     if(!tocadoHoy && diasDesdeUltAct === 1) return { categoria: 'preventivo', razon: 'pending no tocado hoy (última act ayer)' };
-    // si no se tocó por >=24h -> urgente
     if(horasDesdeUltAct >= 24) return { categoria: 'urgente', razon: 'pending sin tocar >=24h' };
     return { categoria: 'al-dia', razon: 'pending tocado hoy' };
   }
 
-  // 4) Otros estatus -> urgente (no deberían estar)
   return { categoria: 'urgente', razon: `estatus ${ticket.estado} no permitido` };
 }
 
@@ -297,7 +278,6 @@ async function fetchData(){
     const ahora = new Date();
     const hoySinHora = new Date(); hoySinHora.setHours(0,0,0,0);
 
-    // Lectura robusta de Z1 (última versión)
     let zVal = '';
     if(rows[0] && rows[0].c && rows[0].c[6]) zVal = (rows[0].c[6].f || rows[0].c[6].v || '').toString().trim();
     if(!zVal){
@@ -313,7 +293,6 @@ async function fetchData(){
     }
     if(zVal) ultimaActualizacionBase = zVal;
 
-    // Mapear filas a objetos ticket
     rawData = rows.map(row => {
       if(!row || !row.c) return null;
       const grupo = row.c[0] ? (row.c[0].f || row.c[0].v || '').toString().trim() : '';
@@ -324,9 +303,7 @@ async function fetchData(){
       const estatusTxt = row.c[5] ? (row.c[5].f || row.c[5].v || 'Open').toString().trim() : 'Open';
 
       if(!ticketID || ticketID.toLowerCase() === 'ticket id') return null;
-      // Excluir closed aquí (según tu petición)
       if(estatusTxt.toLowerCase() === 'closed') return null;
-      // Solo grupos ATC
       if(!GRUPOS_VALIDOS.includes(grupo)) return null;
 
       const fechaCreacionObjFull = parsearFechaHoraString(fechaCreacionTxt) || parsearFechaString(fechaCreacionTxt);
@@ -337,7 +314,6 @@ async function fetchData(){
       const horasUltAct = fechaActObjFull ? calcularHorasCorridas(fechaActObjFull, ahora) : null;
       const diasUltAct = fechaActObjFull ? calcularDiasCorridos(fechaActObjFull, hoySinHora) : null;
 
-      // Clasificar según reglas
       const cls = clasificarTicketObj({
         grupo: grupo,
         estado: estatusTxt,
@@ -382,32 +358,18 @@ function updateDashboard(){
     if(!mapeoAsesores[d.asesor]) mapeoAsesores[d.asesor] = { nombre: d.asesor, urgentes:0, pendientes:0, preventivos:0, totales:0 };
     mapeoAsesores[d.asesor].totales++;
 
-    // Conteos según categoria (evitar doble conteo por precedencia ya aplicada en clasificación)
     if(d.categoria === 'urgente'){
       cUrgentes++;
       mapeoAsesores[d.asesor].urgentes++;
-      // si la razón es bandeja 72h, contarlo también en SLA72H
       if(d.razon && d.razon.includes('72h')) cSla72h++;
     } else if(d.categoria === 'preventivo'){
       cPreventivos++;
       mapeoAsesores[d.asesor].preventivos++;
-    } else if(d.categoria === 'al-dia'){
-      // no sumar a preventivos ni urgentes
-    } else if(d.categoria === 'pendiente' || d.categoria === 'fuera-scope'){
-      // no sumar
     }
-    // Pendientes no tocados hoy: detectarlos por razon o por estado+ultima act
-    if(d.estado.toLowerCase() === 'pending'){
-      // si no tocado hoy and diasUltAct === 1 -> pendiente-stocar (mostrar en KPI)
-      if(d.diasUltAct === 1 && (d.horasUltAct === null || d.horasUltAct >= 24)) {
-        // si horasUltAct >=24 ya fue clasificado como urgente; else si diasUltAct===1 y no tocado hoy -> preventivo
-        // handled in classification; here we count pending-like items that are preventivo
-      }
-      // For KPI we count pending items that are not urgent
-      if(!(d.categoria === 'urgente')) {
-        cPendientesSTocar++;
-        mapeoAsesores[d.asesor].pendientes++;
-      }
+
+    if(d.estado.toLowerCase() === 'pending' && d.categoria !== 'urgente'){
+      cPendientesSTocar++;
+      mapeoAsesores[d.asesor].pendientes++;
     }
   });
 
@@ -417,7 +379,6 @@ function updateDashboard(){
   document.getElementById('kpiPreventivos').innerText = cPreventivos;
   document.getElementById('kpiUrgentesTotal').innerText = cUrgentes;
 
-  // Construir mosaicos por asesor
   const listaAsesores = Object.values(mapeoAsesores);
   listaAsesores.sort((a,b) => b.urgentes - a.urgentes || b.pendientes - a.pendientes);
   const gridMosaicos = document.getElementById('gridMosaicos');
@@ -454,7 +415,55 @@ function updateDashboard(){
 }
 
 /* -------------------------
-   MODALES, TABLAS Y ALERTAS
+   RESÚMENES (sin alertas)
+   ------------------------- */
+function generarResumenPorAsesor(nombre){
+  const tickets = rawData.filter(x => x.asesor === nombre);
+  const urg = tickets.filter(t => t.categoria === 'urgente').length;
+  const prev = tickets.filter(t => t.categoria === 'preventivo').length;
+  const pend = tickets.filter(t => t.estado.toLowerCase() === 'pending' && t.categoria !== 'urgente').length;
+  const aldia = tickets.filter(t => t.categoria === 'al-dia').length;
+
+  let msg = `Asesor: ${nombre}\nUrgentes: ${urg}\nPreventivos: ${prev}\nPendientes (seguimiento): ${pend}\nAl día: ${aldia}`;
+  // añadir top tickets por urgencia/preventivo (solo conteo, no listar todos)
+  const topUrg = tickets.filter(t => t.categoria === 'urgente').slice(0,3).map(t => `#${t.ticket}`).join(', ');
+  if(topUrg) msg += `\nEjemplos urgentes: ${topUrg}`;
+  return msg;
+}
+
+function generarResumenGeneral(tipo){
+  // tipo: 'totales_global','pendientes_stocar','sla_72h','preventivos','urgentes'
+  const resumen = { urg:0, prev:0, pend:0, totales: rawData.length };
+  const porAsesor = {};
+  rawData.forEach(t => {
+    if(!porAsesor[t.asesor]) porAsesor[t.asesor] = { urg:0, prev:0, pend:0 };
+    if(t.categoria === 'urgente'){ resumen.urg++; porAsesor[t.asesor].urg++; }
+    else if(t.categoria === 'preventivo'){ resumen.prev++; porAsesor[t.asesor].prev++; }
+    else if(t.estado.toLowerCase() === 'pending' && t.categoria !== 'urgente'){ resumen.pend++; porAsesor[t.asesor].pend++; }
+  });
+
+  // Top asesores que necesitan atención (ordenados por urgentes, luego preventivos)
+  const asesoresArray = Object.keys(porAsesor).map(name => ({ nombre: name, urg: porAsesor[name].urg, prev: porAsesor[name].prev, pend: porAsesor[name].pend }));
+  asesoresArray.sort((a,b) => b.urg - a.urg || b.prev - a.prev || b.pend - a.pend);
+  const top = asesoresArray.slice(0,5).filter(x => x.urg > 0 || x.prev > 0 || x.pend > 0);
+
+  let titulo = '';
+  if(tipo === 'totales_global') titulo = 'Resumen general - Todos los tickets';
+  else if(tipo === 'pendientes_stocar') titulo = 'Resumen - Pendientes (seguimiento diario)';
+  else if(tipo === 'sla_72h') titulo = 'Resumen - Bandeja 72h (SLA)';
+  else if(tipo === 'preventivos') titulo = 'Resumen - Preventivos';
+  else if(tipo === 'urgentes') titulo = 'Resumen - Urgentes';
+  else titulo = 'Resumen operativo';
+
+  let msg = `${titulo}\nTotal tickets en bandeja: ${resumen.totales}\nUrgentes: ${resumen.urg}\nPreventivos: ${resumen.prev}\nPendientes (seguimiento): ${resumen.pend}\n\nAsesores con más rezagos:\n`;
+  if(top.length === 0) msg += 'Ninguno en este momento.';
+  else msg += top.map(a => `${a.nombre}: U=${a.urg} P=${a.prev} Pend=${a.pend}`).join('\n');
+
+  return msg;
+}
+
+/* -------------------------
+   MODALES, TABLAS Y COPIAR/WA
    ------------------------- */
 function abrirModalAsesor(nombre){
   asesorActivoModal = nombre;
@@ -464,26 +473,14 @@ function abrirModalAsesor(nombre){
 
   const tkFiltrados = rawData.filter(x => x.asesor === nombre);
   tkFiltrados.sort((a,b) => {
-    // ordenar por prioridad: urgente -> preventivo -> al-dia, luego por horas desde creación desc
-    const prioridad = p => {
-      if(p.categoria === 'urgente') return 1;
-      if(p.categoria === 'preventivo') return 2;
-      return 3;
-    };
+    const prioridad = p => { if(p.categoria === 'urgente') return 1; if(p.categoria === 'preventivo') return 2; return 3; };
     const pa = prioridad(a), pb = prioridad(b);
     if(pa !== pb) return pa - pb;
     return b.horasEdad - a.horasEdad;
   });
 
-  // Alerta resumen del asesor
-  const resumen = { urg:0, pend:0, prev:0, aldia:0 };
-  tkFiltrados.forEach(d => {
-    if(d.categoria === 'urgente') resumen.urg++;
-    else if(d.categoria === 'preventivo') resumen.prev++;
-    else if(d.estado.toLowerCase() === 'pending' && d.categoria !== 'urgente') resumen.pend++;
-    else if(d.categoria === 'al-dia') resumen.aldia++;
-  });
-  alert(`Asesor: ${nombre}\n🔴 Urgentes: ${resumen.urg}\n🟡 Preventivos: ${resumen.prev}\n🟦 Pendientes no tocados: ${resumen.pend}\n🟢 Al día: ${resumen.aldia}`);
+  const resumen = generarResumenPorAsesor(nombre);
+  document.getElementById('modalSummary').innerText = resumen;
 
   construirTablaModal(tkFiltrados);
   mostrarModal();
@@ -491,8 +488,8 @@ function abrirModalAsesor(nombre){
 
 function abrirModalPorMetrica(tipo){
   asesorActivoModal = "all";
-  document.getElementById('btnModalCopy').style.display = 'none';
-  document.getElementById('btnModalWA').style.display = 'none';
+  document.getElementById('btnModalCopy').style.display = 'inline-block';
+  document.getElementById('btnModalWA').style.display = 'inline-block';
   let titulo = "Listado Muro";
   let tkFiltrados = [];
 
@@ -516,22 +513,8 @@ function abrirModalPorMetrica(tipo){
   document.getElementById('modalTitle').innerText = titulo;
   tkFiltrados.sort((a,b) => b.horasEdad - a.horasEdad);
 
-  // Alerta top 5 asesores por rezagos (urgentes + preventivos + pendientes relevantes)
-  const asesoresArray = Object.values(
-    rawData.reduce((acc, d) => {
-      if(!acc[d.asesor]) acc[d.asesor] = { nombre: d.asesor, rezago: 0 };
-      if(d.categoria === 'urgente') acc[d.asesor].rezago++;
-      else if(d.categoria === 'preventivo') acc[d.asesor].rezago++;
-      else if(d.estado.toLowerCase() === 'pending' && d.categoria !== 'urgente') acc[d.asesor].rezago++;
-      return acc;
-    }, {})
-  );
-  asesoresArray.sort((a,b) => b.rezago - a.rezago);
-  const top = asesoresArray.slice(0,5).filter(x => x.rezago>0);
-  if(top.length>0){
-    const msg = top.map(x => `${x.nombre}: ${x.rezago}`).join('\n');
-    alert(`Top asesores con más rezagos:\n${msg}`);
-  }
+  const resumen = generarResumenGeneral(tipo);
+  document.getElementById('modalSummary').innerText = resumen;
 
   construirTablaModal(tkFiltrados);
   mostrarModal();
@@ -546,12 +529,7 @@ function construirTablaModal(listaTickets){
     return;
   }
 
-  // Orden por prioridad: urgente -> preventivo -> al-dia
-  const prioridad = p => {
-    if(p.categoria === 'urgente') return 1;
-    if(p.categoria === 'preventivo') return 2;
-    return 3;
-  };
+  const prioridad = p => { if(p.categoria === 'urgente') return 1; if(p.categoria === 'preventivo') return 2; return 3; };
   listaTickets.sort((a,b) => {
     const pa = prioridad(a), pb = prioridad(b);
     if(pa !== pb) return pa - pb;
@@ -591,44 +569,30 @@ function cerrarModal(){ document.getElementById('modalDetalles').classList.remov
 function cerrarModalExterno(event){ if(event.target.id === 'modalDetalles') cerrarModal(); }
 
 /* -------------------------
-   COPIAR / WHATSAPP
+   COPIAR / WHATSAPP (envío de resumen, no lista completa)
    ------------------------- */
 function copiarReporteDesdeModal(){
-  if(asesorActivoModal === "all") return;
-  let urg = [], pend = [], prev = [], aldia = [];
-  rawData.filter(x => x.asesor === asesorActivoModal).forEach(d => {
-    const l = `#${d.ticket} (${d.horasEdad}h / ${d.diasEdad}d) - ${TICKET_BASE_URL}${d.ticket}`;
-    if(d.categoria === 'urgente') urg.push(l);
-    else if(d.categoria === 'preventivo') prev.push(l);
-    else if(d.estado.toLowerCase() === 'pending' && d.categoria !== 'urgente') pend.push(l);
-    else aldia.push(l);
+  let mensaje = '';
+  if(asesorActivoModal === "all"){
+    // tomar el resumen mostrado en modalSummary
+    mensaje = document.getElementById('modalSummary').innerText || generarResumenGeneral('totales_global');
+  } else {
+    mensaje = generarResumenPorAsesor(asesorActivoModal);
+  }
+  navigator.clipboard.writeText(mensaje).then(()=> {
+    // Mensaje discreto en consola; no alertas en UI
+    console.log('Resumen copiado al portapapeles.');
   });
-
-  let m = `AUDITORÍA ATC VENTO\nAsesor: ${asesorActivoModal}\n\n`;
-  if(urg.length>0) m+=`URGENTES:\n${urg.join('\n')}\n\n`;
-  if(prev.length>0) m+=`PREVENTIVOS:\n${prev.join('\n')}\n\n`;
-  if(pend.length>0) m+=`PENDING (seguimiento):\n${pend.join('\n')}\n\n`;
-  if(aldia.length>0) m+=`AL DÍA:\n${aldia.join('\n')}\n\n`;
-  navigator.clipboard.writeText(m).then(()=>alert('Copiado.'));
 }
 
 function enviarWhatsAppDesdeModal(){
-  if(asesorActivoModal === "all") return;
-  let urg = [], pend = [], prev = [], aldia = [];
-  rawData.filter(x => x.asesor === asesorActivoModal).forEach(d => {
-    const l = `#${d.ticket} (${d.horasEdad}h / ${d.diasEdad}d) - ${TICKET_BASE_URL}${d.ticket}`;
-    if(d.categoria === 'urgente') urg.push(l);
-    else if(d.categoria === 'preventivo') prev.push(l);
-    else if(d.estado.toLowerCase() === 'pending' && d.categoria !== 'urgente') pend.push(l);
-    else aldia.push(l);
-  });
-
-  let m = `AUDITORÍA ATC VENTO\nAsesor: ${asesorActivoModal}\n\n`;
-  if(urg.length>0) m+=`URGENTES:\n${urg.join('\n')}\n\n`;
-  if(prev.length>0) m+=`PREVENTIVOS:\n${prev.join('\n')}\n\n`;
-  if(pend.length>0) m+=`PENDING (seguimiento):\n${pend.join('\n')}\n\n`;
-  if(aldia.length>0) m+=`AL DÍA:\n${aldia.join('\n')}\n\n`;
-  window.open(`https://wa.me/?text=${encodeURIComponent(m)}`, '_blank');
+  let mensaje = '';
+  if(asesorActivoModal === "all"){
+    mensaje = document.getElementById('modalSummary').innerText || generarResumenGeneral('totales_global');
+  } else {
+    mensaje = generarResumenPorAsesor(asesorActivoModal);
+  }
+  window.open(`https://wa.me/?text=${encodeURIComponent(mensaje)}`, '_blank');
 }
 
 /* -------------------------
